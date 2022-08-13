@@ -13,6 +13,10 @@ import torch.optim as optim
 import os
 import glob
 import pickle
+import warnings
+
+
+
 
 
 from lib.SummaryWriter import SummaryWriter
@@ -184,6 +188,7 @@ def calc_loss(batch, net, tgt_net, device="cpu"):
 
 
 if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser()
     cudaDefault = False
     if (torch.cuda.is_available()):
@@ -200,7 +205,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
 
-    print(device)
+    print("device : ",device)
 
     env = wrappers.make_env(args.env)
 
