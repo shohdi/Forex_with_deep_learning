@@ -114,8 +114,8 @@ class FileDataset(torch.utils.data.Dataset):
 
 
 class ExperienceBuffer:
-    def __init__(self, capacity):
-        self.buffer = collections.deque(maxlen=capacity)
+    def __init__(self, buffer_path,capacity):
+        self.buffer = FileDataset(buffer_path,capacity)
 
     def __len__(self):
         return len(self.buffer)
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     
     buffer_path = os.path.join(MY_DATA_PATH,'buffer')
     buffer_path = os.path.join(buffer_path,'data')
-    buffer = FileDataset(buffer_path,REPLAY_SIZE)
+    buffer = ExperienceBuffer(buffer_path,REPLAY_SIZE)
     agent = Agent(env, buffer)
     epsilon = EPSILON_START
 

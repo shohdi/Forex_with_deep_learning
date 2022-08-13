@@ -1,3 +1,5 @@
 *.ex4
 *.DS_Store
 *.pyc
+data/
+events.out.*
