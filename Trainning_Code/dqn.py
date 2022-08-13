@@ -15,7 +15,7 @@ import glob
 import pickle
 
 
-from lib import SummaryWriter
+from lib.SummaryWriter import SummaryWriter
 
 
 DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
