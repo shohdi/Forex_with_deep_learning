@@ -11,9 +11,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import os
+import glob
+import pickle
 
 
-from tensorboardX import SummaryWriter
+from lib import SummaryWriter
 
 
 DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
@@ -33,6 +35,82 @@ MY_DATA_PATH = 'data'
 
 
 Experience = collections.namedtuple('Experience', field_names=['state', 'action', 'reward', 'done', 'new_state'])
+
+
+class FileDataset(torch.utils.data.Dataset):
+    def __init__(self,root,itemLen):
+        self.root = root
+        if not os.path.exists(self.root):
+            os.makedirs(self.root)
+        self.maxLen = itemLen
+        print('start counting files!')
+        self.len  = len(glob.glob1(root,"*.pickle"))
+        print('counted files is {}'.format(self.len))
+        
+        if(self.len > self.maxLen):
+            self.len =self.maxLen
+        
+        
+        self.pos = (self.len % self.maxLen)
+
+
+        print('start check file sizes!')
+        if self.len > 0:
+            idx = self.len-1
+            b = os.path.getsize(os.path.join(self.root,str(idx) + '.pickle'))
+            if b == 0:
+                print('found corrupted! {}'.format(idx))
+                
+                self.__setitem__(idx,self.__getitem__((idx + 1)%self.len))
+            if idx % 10000 == 0:
+                print('finished check number {}'.format(idx))
+                
+
+                
+                    
+
+
+    
+    def __len__(self):
+        return self.len
+
+    def __getitem__(self,idx):
+        obj = pickle.load(open(os.path.join(self.root,str(idx) + '.pickle'),'rb'))
+        return obj
+    
+
+    def __setitem__(self,idx,obj):
+        pickle.dump(obj,open(os.path.join(self.root,str(idx) + '.pickle'),'wb'))
+    
+    def append(self,obj):
+        
+        self.__setitem__(self.pos,obj)
+        self.pos += 1
+        self.pos = (self.pos % self.maxLen)
+        if(self.len < self.maxLen):
+            self.len +=1
+
+    def __str__(self):
+        ret = '[\n'
+        found = False
+        for i in range(self.len):
+            ret = ret + str(self.__getitem__(i))
+            ret = ret + ',\n'
+            found = True
+        if found:
+            ret = ret[:-2]
+            ret = ret + '\n'
+        ret = ret + ']\n'
+        return ret
+
+
+
+    def __iter__(self):
+        
+        for i in range(self.len):
+            yield self.__getitem__(i)
+
+        
 
 
 class ExperienceBuffer:
@@ -128,8 +206,10 @@ if __name__ == "__main__":
     tgt_net = dqn_model.DQN(env.observation_space.shape, env.action_space.n).to(device)
     writer = SummaryWriter(comment="-" + args.env)
     print(net)
-
-    buffer = ExperienceBuffer(REPLAY_SIZE)
+    
+    buffer_path = os.path.join(MY_DATA_PATH,'buffer')
+    buffer_path = os.path.join(buffer_path,'data')
+    buffer = FileDataset(buffer_path,REPLAY_SIZE)
     agent = Agent(env, buffer)
     epsilon = EPSILON_START
 
