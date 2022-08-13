@@ -10,6 +10,8 @@ import collections
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import os
+
 
 from tensorboardX import SummaryWriter
 
@@ -27,6 +29,7 @@ REPLAY_START_SIZE = 10000
 EPSILON_DECAY_LAST_FRAME = 10**5
 EPSILON_START = 1.0
 EPSILON_FINAL = 0.02
+MY_DATA_PATH = 'data'
 
 
 Experience = collections.namedtuple('Experience', field_names=['state', 'action', 'reward', 'done', 'new_state'])
@@ -104,7 +107,14 @@ def calc_loss(batch, net, tgt_net, device="cpu"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
+    cudaDefault = False
+    if (torch.cuda.is_available()):
+        cudaDefault = True
+    if (not os.path.exists(MY_DATA_PATH)):
+        os.makedirs(MY_DATA_PATH)
+    
+        
+    parser.add_argument("--cuda", default=cudaDefault, action="store_true", help="Enable cuda")
     parser.add_argument("--env", default=DEFAULT_ENV_NAME,
                         help="Name of the environment, default=" + DEFAULT_ENV_NAME)
     parser.add_argument("--reward", type=float, default=MEAN_REWARD_BOUND,
@@ -150,7 +160,8 @@ if __name__ == "__main__":
             writer.add_scalar("reward_100", mean_reward, frame_idx)
             writer.add_scalar("reward", reward, frame_idx)
             if best_mean_reward is None or best_mean_reward < mean_reward:
-                torch.save(net.state_dict(), args.env + "-best.dat")
+                myFilePath = os.path.join(MY_DATA_PATH,args.env + "-best.dat")
+                torch.save(net.state_dict(), myFilePath)
                 if best_mean_reward is not None:
                     print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
                 best_mean_reward = mean_reward
