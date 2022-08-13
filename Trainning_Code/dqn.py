@@ -200,6 +200,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
 
+    print(device)
+
     env = wrappers.make_env(args.env)
 
     net = dqn_model.DQN(env.observation_space.shape, env.action_space.n).to(device)
