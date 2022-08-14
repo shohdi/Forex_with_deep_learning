@@ -222,10 +222,14 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
     total_rewards = []
-    frame_idx = 0
-    ts_frame = 0
+    frame_idx = len(buffer) 
+    ts_frame = frame_idx
     ts = time.time()
     best_mean_reward = None
+    myFilePath = os.path.join(MY_DATA_PATH,args.env + "-best.dat")
+    if os.path.exists(myFilePath):
+        net.load_state_dict(torch.load(myFilePath,map_location=device))
+        tgt_net.load_state_dict(net.state_dict())
 
     while True:
         frame_idx += 1
@@ -247,7 +251,7 @@ if __name__ == "__main__":
             writer.add_scalar("reward_100", mean_reward, frame_idx)
             writer.add_scalar("reward", reward, frame_idx)
             if best_mean_reward is None or best_mean_reward < mean_reward:
-                myFilePath = os.path.join(MY_DATA_PATH,args.env + "-best.dat")
+                
                 torch.save(net.state_dict(), myFilePath)
                 if best_mean_reward is not None:
                     print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
