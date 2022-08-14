@@ -218,11 +218,12 @@ if __name__ == "__main__":
     buffer_path = os.path.join(buffer_path,'data')
     buffer = ExperienceBuffer(buffer_path,REPLAY_SIZE)
     agent = Agent(env, buffer)
-    epsilon = EPSILON_START
+    
 
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
     total_rewards = []
-    frame_idx = len(buffer) 
+    frame_idx = len(buffer)
+    epsilon =  max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME) 
     ts_frame = frame_idx
     ts = time.time()
     best_mean_reward = None
