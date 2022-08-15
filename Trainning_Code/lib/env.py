@@ -16,6 +16,8 @@ class ForexEnv(gym.Env):
         self.data = None
         self.startAsk = None
         self.startBid = None
+        self.openTradeAsk = None
+        self.openTradeBid = None
         self.step = 0
         
         with open(self.filePath, 'r') as f:
@@ -38,6 +40,8 @@ class ForexEnv(gym.Env):
         
         self.startAsk = self.data[self.startIndex,self.header.index("ask")]
         self.startBid = self.data[self.startIndex,self.header.index("bid")]
+        self.openTradeAsk = None
+        self.openTradeBid = None
 
     def step(self,action_idx):
         reward = 0
@@ -72,14 +76,29 @@ class ForexEnv(gym.Env):
                 reward = self.closeUpTrade()
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade()
-            else
+            else:
                 reward = 0
             done = True
         
 
         state = self.getState()
-
+        self.step+=1
         return state , reward , done ,None
+
+        
+    def getState(self):
+        state = self.data[self.startIndex+self.step:(self.startIndex+self.step+100)]
+        actions = np.zeros((100,2),dtype=np.float32)
+        if self.openTradeDir == 1:
+            actions[:,0] = self.openTradeAsk
+        if self.openTradeDir == 2:
+            actions[:,1] = self.openTradeBid
+        
+        
+        
+        state = np.concatenate((state,actions),axis=1)
+        state = (state/self.startClose)/2
+        return state
 
         
 
