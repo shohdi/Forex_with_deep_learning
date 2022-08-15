@@ -140,6 +140,7 @@ if __name__ == "__main__":
     print(env.reset())
     i = 0
     while i < 500 :
+        i+=1
         action = np.random.randint(3)
         _,reward,done,_ = env.step(action)
         if done :
