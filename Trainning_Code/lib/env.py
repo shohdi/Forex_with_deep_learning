@@ -1,5 +1,7 @@
 from ssl import ALERT_DESCRIPTION_INSUFFICIENT_SECURITY
 import gym
+import gym.spaces
+from gym.utils import seeding
 import collections
 import numpy as np
 import csv
@@ -175,7 +177,16 @@ class ForexEnv(gym.Env):
             return False,None
         
 
+    def render(self, mode='human', close=False):
+        pass
 
+    def close(self):
+        pass
+
+    def seed(self, seed=None):
+        self.np_random, seed1 = seeding.np_random(seed)
+        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
+        return [seed1, seed2]
 
 
 
@@ -190,15 +201,46 @@ if __name__ == "__main__":
     print(env.reset())
     i = 0
     sumReward = 0
+    reward = 0
+    done = False
+    win = False
     while i < 500 :
         i+=1
-        action = np.random.randint(3)
-        _,reward,done,_ = env.step(action)
-        if done :
-            print ("reward : " , reward)
-            sumReward += reward
-            env.reset()
-            print ("ten last one ",env.lastTenData[-1] )
+        print(i)
+        win = False
+        while not win :
+            win,winStep = env.analysisUpTrade()
+
+            if(win):
+                #up is sucess
+                _,reward,done,_ = env.step(1)
+                while env.stepIndex < winStep and not done:
+                    _,reward,done,_ = env.step(0)
+                
+                _,reward,done,_ = env.step(2)
+            
+            if not win :
+                win,winStep = env.analysisDownTrade()
+                if(win):
+                    #down is success
+                    _,reward,done,_ = env.step(2)
+                    while env.stepIndex < winStep and not done:
+                        _,reward,done,_ = env.step(0)
+                    
+                    _,reward,done,_ = env.step(1)   
+
+            
+            
+            if done :
+                print ("reward : " , reward)
+                sumReward += reward
+                env.reset()
+                reward = 0
+               
+                print ("ten last one ",env.lastTenData[-1] )
+            else:
+                _,reward,done,_ = env.step(0)
+            
     
     print ("average reward ",sumReward/i)
             
