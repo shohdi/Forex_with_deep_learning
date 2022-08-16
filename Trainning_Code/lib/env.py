@@ -139,14 +139,18 @@ if __name__ == "__main__":
     env = ForexEnv("minutes15_100/data/test_data.csv")
     print(env.reset())
     i = 0
+    sumReward = 0
     while i < 500 :
         i+=1
         action = np.random.randint(3)
         _,reward,done,_ = env.step(action)
         if done :
             print ("reward : " , reward)
+            sumReward += reward
             env.reset()
             print ("ten last one ",env.lastTenData[-1] )
+    
+    print ("average reward ",sumReward/i)
             
     
 
