@@ -31,3 +31,36 @@ class DQN(nn.Module):
     def forward(self, x):
         conv_out = self.conv(x).view(x.size()[0], -1)
         return self.fc(conv_out)
+
+
+
+class LSTM_Forex (nn.Module):
+    def __init__(self,selDevice,input_shape,actions):
+
+        super(LSTM_Forex,self).__init__()
+        self.input_shape = input_shape
+        self.actions = actions
+        self.selected_device = selDevice
+        self.inSize = self.input_shape[1]
+        self.hiddenSize = 100
+        self.numLayers = 2
+        self.outSize = 512
+        self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
+        
+        
+        self.fc = nn.Sequential(
+            nn.Linear(self.hiddenSize, 512),
+            nn.ReLU(),
+            nn.Linear(512, self.actions)
+        )
+    
+    def forward(self,x):
+        h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
+        c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
+        out,(hn,cn) = self.lstm(x,(h0,c0))
+        out = self.fc(out[:,-1,:])
+        return out
+
+    
+    
+

@@ -21,19 +21,21 @@ import warnings
 
 from lib.SummaryWriter import SummaryWriter
 
+from lib.env import ForexEnv
 
-DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
-MEAN_REWARD_BOUND = 19.5
+
+DEFAULT_ENV_NAME = "Forex-v4"
+MEAN_REWARD_BOUND = 0.01
 
 GAMMA = 0.99
 BATCH_SIZE = 32
-REPLAY_SIZE = 100000
+REPLAY_SIZE = 1000000
 LEARNING_RATE = 1e-4
 SYNC_TARGET_FRAMES = 1000
 REPLAY_START_SIZE = 10000
 
 EPSILON_DECAY_LAST_FRAME = 10**5
-EPSILON_START = 1.0
+EPSILON_START = 0.02
 EPSILON_FINAL = 0.02
 MY_DATA_PATH = 'data'
 
@@ -138,11 +140,59 @@ class Agent:
     def __init__(self, env, exp_buffer):
         self.env = env
         self.exp_buffer = exp_buffer
+        self.win = False
+        self.winStep = None
+        self.tradeDir = 0
+        self.actionTraded = 0
         self._reset()
 
     def _reset(self):
-        self.state = env.reset()
+        self.state = self.env.reset()
         self.total_reward = 0.0
+        self.win = False
+        self.winStep = None
+        self.tradeDir = 0
+        self.actionTraded = 0
+
+    def play_stepWin(self, net, epsilon=0.0, device="cpu"):
+        done_reward = None
+        action = None
+        if not self.win :
+            self.win,self.winStep = self.env.analysisUpTrade()
+            if self.win:
+                self.tradeDir = 1
+            if not self.win:
+                self.win,self.winStep = self.env.analysisDownTrade()
+                if self.win:
+                    self.tradeDir = 2
+
+        if self.actionTraded == 0 and self.win :
+            #take action
+            action = self.tradeDir
+            self.actionTraded = action
+        elif self.actionTraded != 0 and self.env.stepIndex >= self.winStep:
+            if self.actionTraded == 1:
+                action = 2
+            else :
+                action = 1
+        else :
+            action = 0
+
+                
+
+        
+
+        # do step in the environment
+        new_state, reward, is_done, _ = self.env.step(action)
+        self.total_reward += reward
+
+        exp = Experience(self.state, action, reward, is_done, new_state)
+        self.exp_buffer.append(exp)
+        self.state = new_state
+        if is_done:
+            done_reward = self.total_reward
+            self._reset()
+        return done_reward
 
     def play_step(self, net, epsilon=0.0, device="cpu"):
         done_reward = None
@@ -207,10 +257,10 @@ if __name__ == "__main__":
 
     print("device : ",device)
 
-    env = wrappers.make_env(args.env)
-
-    net = dqn_model.DQN(env.observation_space.shape, env.action_space.n).to(device)
-    tgt_net = dqn_model.DQN(env.observation_space.shape, env.action_space.n).to(device)
+    #env = wrappers.make_env(args.env)
+    env = ForexEnv('minutes15_100/data/train_data.csv')
+    net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
+    tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
     writer = SummaryWriter(comment="-" + args.env)
     print(net)
     
@@ -235,8 +285,11 @@ if __name__ == "__main__":
     while True:
         frame_idx += 1
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
-
-        reward = agent.play_step(net, epsilon, device=device)
+        reward = 0
+        if frame_idx < 1000000:
+            reward = agent.play_stepWin(net,epsilon,device=device)
+        else :
+            reward = agent.play_step(net, epsilon, device=device)
         if reward is not None:
             total_rewards.append(reward)
             speed = (frame_idx - ts_frame) / (time.time() - ts)

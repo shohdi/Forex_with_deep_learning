@@ -9,6 +9,8 @@ import csv
 class ForexEnv(gym.Env):
     def __init__(self,filePath):
         self.filePath = filePath
+        self.action_space = gym.spaces.Discrete(n=3)
+        
         
         self.startTradeStep = None
         self.startClose = None
@@ -28,7 +30,8 @@ class ForexEnv(gym.Env):
             self.header = next(reader)
             self.data = np.array(list(reader)).astype(np.float32)
         
-        self.reset()
+        test_state = self.reset()
+        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
 
 
