@@ -134,6 +134,56 @@ class ForexEnv(gym.Env):
         currentAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
         return ((self.openTradeBid - currentAsk)/self.startClose)/2
 
+    def analysisUpTrade(self):
+        startStep = self.startIndex + self.stepIndex
+        currentStep = startStep
+        startAsk = self.data[startStep,self.header.index("ask")]
+        currentBid = self.data[currentStep,self.header.index("bid")]
+        diff = (startAsk - currentBid)
+        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-1)):
+            currentStep += 1
+            currentBid = self.data[currentStep,self.header.index("bid")]
+        if currentStep == (len(self.data)-1):
+            #end of game
+            return False,None
+        
+        if (currentBid - startAsk) >= (diff):
+            #win
+            return True,currentStep - self.startIndex
+        else:
+            #loss
+            return False,None
+
+    def analysisDownTrade(self):
+        startStep = self.startIndex + self.stepIndex
+        currentStep = startStep
+        startBid = self.data[startStep,self.header.index("bid")]
+        currentAsk = self.data[currentStep,self.header.index("ask")]
+        diff = (currentAsk - startBid)
+        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-1)):
+            currentStep += 1
+            currentAsk = self.data[currentStep,self.header.index("ask")]
+        if currentStep == (len(self.data)-1):
+            #end of game
+            return False,None
+        
+        if (startBid - currentAsk) >= (diff):
+            #win
+            return True,currentStep - self.startIndex
+        else:
+            #loss
+            return False,None
+        
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     env = ForexEnv("minutes15_100/data/test_data.csv")
