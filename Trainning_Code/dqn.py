@@ -286,7 +286,7 @@ if __name__ == "__main__":
         frame_idx += 1
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
         reward = 0
-        if frame_idx < 100000 or len(total_rewards) % 2 == 0:
+        if frame_idx < 20000 or len(total_rewards) % 2 == 0:
             reward = agent.play_stepWin(net,epsilon,device=device)
         else :
             reward = agent.play_step(net, epsilon, device=device)
