@@ -137,22 +137,32 @@ class ExperienceBuffer:
 
 
 class Agent:
-    def __init__(self, env, exp_buffer):
+    def __init__(self, env, exp_buffer,envTest):
         self.env = env
+        self.envTest = envTest
         self.exp_buffer = exp_buffer
         self.win = False
         self.winStep = None
         self.tradeDir = 0
         self.actionTraded = 0
         self._reset()
+        self._resetTest()
+
 
     def _reset(self):
         self.state = self.env.reset()
+        
         self.total_reward = 0.0
+        
         self.win = False
         self.winStep = None
         self.tradeDir = 0
         self.actionTraded = 0
+    
+    def _resetTest(self):
+        self.stateTest = self.envTest.reset()
+        self.total_rewardTest = 0.0
+
 
     def play_stepWin(self, net, epsilon=0.0, device="cpu"):
         done_reward = None
@@ -218,6 +228,28 @@ class Agent:
             self._reset()
         return done_reward
 
+    def play_step_test(self, net, device="cpu"):
+        done_reward = None
+
+        
+        
+        state_a = np.array([self.stateTest], copy=False)
+        state_v = torch.tensor(state_a).to(device)
+        q_vals_v = net(state_v)
+        _, act_v = torch.max(q_vals_v, dim=1)
+        action = int(act_v.item())
+
+        # do step in the environment
+        new_state, reward, is_done, _ = self.envTest.step(action)
+        self.total_rewardTest += reward
+
+        
+        self.stateTest = new_state
+        if is_done:
+            done_reward = self.total_rewardTest
+            self._resetTest()
+        return done_reward
+
 
 def calc_loss(batch, net, tgt_net, device="cpu"):
     states, actions, rewards, dones, next_states = batch
@@ -259,6 +291,7 @@ if __name__ == "__main__":
 
     #env = wrappers.make_env(args.env)
     env = ForexEnv('minutes15_100/data/train_data.csv')
+    envTest = ForexEnv('minutes15_100/data/test_data.csv')
     net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
     writer = SummaryWriter(comment="-" + args.env)
@@ -267,7 +300,7 @@ if __name__ == "__main__":
     buffer_path = os.path.join(MY_DATA_PATH,'buffer')
     buffer_path = os.path.join(buffer_path,'data')
     buffer = ExperienceBuffer(buffer_path,REPLAY_SIZE)
-    agent = Agent(env, buffer)
+    agent = Agent(env, buffer,envTest)
     
 
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
@@ -279,7 +312,7 @@ if __name__ == "__main__":
     best_mean_reward = None
     myFilePath = os.path.join(MY_DATA_PATH,args.env + "-best.dat")
     myFilePath1000 = os.path.join(MY_DATA_PATH,args.env + "-10000.dat")
-    if os.path.exists(myFilePath):
+    if os.path.exists(myFilePath1000):
         net.load_state_dict(torch.load(myFilePath,map_location=device))
         tgt_net.load_state_dict(net.state_dict())
     gameSteps = 0
@@ -315,7 +348,7 @@ if __name__ == "__main__":
                     print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
                 best_mean_reward = mean_reward
             
-            if frame_idx % 10000 == 0:
+            if frame_idx % 10000 == 0 and frame_idx > 0:
                 torch.save(net.state_dict(), myFilePath1000)
 
 
@@ -323,7 +356,17 @@ if __name__ == "__main__":
             if mean_reward > args.reward:
                 print("Solved in %d frames!" % frame_idx)
                 break
-
+        
+        if frame_idx % 10000 == 0 and frame_idx > 0:
+            #start testing
+            rewardTest = None
+            testSteps = 0
+            while rewardTest is None:
+                testSteps += 1
+                rewardTest = agent.play_step_test(net,device)
+            writer.add_scalar("test reward",rewardTest,frame_idx)
+            writer.add_scalar("test steps",testSteps,frame_idx)
+            print("test steps " + testSteps + " test reward " + rewardTest)
         if len(buffer) < REPLAY_START_SIZE:
             continue
 
@@ -335,4 +378,7 @@ if __name__ == "__main__":
         loss_t = calc_loss(batch, net, tgt_net, device=device)
         loss_t.backward()
         optimizer.step()
+
+
+
     writer.close()
