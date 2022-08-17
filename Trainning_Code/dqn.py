@@ -278,6 +278,7 @@ if __name__ == "__main__":
     ts = time.time()
     best_mean_reward = None
     myFilePath = os.path.join(MY_DATA_PATH,args.env + "-best.dat")
+    myFilePath1000 = os.path.join(MY_DATA_PATH,args.env + "-10000.dat")
     if os.path.exists(myFilePath):
         net.load_state_dict(torch.load(myFilePath,map_location=device))
         tgt_net.load_state_dict(net.state_dict())
@@ -313,6 +314,12 @@ if __name__ == "__main__":
                 if best_mean_reward is not None:
                     print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
                 best_mean_reward = mean_reward
+            
+            if frame_idx % 10000 == 0:
+                torch.save(net.state_dict(), myFilePath1000)
+
+
+
             if mean_reward > args.reward:
                 print("Solved in %d frames!" % frame_idx)
                 break
