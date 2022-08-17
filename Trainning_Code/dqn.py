@@ -366,7 +366,7 @@ if __name__ == "__main__":
                 rewardTest = agent.play_step_test(net,device)
             writer.add_scalar("test reward",rewardTest,frame_idx)
             writer.add_scalar("test steps",testSteps,frame_idx)
-            print("test steps " + testSteps + " test reward " + rewardTest)
+            print("test steps " + str(testSteps) + " test reward " + str(rewardTest))
         if len(buffer) < REPLAY_START_SIZE:
             continue
 
