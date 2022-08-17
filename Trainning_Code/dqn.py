@@ -281,29 +281,32 @@ if __name__ == "__main__":
     if os.path.exists(myFilePath):
         net.load_state_dict(torch.load(myFilePath,map_location=device))
         tgt_net.load_state_dict(net.state_dict())
-
+    gameSteps = 0
     while True:
         frame_idx += 1
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
         reward = 0
-        if frame_idx < 1000000:
+        if frame_idx < 100000 or len(total_rewards) % 2 == 0:
             reward = agent.play_stepWin(net,epsilon,device=device)
         else :
             reward = agent.play_step(net, epsilon, device=device)
+        gameSteps+=1
         if reward is not None:
             total_rewards.append(reward)
             speed = (frame_idx - ts_frame) / (time.time() - ts)
             ts_frame = frame_idx
             ts = time.time()
             mean_reward = np.mean(total_rewards[-100:])
-            print("%d: done %d games, mean reward %.7f, eps %.2f, speed %.2f f/s" % (
-                frame_idx, len(total_rewards), mean_reward, epsilon,
+            print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f, speed %.2f f/s" % (
+                frame_idx, len(total_rewards) , reward , gameSteps , mean_reward,
                 speed
             ))
             writer.add_scalar("epsilon", epsilon, frame_idx)
             writer.add_scalar("speed", speed, frame_idx)
             writer.add_scalar("reward_100", mean_reward, frame_idx)
             writer.add_scalar("reward", reward, frame_idx)
+            writer.add_scalar("steps", gameSteps, frame_idx)
+            gameSteps = 0
             if best_mean_reward is None or best_mean_reward < mean_reward:
                 
                 torch.save(net.state_dict(), myFilePath)
