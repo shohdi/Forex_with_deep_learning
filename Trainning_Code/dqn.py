@@ -35,7 +35,7 @@ SYNC_TARGET_FRAMES = 1000
 REPLAY_START_SIZE = 10000
 
 EPSILON_DECAY_LAST_FRAME = 10**5
-EPSILON_START = 0.02
+EPSILON_START = 1
 EPSILON_FINAL = 0.02
 MY_DATA_PATH = 'data'
 
@@ -331,8 +331,8 @@ if __name__ == "__main__":
             ts_frame = frame_idx
             ts = time.time()
             mean_reward = np.mean(total_rewards[-100:])
-            print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f, speed %.2f f/s" % (
-                frame_idx, len(total_rewards) , reward , gameSteps , mean_reward,
+            print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f , epsilon %.2f, speed %.2f f/s" % (
+                frame_idx, len(total_rewards) , reward , gameSteps , mean_reward,epsilon,
                 speed
             ))
             writer.add_scalar("epsilon", epsilon, frame_idx)

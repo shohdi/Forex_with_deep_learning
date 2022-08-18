@@ -108,14 +108,17 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
         
-        if self.startTradeStep is not None :
-            actions[:,2] = self.startTradeStep/200.0
+        
+
 
         
         
         
         state = np.concatenate((state,actions),axis=1)
         state = (state/self.startClose)/2
+        if self.startTradeStep is not None :
+            state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
+
         return state
 
     def openUpTrade(self):
