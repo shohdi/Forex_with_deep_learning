@@ -93,6 +93,10 @@ class ForexEnv(gym.Env):
 
         state = self.getState()
         self.stepIndex+=1
+        if self.startTradeStep is not None:
+            if (self.stepIndex - self.startTradeStep) > 200:
+                reward = -1
+                done = True
         return state , reward , done ,None
 
         
