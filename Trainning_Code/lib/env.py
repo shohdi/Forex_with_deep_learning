@@ -102,11 +102,15 @@ class ForexEnv(gym.Env):
         
     def getState(self):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
-        actions = np.zeros((100,2),dtype=np.float32)
+        actions = np.zeros((100,3),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
+        
+        if self.startTradeStep is not None :
+            actions[:,2] = self.startTradeStep/200.0
+
         
         
         
