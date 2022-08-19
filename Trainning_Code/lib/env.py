@@ -97,12 +97,16 @@ class ForexEnv(gym.Env):
             if (self.stepIndex - self.startTradeStep) > 200:
                 reward = -1
                 done = True
+        if self.startTradeStep is None:
+            if self.stepIndex > 200:
+                reward = -1
+                done = True
         return state , reward , done ,None
 
         
     def getState(self):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
-        actions = np.zeros((100,3),dtype=np.float32)
+        actions = np.zeros((100,4),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -116,7 +120,9 @@ class ForexEnv(gym.Env):
         
         state = np.concatenate((state,actions),axis=1)
         state = (state/self.startClose)/2
+        state[:,-2] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
+            
             state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
 
         return state
