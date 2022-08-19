@@ -24,7 +24,7 @@ from lib.SummaryWriter import SummaryWriter
 from lib.env import ForexEnv
 
 
-DEFAULT_ENV_NAME = "Forex-v4"
+DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
 MEAN_REWARD_BOUND = 0.01
 
 GAMMA = 0.99
