@@ -279,7 +279,7 @@ if __name__ == "__main__":
         os.makedirs(MY_DATA_PATH)
     
         
-    parser.add_argument("--cuda", default=cudaDefault, action="store_true", help="Enable cuda")
+    parser.add_argument("-c","--cuda", default=cudaDefault, help="Enable cuda")
     parser.add_argument("--env", default=DEFAULT_ENV_NAME,
                         help="Name of the environment, default=" + DEFAULT_ENV_NAME)
     parser.add_argument("--reward", type=float, default=MEAN_REWARD_BOUND,

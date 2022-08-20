@@ -27,7 +27,7 @@ if __name__ == "__main__":
     cudaDefault = False
     if (torch.cuda.is_available()):
         cudaDefault = True
-    parser.add_argument("--cuda", default=cudaDefault, action="store_true", help="Enable cuda")
+    parser.add_argument("-c","--cuda", default=cudaDefault, help="Enable cuda")
     myFilePath = os.path.join(MY_DATA_PATH,DEFAULT_ENV_NAME + "-10000.dat")
     parser.add_argument("-m", "--model", default=myFilePath, help="Model file to load")
     parser.add_argument("-e", "--env", default=DEFAULT_ENV_NAME,
