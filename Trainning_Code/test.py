@@ -71,7 +71,7 @@ if __name__ == "__main__":
             print ("reward " , total_reward)
             print ("all reward " ,  printed_reward)
             writer.add_scalar("reward" , total_reward,frameIdx)
-            writer.add_scalar("sum reward" , printed_reward,frameIdx)
+            writer.add_scalar("sum reward" , printed_reward,gameNumber)
             state = env.reset()
             total_reward = 0.0
 #        if args.visualize:
