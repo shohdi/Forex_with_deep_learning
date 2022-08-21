@@ -51,7 +51,7 @@ if __name__ == "__main__":
     total_reward = 0.0
     c = collections.Counter()
     printed_reward = 0.0
-    gameNumber = 0.0
+    gameNumber = 0
     writer = SummaryWriter(comment="-" + args.env)
     frameIdx = 0
     while True:
