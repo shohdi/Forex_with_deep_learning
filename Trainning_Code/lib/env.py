@@ -7,7 +7,8 @@ import numpy as np
 import csv
 
 class ForexEnv(gym.Env):
-    def __init__(self,filePath):
+    def __init__(self,filePath , punishAgent = True):
+        self.punishAgent = punishAgent
         self.filePath = filePath
         self.action_space = gym.spaces.Discrete(n=3)
         
@@ -94,11 +95,11 @@ class ForexEnv(gym.Env):
         state = self.getState()
         self.stepIndex+=1
         if self.startTradeStep is not None:
-            if (self.stepIndex - self.startTradeStep) > 200:
+            if (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
                 reward = -1
                 done = True
         if self.startTradeStep is None:
-            if self.stepIndex > 200:
+            if self.stepIndex > 200 and self.punishAgent:
                 reward = -1
                 done = True
         return state , reward , done ,None
