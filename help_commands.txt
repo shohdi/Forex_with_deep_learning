@@ -1,0 +1,2 @@
+if we have problem with flask and itsdangerous json use
+>pip install itsdangerous==2.0.1

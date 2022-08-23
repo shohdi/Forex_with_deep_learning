@@ -1,4 +1,4 @@
-from ssl import ALERT_DESCRIPTION_INSUFFICIENT_SECURITY
+
 import gym
 import gym.spaces
 from gym.utils import seeding
@@ -6,7 +6,13 @@ import collections
 import numpy as np
 import csv
 
+from threading import Thread
+from time import sleep
+from flask import Flask
+from flask_restful import Resource, Api
+
 class ForexMetaEnv(gym.Env):
+
     def __init__(self,punishAgent = True):
         self.states = collections.deque(maxlen=100)
         self.punishAgent = punishAgent
@@ -27,10 +33,11 @@ class ForexMetaEnv(gym.Env):
    
         self.stepIndex = 0
         
- 
         
-        test_state = self.reset()
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
+        
+        
+        #test_state = self.reset()
+        #self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
 
 
@@ -175,10 +182,53 @@ class ForexMetaEnv(gym.Env):
 
 
 
+class Quotes(Resource):
+    def get(self):
 
+        return {
+            'William Shakespeare': {
+                'quote': ['Love all,trust a few,do wrong to none',
+                'Some are born great, some achieve greatness, and some greatness thrust upon them.']
+        },
+        'Linus': {
+            'quote': ['Talk is cheap. Show me the code.']
+            }
+        }
+
+   
+
+
+
+
+def startApp():
+    env = ForexMetaEnv(False)
+    while (True):
+        print('test! ')
+        sleep(5)
 
 
 if __name__ == "__main__":
+    
+    thread = Thread(target=startApp)
+    thread.start()
+    
+    #start server
+    app = Flask(__name__)
+    api = Api(app)
+    api.add_resource(Quotes, '/')
+    app.run()
+
+
+
+
+    
+
+
+
+
+
+
+
 
 
     
