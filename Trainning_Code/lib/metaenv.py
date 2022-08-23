@@ -4,17 +4,15 @@ import gym.spaces
 from gym.utils import seeding
 import collections
 import numpy as np
-import csv
 
-from threading import Thread
-from time import sleep
-from flask import Flask
-from flask_restful import Resource, Api
+
+
 
 class ForexMetaEnv(gym.Env):
 
-    def __init__(self,punishAgent = True):
-        self.states = collections.deque(maxlen=100)
+    def __init__(self,statesCol,options,punishAgent = True):
+        self.states = statesCol
+        self.options = options
         self.punishAgent = punishAgent
         
         self.action_space = gym.spaces.Discrete(n=3)
@@ -30,37 +28,72 @@ class ForexMetaEnv(gym.Env):
         self.startBid = None
         self.openTradeAsk = None
         self.openTradeBid = None
-   
         self.stepIndex = 0
+   
         
         
         
         
-        #test_state = self.reset()
-        #self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
+        
+        test_state = self.reset()
+        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
+    def wait100(self) :
+        while len(self.states) < 100 :
+            while not self.options.StateAvailable:
+                None
+            
+            self.options.StateAvailable = False
+            while self.options.ActionAvailable:
+                None
+            self.options.takenAction = 0
+            self.options.ActionAvailable = True
 
+    def waitForTakeAction(self,action):
+        while self.options.ActionAvailable:
+            None
+        self.options.takenAction = action
+        self.options.ActionAvailable = True
+    
+    def waitForNewState(self):
+        while not self.options.StateAvailable:
+            None
+        
+        myState = np.array(self.states,dtype=np.float32,copy=True)
+        self.options.StateAvailable = False
+
+        return myState
+        
 
     def reset(self):
+        self.wait100()
 
-        
-        
-        
+        myState = self.waitForNewState()
+
+
         self.startTradeStep = None
         self.stepIndex = 0
-        self.startClose = self.states[-1,self.header.index("close")]
+        
+        self.startClose = myState[0,self.header.index("close")]
 
         self.openTradeDir = 0
         
+
         
-        self.startAsk = self.states[-1,self.header.index("ask")]
-        self.startBid = self.states[-1,self.header.index("bid")]
+        self.startAsk = myState[0,self.header.index("ask")]
+        self.startBid = myState[0,self.header.index("bid")]
         self.openTradeAsk = None
         self.openTradeBid = None
-        return self.getState()
+
+        return self.getState(myState)
 
 
     def step(self,action_idx):
+        self.wait100()
+        beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
+        self.waitForTakeAction(action_idx)
+        
+        myState = self.waitForNewState()
         reward = 0
         done = False
         if action_idx == 0:
@@ -68,12 +101,12 @@ class ForexMetaEnv(gym.Env):
         elif action_idx == 1:
             #check open trade
             if self.openTradeDir == 0 :
-                self.openUpTrade()
+                self.openUpTrade(beforeActionState)
             elif self.openTradeDir == 1:
                 None
             else :
                 #close trade
-                reward = self.closeDownTrade()
+                reward = self.closeDownTrade(beforeActionState)
                 done = True
         else :#2 :
             if action_idx == 0:
@@ -81,24 +114,17 @@ class ForexMetaEnv(gym.Env):
             elif action_idx == 2:
                 #check open trade
                 if  self.openTradeDir == 0 :
-                    self.openDownTrade()
+                    self.openDownTrade(beforeActionState)
                 elif self.openTradeDir == 2:
                     None
                 else : # 1
                     #close trade
-                    reward = self.closeUpTrade()
+                    reward = self.closeUpTrade(beforeActionState)
                     done = True
-        if (self.stepIndex + self.startIndex) == (len(self.data) - 100) and not done:
-            if self.openTradeDir == 1 :
-                reward = self.closeUpTrade()
-            elif self.openTradeDir == 2 :
-                reward = self.closeDownTrade()
-            else:
-                reward = 0
-            done = True
+
         
 
-        state = self.getState()
+        state = self.getState(myState)
         self.stepIndex+=1
         if self.startTradeStep is not None:
             if (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
@@ -111,8 +137,8 @@ class ForexMetaEnv(gym.Env):
         return state , reward , done ,None
 
         
-    def getState(self):
-        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
+    def getState(self,myState):
+        state = myState
         actions = np.zeros((100,4),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
@@ -134,33 +160,33 @@ class ForexMetaEnv(gym.Env):
 
         return state
 
-    def openUpTrade(self):
+    def openUpTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        self.openTradeAsk = myState[-1,self.header.index("ask")]
+        self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
 
-    def openDownTrade(self):
+    def openDownTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        self.openTradeAsk = myState[-1,self.header.index("ask")]
+        self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
 
 
-    def closeUpTrade(self):
+    def closeUpTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
-        currentBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        currentBid = myState[-1,self.header.index("bid")]
         return ((currentBid - self.openTradeAsk)/self.startClose)/2
 
-    def closeDownTrade(self):
+    def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
-        currentAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
+        currentAsk = myState[-1,self.header.index("ask")]
         return ((self.openTradeBid - currentAsk)/self.startClose)/2
 
 
@@ -177,65 +203,3 @@ class ForexMetaEnv(gym.Env):
         seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
         return [seed1, seed2]
 
-
-
-
-
-
-class Quotes(Resource):
-    def get(self):
-
-        return {
-            'William Shakespeare': {
-                'quote': ['Love all,trust a few,do wrong to none',
-                'Some are born great, some achieve greatness, and some greatness thrust upon them.']
-        },
-        'Linus': {
-            'quote': ['Talk is cheap. Show me the code.']
-            }
-        }
-
-   
-
-
-
-
-def startApp():
-    env = ForexMetaEnv(False)
-    while (True):
-        print('test! ')
-        sleep(5)
-
-
-if __name__ == "__main__":
-    
-    thread = Thread(target=startApp)
-    thread.start()
-    
-    #start server
-    app = Flask(__name__)
-    api = Api(app)
-    api.add_resource(Quotes, '/')
-    app.run()
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-    
-        
-
-
-
-        

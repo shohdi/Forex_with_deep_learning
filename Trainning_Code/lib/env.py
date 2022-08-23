@@ -132,41 +132,41 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
 
     def openDownTrade(self):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
 
 
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
-        currentBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
         return ((currentBid - self.openTradeAsk)/self.startClose)/2
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
-        currentAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
+        currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
         return ((self.openTradeBid - currentAsk)/self.startClose)/2
 
     def analysisUpTrade(self):
         startStep = self.startIndex + self.stepIndex
         currentStep = startStep
-        startAsk = self.data[startStep,self.header.index("ask")]
-        currentBid = self.data[currentStep,self.header.index("bid")]
+        startAsk = self.data[startStep+99,self.header.index("ask")]
+        currentBid = self.data[currentStep+99,self.header.index("bid")]
         diff = (startAsk - currentBid)
-        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-1)):
+        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-100)):
             currentStep += 1
-            currentBid = self.data[currentStep,self.header.index("bid")]
-        if currentStep == (len(self.data)-1):
+            currentBid = self.data[currentStep+99,self.header.index("bid")]
+        if currentStep == (len(self.data)-100):
             #end of game
             return False,None
         
@@ -180,13 +180,13 @@ class ForexEnv(gym.Env):
     def analysisDownTrade(self):
         startStep = self.startIndex + self.stepIndex
         currentStep = startStep
-        startBid = self.data[startStep,self.header.index("bid")]
-        currentAsk = self.data[currentStep,self.header.index("ask")]
+        startBid = self.data[startStep+99,self.header.index("bid")]
+        currentAsk = self.data[currentStep+99,self.header.index("ask")]
         diff = (currentAsk - startBid)
-        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-1)):
+        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-100)):
             currentStep += 1
-            currentAsk = self.data[currentStep,self.header.index("ask")]
-        if currentStep == (len(self.data)-1):
+            currentAsk = self.data[currentStep+99,self.header.index("ask")]
+        if currentStep == (len(self.data)-100):
             #end of game
             return False,None
         
