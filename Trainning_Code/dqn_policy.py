@@ -35,7 +35,7 @@ SYNC_TARGET_FRAMES = 1000
 REPLAY_START_SIZE = 10000
 
 EPSILON_DECAY_LAST_FRAME = 10**5
-EPSILON_START = 1
+EPSILON_START = 0.02
 EPSILON_FINAL = 0.02
 MY_DATA_PATH = 'data'
 
@@ -120,7 +120,7 @@ class FileDataset(torch.utils.data.Dataset):
 
 
 class ExperienceBuffer:
-    def __init__(self, buffer_path,capacity):
+    def __init__(self,capacity):
         self.capacity = capacity
         #self.buffer = FileDataset(buffer_path,capacity)
         self.buffer = collections.deque(maxlen=capacity)
@@ -138,7 +138,7 @@ class ExperienceBuffer:
                np.array(dones, dtype=np.uint8), np.array(next_states)
     
     def clear(self):
-        self.buffer = collections.deque(maxlen=len(self.capacity))
+        self.buffer = collections.deque(maxlen=self.capacity)
 
 
 
@@ -312,7 +312,7 @@ if __name__ == "__main__":
     buffer = ExperienceBuffer(BATCH_SIZE)
     agents = createAgents(buffer)
     agentIndex = 0
-    env = agents[agentIndex,0]
+    env = agents[agentIndex][0]
     net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
     writer = SummaryWriter(comment="-" + args.env)
@@ -342,11 +342,11 @@ if __name__ == "__main__":
         frame_idx += 1
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
         reward = 0
-        agent = agents[agentIndex,2]
-        env = agents[agentIndex,0]
-        envTest = agents[agentIndex,1]
+        agent = agents[agentIndex][2]
+        env = agents[agentIndex][0]
+        envTest = agents[agentIndex][1]
         agentIndex = (agentIndex+1)%len(agents)
-        if (frame_idx < 20000 or len(total_rewards) % 2 == 0) and len(buffer) < 1000000 :
+        if (frame_idx < 20000 or len(total_rewards) % 2 == 0) and len(buffer) < 100000 :
             reward = agent.play_stepWin(net,epsilon,device=device)
         else :
             reward = agent.play_step(net, epsilon, device=device)
