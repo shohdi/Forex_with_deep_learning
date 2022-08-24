@@ -19,12 +19,13 @@ from lib.SummaryWriter import SummaryWriter
 from lib import dqn_model
 import time
 
+class Options:
+    def __init__(self):
+        self.ActionAvailable = False
+        self.StateAvailable = False
+        self.takenAction = 0
 
-options = {
-    ActionAvailable : False,
-    StateAvailable : False,
-    takenAction : 0
-}
+options = Options()
 
 
 stateObj = collections.deque(maxlen=100)
@@ -39,8 +40,10 @@ class MetaTrade(Resource):
         options.StateAvailable = True
         while not options.ActionAvailable:
             None
-
+        
         ret = str(options.takenAction)
+        print ('state : ',stateObj[-1])
+        print ('taken action : ',ret)
         options.ActionAvailable = False
         return ret
 
