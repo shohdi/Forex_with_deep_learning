@@ -123,9 +123,9 @@ class ForexMetaEnv(gym.Env):
                     done = True
 
         
-
-        state = self.getState(myState)
         self.stepIndex+=1
+        state = self.getState(myState)
+        
         if self.startTradeStep is not None:
             if (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
                 reward = -1

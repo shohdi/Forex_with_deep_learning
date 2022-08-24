@@ -91,9 +91,9 @@ class ForexEnv(gym.Env):
                 reward = 0
             done = True
         
-
-        state = self.getState()
         self.stepIndex+=1
+        state = self.getState()
+        
         if self.startTradeStep is not None:
             if (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
                 reward = -1
@@ -216,7 +216,7 @@ class ForexEnv(gym.Env):
 
 
 
-
+'''
 if __name__ == "__main__":
     env = ForexEnv("minutes15_100/data/test_data.csv")
     print(env.reset())
@@ -264,6 +264,27 @@ if __name__ == "__main__":
             
     
     print ("average reward ",sumReward/i)
+'''
+
+
+if __name__ == "__main__":
+    env = ForexEnv("minutes15_100/data/train_data.csv")
+    state = env.reset()
+    print("start " , state[0])
+    print("start close ",env.startClose)
+    
+    done = False
+    while not done :
+        print("last ",state[-1])
+        action = int(input("action 0,1,2 : "))
+        state,reward,done,_ = env.step(action)
+        print('reward ',reward)
+    
+
+
+
+
+
             
     
 
