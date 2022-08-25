@@ -67,7 +67,7 @@ class ForexMetaEnv(gym.Env):
         
 
     def reset(self):
-        self.wait100(True)
+        self.wait100()
 
         myState = self.waitForNewState()
 
