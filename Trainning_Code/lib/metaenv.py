@@ -168,6 +168,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
+        print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
 
     def openDownTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
@@ -176,18 +177,21 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
+        print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
 
     def closeUpTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
         currentBid = myState[-1,self.header.index("bid")]
+        print('closing up trade start close : ',self.startClose,' close price ',currentBid)
         return ((currentBid - self.openTradeAsk)/self.startClose)/2
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = myState[-1,self.header.index("ask")]
+        print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
         return ((self.openTradeBid - currentAsk)/self.startClose)/2
 
 
