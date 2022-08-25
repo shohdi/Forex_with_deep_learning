@@ -1,2 +1,9 @@
 if we have problem with flask and itsdangerous json use
 >pip install itsdangerous==2.0.1
+
+
+to run server :
+sudo python Trainning_Code/metarun.py -p 80
+
+the server command to recieve state :
+http://127.0.0.1/?open=.1&close=.2&high=.3&low=.4&ask=.5&bid=.6

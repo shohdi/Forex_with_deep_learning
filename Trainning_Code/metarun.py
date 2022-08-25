@@ -60,8 +60,8 @@ class MetaTrade(Resource):
             None
         
         ret = str(options.takenAction)
-        print ('state : ',stateObj[-1])
-        print ('taken action : ',ret)
+        #print ('state : ',stateObj[-1])
+        #print ('taken action : ',ret)
         options.ActionAvailable = False
         return ret
 
