@@ -38,7 +38,7 @@ class ForexMetaEnv(gym.Env):
         test_state = self.reset()
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
-    def wait100(self) :
+    def wait100(self,is_reset = False) :
         while len(self.states) < 100 :
             while not self.options.StateAvailable:
                 None
@@ -46,7 +46,8 @@ class ForexMetaEnv(gym.Env):
             self.options.StateAvailable = False
             while self.options.ActionAvailable:
                 None
-            self.options.takenAction = 0
+            
+            self.options.takenAction = 0 if not is_reset else "012"
             self.options.ActionAvailable = True
 
     def waitForTakeAction(self,action):
@@ -66,7 +67,7 @@ class ForexMetaEnv(gym.Env):
         
 
     def reset(self):
-        self.wait100()
+        self.wait100(True)
 
         myState = self.waitForNewState()
 
