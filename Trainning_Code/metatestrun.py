@@ -42,7 +42,7 @@ def startApp():
     done = False
     while not done :
         print("last ",state[-1])
-        action = int(input("action 0,1,2 : "))
+        action = 0
         state,reward,done,_ = env.step(action)
         print('reward ',reward)
 
