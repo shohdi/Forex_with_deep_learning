@@ -23,8 +23,8 @@ if __name__ == "__main__":
             ,bid=data[i,header.index("bid")]
             )
         
-        action = int(requests.get(url))
-        print('action : ' , action)
+        action = int(requests.get(url).text.strip().replace('"','').replace('\r','').replace('\n',''))
+        print('i : ' , i , 'action : ' , action)
         
 
         

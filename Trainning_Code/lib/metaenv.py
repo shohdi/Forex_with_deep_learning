@@ -67,6 +67,8 @@ class ForexMetaEnv(gym.Env):
         
 
     def reset(self):
+        self.options.takenAction = 0
+        self.options.ActionAvailable = True
         self.wait100()
 
         myState = self.waitForNewState()
