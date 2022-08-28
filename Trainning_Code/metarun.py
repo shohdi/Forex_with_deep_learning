@@ -83,6 +83,7 @@ def startApp():
     print("device : ",device)
     net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     if os.path.exists(myFilePath):
+        print('loading model')
         net.load_state_dict(torch.load(myFilePath, map_location=device))
         state = env.reset()
     total_reward = 0.0
