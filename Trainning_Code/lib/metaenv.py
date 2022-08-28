@@ -40,10 +40,11 @@ class ForexMetaEnv(gym.Env):
 
     def wait100(self,is_reset = False) :
         while len(self.states) < 100 :
+            self.options.StateAvailable = False
             while not self.options.StateAvailable:
                 None
             
-            self.options.StateAvailable = False
+            
             while self.options.ActionAvailable:
                 None
             
@@ -57,11 +58,13 @@ class ForexMetaEnv(gym.Env):
         self.options.ActionAvailable = True
     
     def waitForNewState(self):
+        
+        self.options.StateAvailable = False
         while not self.options.StateAvailable:
             None
-        
+
         myState = np.array(self.states,dtype=np.float32,copy=True)
-        self.options.StateAvailable = False
+        
 
         return myState
         
