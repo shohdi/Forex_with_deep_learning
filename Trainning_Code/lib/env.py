@@ -107,6 +107,9 @@ class ForexEnv(gym.Env):
         
     def getState(self):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
+        if((self.startIndex+self.stepIndex+100) > (len(self.data)-500)):
+            state = self.data[-500:-400]
+
         actions = np.zeros((100,4),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk

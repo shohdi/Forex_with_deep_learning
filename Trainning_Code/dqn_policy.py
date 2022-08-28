@@ -36,7 +36,7 @@ REPLAY_START_SIZE = 10000
 
 EPSILON_DECAY_LAST_FRAME = 10**5
 EPSILON_START = 0.02
-EPSILON_FINAL = 0.02
+EPSILON_FINAL = 0.0
 MY_DATA_PATH = 'data'
 
 
@@ -280,7 +280,7 @@ def createAgents(buffer):
     for i in range(BATCH_SIZE):
         
         env = ForexEnv('minutes15_100/data/train_data.csv')
-        envTest = ForexEnv('minutes15_100/data/test_data.csv')
+        envTest = ForexEnv('minutes15_100/data/test_data.csv',False)
         agent = Agent(env, buffer,envTest)
         retColl.append((env,envTest,agent))
     
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     if (not os.path.exists(MY_DATA_PATH)):
         os.makedirs(MY_DATA_PATH)
     
-        
+    parser.add_argument("-f","--frame", default=0, help="Current Frame Idx")    
     parser.add_argument("-c","--cuda", default=cudaDefault, help="Enable cuda")
     parser.add_argument("--env", default=DEFAULT_ENV_NAME,
                         help="Name of the environment, default=" + DEFAULT_ENV_NAME)
@@ -327,17 +327,21 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
     total_rewards = []
-    frame_idx = 0#len(buffer)
+    frame_idx = int(args.frame) #0#len(buffer)
     epsilon =  max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME) 
     ts_frame = frame_idx
     ts = time.time()
     best_mean_reward = None
     myFilePath = os.path.join(MY_DATA_PATH,args.env + "-best.dat")
+    myFilePathTest = os.path.join(MY_DATA_PATH,args.env + "test-best.dat")
     myFilePath1000 = os.path.join(MY_DATA_PATH,args.env + "-10000.dat")
     if os.path.exists(myFilePath1000):
+        print('loading model ' , myFilePath1000)
         net.load_state_dict(torch.load(myFilePath1000,map_location=device))
         tgt_net.load_state_dict(net.state_dict())
     gameSteps = 0
+    testRewards = collections.deque(maxlen=213)
+    testRewardsLastMean = -10000
     while True:
         frame_idx += 1
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
@@ -346,7 +350,7 @@ if __name__ == "__main__":
         env = agents[agentIndex][0]
         envTest = agents[agentIndex][1]
         agentIndex = (agentIndex+1)%len(agents)
-        if (frame_idx < 20000 or len(total_rewards) % 2 == 0) and len(buffer) < 100000 :
+        if (frame_idx < 20000 or len(total_rewards) % 2 == 0) :#and frame_idx < 100000 :
             reward = agent.play_stepWin(net,epsilon,device=device)
         else :
             reward = agent.play_step(net, epsilon, device=device)
@@ -392,9 +396,19 @@ if __name__ == "__main__":
             while rewardTest is None:
                 testSteps += 1
                 rewardTest = agent.play_step_test(net,device)
+            testRewards.append(rewardTest)
+            testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
+            testRewardsMean = np.mean(testRewardsnp)
+            writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
             writer.add_scalar("test reward",rewardTest,frame_idx)
             writer.add_scalar("test steps",testSteps,frame_idx)
-            print("test steps " + str(testSteps) + " test reward " + str(rewardTest))
+            print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+            if testRewardsLastMean < testRewardsMean:
+                testRewardsLastMean = testRewardsMean
+                print("found better test model , saving ... ")
+                torch.save(net.state_dict(), myFilePathTest)
+
+
         if len(buffer) < BATCH_SIZE:
             continue
 
