@@ -165,10 +165,10 @@ class ForexEnv(gym.Env):
         startAsk = self.data[startStep+99,self.header.index("ask")]
         currentBid = self.data[currentStep+99,self.header.index("bid")]
         diff = (startAsk - currentBid)
-        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-100)):
+        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-500) and (currentStep - startStep) < 200 ):
             currentStep += 1
             currentBid = self.data[currentStep+99,self.header.index("bid")]
-        if currentStep == (len(self.data)-100):
+        if currentStep == (len(self.data)-500) or ((currentStep - startStep) >= 200) :
             #end of game
             return False,None
         
@@ -185,10 +185,10 @@ class ForexEnv(gym.Env):
         startBid = self.data[startStep+99,self.header.index("bid")]
         currentAsk = self.data[currentStep+99,self.header.index("ask")]
         diff = (currentAsk - startBid)
-        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-100)):
+        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-500) and (currentStep - startStep) < 200):
             currentStep += 1
             currentAsk = self.data[currentStep+99,self.header.index("ask")]
-        if currentStep == (len(self.data)-100):
+        if currentStep == (len(self.data)-500) or ((currentStep - startStep) >= 200):
             #end of game
             return False,None
         
