@@ -280,7 +280,7 @@ def createAgents(buffer):
     for i in range(BATCH_SIZE):
         
         env = ForexEnv('minutes15_100/data/train_data.csv')
-        envTest = ForexEnv('minutes15_100/data/test_data.csv',False)
+        envTest = ForexEnv('minutes15_100/data/test_data.csv')
         agent = Agent(env, buffer,envTest)
         retColl.append((env,envTest,agent))
     
