@@ -144,25 +144,17 @@ void openUp(double lots)
      {
       Print("Error in WebRequest. Error code  =",GetLastError());
       //--- Perhaps the URL is not listed, display a message about the necessity to add the address
-      MessageBox("Add the address '"+url+"' in the list of allowed URLs on tab 'Expert Advisors'","Error",MB_ICONINFORMATION);
+      //MessageBox("Add the address '"+url+"' in the list of allowed URLs on tab 'Expert Advisors'","Error",MB_ICONINFORMATION);
       return "";
      }
    else
      {
           //--- Load successfully
-         PrintFormat("The file has been successfully loaded, File size =%d bytes.",ArraySize(result));
+         //PrintFormat("The file has been successfully loaded, File size =%d bytes.",ArraySize(result));
          string ret = "";
          ret = CharArrayToString(result);
-         string retTrimmed = StringTrimRight(ret);
-         ret = retTrimmed;
-         retTrimmed = StringReplace(ret,"\n","");
-         ret = retTrimmed;
-        retTrimmed = StringReplace(ret,"\r","");
-         ret = retTrimmed;
-         retTrimmed = StringReplace(ret,"\"","");
-         ret = retTrimmed;
-         retTrimmed = StringTrimRight(ret);
-         ret = retTrimmed;
+         ret = StringSubstr(ret,1,1);
+         
          return ret;
      }
   }
