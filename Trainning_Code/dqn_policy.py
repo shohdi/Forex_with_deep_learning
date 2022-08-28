@@ -339,7 +339,7 @@ if __name__ == "__main__":
         print('loading model ' , myFilePath1000)
         net.load_state_dict(torch.load(myFilePath1000,map_location=device))
         tgt_net.load_state_dict(net.state_dict())
-    gameSteps = 0
+    
     testRewards = collections.deque(maxlen=213)
     testRewardsLastMean = -10000
     while True:
@@ -350,6 +350,7 @@ if __name__ == "__main__":
         env = agents[agentIndex][0]
         envTest = agents[agentIndex][1]
         agentIndex = (agentIndex+1)%len(agents)
+        gameSteps = env.stepIndex
         if (frame_idx < 20000 or len(total_rewards) % 2 == 0) :#and frame_idx < 100000 :
             reward = agent.play_stepWin(net,epsilon,device=device)
         else :
@@ -370,7 +371,7 @@ if __name__ == "__main__":
             writer.add_scalar("reward_100", mean_reward, frame_idx)
             writer.add_scalar("reward", reward, frame_idx)
             writer.add_scalar("steps", gameSteps, frame_idx)
-            gameSteps = 0
+            
             if best_mean_reward is None or best_mean_reward < mean_reward:
                 
                 torch.save(net.state_dict(), myFilePath)
