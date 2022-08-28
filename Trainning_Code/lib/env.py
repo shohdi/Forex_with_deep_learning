@@ -82,7 +82,7 @@ class ForexEnv(gym.Env):
                     #close trade
                     reward = self.closeUpTrade()
                     done = True
-        if (self.stepIndex + self.startIndex) == (len(self.data) - 100) and not done:
+        if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
             elif self.openTradeDir == 2 :
@@ -107,8 +107,7 @@ class ForexEnv(gym.Env):
         
     def getState(self):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
-        if((self.startIndex+self.stepIndex+100) > (len(self.data)-500)):
-            state = self.data[-500:-400]
+       
 
         actions = np.zeros((100,4),dtype=np.float32)
         if self.openTradeDir == 1:
