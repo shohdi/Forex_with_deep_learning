@@ -45,6 +45,7 @@ if __name__ == "__main__":
     #    env = gym.wrappers.Monitor(env, args.record)
     net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     if os.path.exists(args.model):
+        print('loading model')
         net.load_state_dict(torch.load(args.model, map_location=device))
 
     state = env.reset()
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     gameNumber = 0
     writer = SummaryWriter(comment="-" + args.env)
     frameIdx = 0
-    while True:
+    while gameNumber < 213:
         start_ts = time.time()
         if args.visualize:
             env.render()
