@@ -152,10 +152,17 @@ void openUp(double lots)
           //--- Load successfully
          PrintFormat("The file has been successfully loaded, File size =%d bytes.",ArraySize(result));
          string ret = "";
-         for (int i =0;i<ArraySize(result);i++)
-         {
-            ret = ret + result[i]; 
-         }
+         ret = CharArrayToString(result);
+         string retTrimmed = StringTrimRight(ret);
+         ret = retTrimmed;
+         retTrimmed = StringReplace(ret,"\n","");
+         ret = retTrimmed;
+        retTrimmed = StringReplace(ret,"\r","");
+         ret = retTrimmed;
+         retTrimmed = StringReplace(ret,"\"","");
+         ret = retTrimmed;
+         retTrimmed = StringTrimRight(ret);
+         ret = retTrimmed;
          return ret;
      }
   }
@@ -164,12 +171,32 @@ void openUp(double lots)
 void handleAction(int action)
 {
       double modeMinLot = MarketInfo(Symbol(), MODE_MINLOT) ;
+      double lots = modeMinLot;
+      double balance = AccountBalance();
       
+      
+      
+      
+      
+      long factor = (long)(balance / 100.0);
+      if (factor < 1)
+      {
+         factor = 1;
+      }
+      
+      lots = lots * factor;
          
       if (action == 1)
       {
          //open buy
-         //openUp(
+         openUp(lots);
+         closeDown();
+      }
+      else if (action == 2)
+      {
+         //open down
+         openDown(lots);
+         closeUp();
       }
 }
 
@@ -198,9 +225,22 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
+
+datetime D1;
 void OnTick()
   {
 //---
-   
+    if(D1!=iTime(Symbol(),PERIOD_M15,0)) // new candle on D1
+     {
+            //new candle
+            
+           int action =  OpenRequestGetAction(1,false);
+           handleAction(action);
+            
+            
+            
+         //Do Something...
+      D1=iTime(Symbol(),PERIOD_M15,0);    // overwrite old with new value
+     }
   }
 //+------------------------------------------------------------------+
