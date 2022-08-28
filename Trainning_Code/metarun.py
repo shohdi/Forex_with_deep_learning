@@ -12,9 +12,12 @@ import warnings
 from threading import Thread
 from time import sleep
 from flask import Flask
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api,reqparse
 from lib.metaenv import ForexMetaEnv
 from lib.SummaryWriter import SummaryWriter
+import argparse
+
+
 
 from lib import dqn_model
 import time
@@ -32,21 +35,35 @@ stateObj = collections.deque(maxlen=100)
 headers = ("open","close","high","low","ask","bid")
 
 class MetaTrade(Resource):
-    def get(self,open,close,high,low,ask,bid):
+    def get(self):
         while options.StateAvailable:
             None
-        
+        parser = reqparse.RequestParser()
+        parser.add_argument('open', type=float)
+        parser.add_argument('close', type=float)
+        parser.add_argument('high', type=float)
+        parser.add_argument('low', type=float)
+        parser.add_argument('ask', type=float)
+        parser.add_argument('bid', type=float)
+        args = parser.parse_args()
+        open = args.open
+        close = args.close
+        high = args.high
+        low = args.low
+        ask = args.ask
+        bid = args.bid
+        print("new state ",open,close,high,low,ask,bid)
         stateObj.append(np.array([open,close,high,low,ask,bid],dtype=np.float32))
+
         options.StateAvailable = True
         while not options.ActionAvailable:
             None
         
         ret = str(options.takenAction)
-        print ('state : ',stateObj[-1])
-        print ('taken action : ',ret)
+        #print ('state : ',stateObj[-1])
+        #print ('taken action : ',ret)
         options.ActionAvailable = False
         return ret
-
 
    
 
@@ -103,7 +120,9 @@ def startApp():
 
 
 if __name__ == "__main__":
-    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p","--port", default=5000, help="port number")
+    args = parser.parse_args()
     thread = Thread(target=startApp)
     thread.start()
     
@@ -111,7 +130,7 @@ if __name__ == "__main__":
     app = Flask(__name__)
     api = Api(app)
     api.add_resource(MetaTrade, '/')
-    app.run(port=80)
+    app.run(port=args.port)
 
 
 

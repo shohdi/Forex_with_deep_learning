@@ -38,7 +38,7 @@ class ForexMetaEnv(gym.Env):
         test_state = self.reset()
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
-    def wait100(self) :
+    def wait100(self,is_reset = False) :
         while len(self.states) < 100 :
             while not self.options.StateAvailable:
                 None
@@ -46,7 +46,8 @@ class ForexMetaEnv(gym.Env):
             self.options.StateAvailable = False
             while self.options.ActionAvailable:
                 None
-            self.options.takenAction = 0
+            
+            self.options.takenAction = 0 if not is_reset else "012"
             self.options.ActionAvailable = True
 
     def waitForTakeAction(self,action):
@@ -66,6 +67,8 @@ class ForexMetaEnv(gym.Env):
         
 
     def reset(self):
+        self.options.takenAction = 0
+        self.options.ActionAvailable = True
         self.wait100()
 
         myState = self.waitForNewState()
@@ -167,6 +170,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
+        print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
 
     def openDownTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
@@ -175,18 +179,21 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
+        print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
 
     def closeUpTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
         currentBid = myState[-1,self.header.index("bid")]
+        print('closing up trade start close : ',self.startClose,' close price ',currentBid)
         return ((currentBid - self.openTradeAsk)/self.startClose)/2
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = myState[-1,self.header.index("ask")]
+        print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
         return ((self.openTradeBid - currentAsk)/self.startClose)/2
 
 
