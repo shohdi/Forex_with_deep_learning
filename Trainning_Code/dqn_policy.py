@@ -35,8 +35,8 @@ SYNC_TARGET_FRAMES = 1000
 REPLAY_START_SIZE = 10000
 
 EPSILON_DECAY_LAST_FRAME = 10**5
-EPSILON_START = 0.02
-EPSILON_FINAL = 0.0
+EPSILON_START = 1
+EPSILON_FINAL = 0.02
 MY_DATA_PATH = 'data'
 
 
@@ -351,7 +351,7 @@ if __name__ == "__main__":
         envTest = agents[agentIndex][1]
         agentIndex = (agentIndex+1)%len(agents)
         gameSteps = env.stepIndex
-        if (frame_idx < 20000 or len(total_rewards) % 2 == 0) and frame_idx < 100000 :
+        if (frame_idx < 20000 or len(total_rewards) % 2 == 0): #and frame_idx < 100000 :
             reward = agent.play_stepWin(net,epsilon,device=device)
         else :
             reward = agent.play_step(net, epsilon, device=device)
