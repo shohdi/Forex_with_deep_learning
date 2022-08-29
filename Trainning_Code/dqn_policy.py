@@ -153,6 +153,7 @@ class Agent:
         self.actionTraded = 0
         self._reset()
         self._resetTest()
+        self.game_count = 0
 
 
     def _reset(self):
@@ -164,6 +165,7 @@ class Agent:
         self.winStep = None
         self.tradeDir = 0
         self.actionTraded = 0
+        self.game_count+=1
     
     def _resetTest(self):
         self.stateTest = self.envTest.reset()
@@ -351,7 +353,7 @@ if __name__ == "__main__":
         envTest = agents[agentIndex][1]
         agentIndex = (agentIndex+1)%len(agents)
         gameSteps = env.stepIndex
-        if (frame_idx < 20000 or len(total_rewards) % 2 == 0): #and frame_idx < 100000 :
+        if (frame_idx < 20000 or agent.game_count % 2 == 0): #and frame_idx < 100000 :
             reward = agent.play_stepWin(net,epsilon,device=device)
         else :
             reward = agent.play_step(net, epsilon, device=device)
