@@ -208,10 +208,10 @@ class ForexEnv(gym.Env):
         pass
 
     def seed(self, seed=None):
-        #self.np_random, seed1 = seeding.np_random(seed)
-        #seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
-        #return [seed1, seed2]
-        return [int(time.time()*1000000)%2**31,int(time.time()*1000000)%2**31]
+        self.np_random, seed1 = seeding.np_random((int(time.time()*10000000)%2**31) if seed is None else seed)
+        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
+        return [seed1, seed2]
+        #return [int(time.time()*1000000)%2**31,int(time.time()*1000000)%2**31]
 
 
 
