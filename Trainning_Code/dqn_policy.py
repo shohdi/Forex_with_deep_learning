@@ -151,9 +151,10 @@ class Agent:
         self.winStep = None
         self.tradeDir = 0
         self.actionTraded = 0
+        self.game_count = 0
         self._reset()
         self._resetTest()
-        self.game_count = 0
+        
 
 
     def _reset(self):
