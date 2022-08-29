@@ -5,6 +5,7 @@ from gym.utils import seeding
 import collections
 import numpy as np
 import csv
+import time
 
 class ForexEnv(gym.Env):
     def __init__(self,filePath , punishAgent = True):
@@ -96,11 +97,11 @@ class ForexEnv(gym.Env):
         
         if self.startTradeStep is not None:
             if (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
-                reward = -1
+                reward = -0.01
                 done = True
         if self.startTradeStep is None:
             if self.stepIndex > 200 and self.punishAgent:
-                reward = -1
+                reward = -0.01
                 done = True
         return state , reward , done ,None
 
@@ -207,9 +208,10 @@ class ForexEnv(gym.Env):
         pass
 
     def seed(self, seed=None):
-        self.np_random, seed1 = seeding.np_random(seed)
-        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
-        return [seed1, seed2]
+        #self.np_random, seed1 = seeding.np_random(seed)
+        #seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
+        #return [seed1, seed2]
+        return [int(time.time()*1000000)%2**31,int(time.time()*1000000)%2**31]
 
 
 
