@@ -190,6 +190,12 @@ void handleAction(int action)
          openDown(lots);
          closeUp();
       }
+      else if (action == 12)
+      {
+         Print("reset env");
+         closeUp();
+         closeDown();
+      }
 }
 
 //+------------------------------------------------------------------+
