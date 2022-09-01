@@ -14,6 +14,7 @@ import os
 import glob
 import pickle
 import warnings
+import math
 
 
 
@@ -37,6 +38,9 @@ REPLAY_START_SIZE = 10000
 EPSILON_DECAY_LAST_FRAME = 10**5
 EPSILON_START = 1
 EPSILON_FINAL = 0.0002
+WIN_STEP_START = 32
+WIN_STEP_FINAL = 0
+WIN_STEP_DECAY_LAST_FRAME = 10**5
 MY_DATA_PATH = 'data'
 
 
@@ -260,6 +264,137 @@ class Agent:
         return done_reward
 
 
+
+class AgentPolicy:
+    def __init__(self, envs, exp_buffer,envTest,currentFrame):
+        self.envs = envs
+        self.envTest = envTest
+        self.exp_buffer = exp_buffer
+        self.currentFrame = currentFrame
+        self.win = [ False for y in self.envs]
+        self.winStep = [None for y in self.envs]
+        self.tradeDir = [0 for y in self.envs]
+        self.actionTraded = [0 for y in self.envs]
+        self.game_count = 0
+
+        self.currentWinStepValue = WIN_STEP_START
+        self.total_reward = [0.0 for env in self.envs]
+        self.state= [None for env in self.envs]
+        
+        _=[self._reset(i) for env,i in self.envs ]
+        self._resetTest()
+        
+    def calcWinStep(self):
+        self.currentWinStepValue = WIN_STEP_START - int(math.Round(((WIN_STEP_START-WIN_STEP_FINAL)/WIN_STEP_DECAY_LAST_FRAME ) * self.currentFrame))
+        if self.currentWinStepValue < WIN_STEP_FINAL:
+            self.currentWinStepValue = WIN_STEP_FINAL
+
+    def _reset(self,envIndex):
+        self.currentFrame += self.envs[envIndex].stepIndex
+        self.state[envIndex] = self.envs[envIndex].reset()
+        
+        self.total_reward[envIndex] = 0.0
+        
+        self.win[envIndex] = False
+        self.winStep[envIndex] = None
+        self.tradeDir[envIndex] = 0
+        self.actionTraded[envIndex] = 0
+        self.game_count+=1
+        self.calcWinStep()
+    
+    def _resetTest(self):
+        self.stateTest = self.envTest.reset()
+        self.total_rewardTest = 0.0
+
+
+    def play_stepWin(self,envIndex):
+        done_reward = None
+        action = None
+        
+        if not self.win[envIndex] :
+            self.win[envIndex],self.winStep[envIndex] = self.envs[envIndex].analysisUpTrade()
+            if self.win[envIndex]:
+                self.tradeDir[envIndex] = 1
+            if not self.win[envIndex]:
+                self.win[envIndex],self.winStep[envIndex] = self.envs[envIndex].analysisDownTrade()
+                if self.win[envIndex]:
+                    self.tradeDir[envIndex] = 2
+
+        if self.actionTraded[envIndex] == 0 and self.win[envIndex] :
+            #take action
+            action = self.tradeDir[envIndex]
+            self.actionTraded[envIndex] = action
+        elif self.actionTraded[envIndex] != 0 and self.envs[envIndex].stepIndex >= self.winStep[envIndex]:
+            if self.actionTraded[envIndex] == 1:
+                action = 2
+            else :
+                action = 1
+        else :
+            action = 0
+
+                
+
+        
+
+        return action
+    
+    def _step_action(self,envIndex,action):
+        # do step in the environment
+        done_reward = None
+        new_state, reward, is_done, _ = self.envs[envIndex].step(action)
+        self.total_reward[envIndex] += reward
+
+        exp = Experience(self.state[envIndex], action, reward, is_done, new_state)
+        self.exp_buffer.append(exp)
+        self.state[envIndex] = new_state
+        if is_done:
+            done_reward = self.total_reward[envIndex]
+            self._reset(envIndex)
+        return done_reward
+
+
+    def play_step(self, net, epsilon=0.0, device="cpu"):
+        done_reward = None
+        if self.game_count % ((WIN_STEP_START -  self.currentWinStepValue)+1) == 0:
+            action = [self.play_stepWin(envIndex) for _,envIndex in self.envs ]
+        else: 
+            if np.random.random() < epsilon:
+                action = [env.action_space.sample() for env in self.envs]
+            else:
+                state_a = np.array(self.state, copy=False)
+                state_v = torch.tensor(state_a).to(device)
+                q_vals_v = net(state_v)
+                _, act_v = torch.max(q_vals_v, dim=1)
+                action = act_v.detach().numpy()
+
+        # do step in the environment
+        done_reward = [self._step_action(envIndex,action[envIndex]) for env,envIndex in self.envs]
+        return done_reward
+
+    def play_step_test(self, net, device="cpu"):
+        done_reward = None
+
+        
+        
+        state_a = np.array([self.stateTest], copy=False)
+        state_v = torch.tensor(state_a).to(device)
+        q_vals_v = net(state_v)
+        _, act_v = torch.max(q_vals_v, dim=1)
+        action = int(act_v.detach().item())
+
+        # do step in the environment
+        new_state, reward, is_done, _ = self.envTest.step(action)
+        self.total_rewardTest += reward
+
+        
+        self.stateTest = new_state
+        if is_done:
+            done_reward = self.total_rewardTest
+            self._resetTest()
+        return done_reward
+
+
+
 def calc_loss(batch, net, tgt_net, device="cpu"):
     states, actions, rewards, dones, next_states = batch
 
@@ -288,6 +423,15 @@ def createAgents(buffer):
         retColl.append((env,envTest,agent))
     
     return retColl
+
+def createOnePolicyAgents(buffer,currentFrame):
+    
+ 
+    envs = [ForexEnv('minutes15_100/data/train_data.csv') for i in range(BATCH_SIZE)]  
+    envTest = ForexEnv('minutes15_100/data/test_data.csv')
+    agent = AgentPolicy (envs, buffer,envTest,currentFrame)
+    
+    return agent
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
