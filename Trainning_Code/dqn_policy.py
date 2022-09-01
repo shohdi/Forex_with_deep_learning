@@ -281,7 +281,7 @@ class AgentPolicy:
         self.total_reward = [0.0 for env in self.envs]
         self.state= [None for env in self.envs]
         
-        _=[self._reset(i) for i in len(self.envs) ]
+        _=[self._reset(i) for i in range(len(self.envs)) ]
         self._resetTest()
         
     def calcWinStep(self):
@@ -356,7 +356,7 @@ class AgentPolicy:
     def play_step(self, net, epsilon=0.0, device="cpu"):
         done_reward = None
         if self.game_count % ((WIN_STEP_START -  self.currentWinStepValue)+1) == 0:
-            action = [self.play_stepWin(envIndex) for envIndex in len(self.envs) ]
+            action = [self.play_stepWin(envIndex) for envIndex in range(len(self.envs)) ]
         else: 
             if np.random.random() < epsilon:
                 action = [env.action_space.sample() for env in self.envs]
@@ -368,7 +368,7 @@ class AgentPolicy:
                 action = act_v.detach().numpy()
 
         # do step in the environment
-        done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in len(self.envs)]
+        done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in range(len(self.envs))]
         return done_reward
 
     def play_step_test(self, net, device="cpu"):
