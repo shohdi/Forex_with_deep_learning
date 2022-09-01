@@ -285,7 +285,7 @@ class AgentPolicy:
         self._resetTest()
         
     def calcWinStep(self):
-        self.currentWinStepValue = WIN_STEP_START - int(math.Round(((WIN_STEP_START-WIN_STEP_FINAL)/WIN_STEP_DECAY_LAST_FRAME ) * self.currentFrame))
+        self.currentWinStepValue = WIN_STEP_START - int(round(((WIN_STEP_START-WIN_STEP_FINAL)/WIN_STEP_DECAY_LAST_FRAME ) * self.currentFrame))
         if self.currentWinStepValue < WIN_STEP_FINAL:
             self.currentWinStepValue = WIN_STEP_FINAL
 
