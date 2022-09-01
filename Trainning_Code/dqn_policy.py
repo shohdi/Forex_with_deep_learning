@@ -266,7 +266,7 @@ class Agent:
 
 
 class AgentPolicy:
-    def __init__(self, envs, exp_buffer,envTest,currentFrame):
+    def __init__(self, envs, exp_buffer,envTest,currentFrame,gameSteps):
         self.envs = envs
         self.envTest = envTest
         self.exp_buffer = exp_buffer
@@ -275,7 +275,7 @@ class AgentPolicy:
         self.winStep = [None for y in self.envs]
         self.tradeDir = [0 for y in self.envs]
         self.actionTraded = [0 for y in self.envs]
-        self.game_count = 0
+        self.game_count = gameSteps
 
         self.currentWinStepValue = WIN_STEP_START
         self.total_reward = [0.0 for env in self.envs]
@@ -424,12 +424,12 @@ def createAgents(buffer):
     
     return retColl
 
-def createOnePolicyAgents(buffer,currentFrame):
+def createOnePolicyAgents(buffer,currentFrame,gameSteps):
     
  
     envs = [ForexEnv('minutes15_100/data/train_data.csv') for i in range(BATCH_SIZE)]  
     envTest = ForexEnv('minutes15_100/data/test_data.csv')
-    agent = AgentPolicy (envs, buffer,envTest,currentFrame)
+    agent = AgentPolicy (envs, buffer,envTest,currentFrame,gameSteps)
     
     return agent
 
@@ -442,7 +442,8 @@ if __name__ == "__main__":
     if (not os.path.exists(MY_DATA_PATH)):
         os.makedirs(MY_DATA_PATH)
     
-    parser.add_argument("-f","--frame", default=0, help="Current Frame Idx")    
+    parser.add_argument("-f","--frame", default=0, help="Current Frame Idx")
+    parser.add_argument("-g","--gameSteps", default=0, help="Current game count")     
     parser.add_argument("-c","--cuda", default=cudaDefault, help="Enable cuda")
     parser.add_argument("--env", default=DEFAULT_ENV_NAME,
                         help="Name of the environment, default=" + DEFAULT_ENV_NAME)
@@ -457,9 +458,11 @@ if __name__ == "__main__":
     buffer_path = os.path.join(MY_DATA_PATH,'buffer')
     buffer_path = os.path.join(buffer_path,'data')
     buffer = ExperienceBuffer(BATCH_SIZE)
-    agents = createAgents(buffer)
-    agentIndex = 0
-    env = agents[agentIndex][0]
+    frame_idx = int(args.frame) #0#len(buffer)
+    gameSteps = int(args.gameSteps)
+    agent = createOnePolicyAgents(buffer,frame_idx,gameSteps)
+    
+    env = agent.envs[0]
     net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
     writer = SummaryWriter(comment="-" + args.env)
@@ -473,8 +476,8 @@ if __name__ == "__main__":
     
 
     optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE)
-    total_rewards = []
-    frame_idx = int(args.frame) #0#len(buffer)
+    total_rewards = collections.deque(maxlen=213)
+    
     epsilon =  max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME) 
     ts_frame = frame_idx
     ts = time.time()
@@ -490,52 +493,54 @@ if __name__ == "__main__":
     testRewards = collections.deque(maxlen=213)
     testRewardsLastMean = -10000
     while True:
-        frame_idx += 1
+        frame_idx = agent.currentFrame
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
-        reward = 0
-        agent = agents[agentIndex][2]
-        env = agents[agentIndex][0]
-        envTest = agents[agentIndex][1]
-        agentIndex = (agentIndex+1)%len(agents)
-        gameSteps = env.stepIndex
-        if (frame_idx < 20000 or agent.game_count % 2 == 0): #and frame_idx < 100000 :
-            reward = agent.play_stepWin(net,epsilon,device=device)
-        else :
-            reward = agent.play_step(net, epsilon, device=device)
-        gameSteps+=1
-        if reward is not None:
-            total_rewards.append(reward)
-            speed = (frame_idx - ts_frame) / (time.time() - ts)
-            ts_frame = frame_idx
-            ts = time.time()
-            mean_reward = np.mean(total_rewards[-100:])
-            print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f , epsilon %.2f, speed %.2f f/s" % (
-                frame_idx, len(total_rewards) , reward , gameSteps , mean_reward,epsilon,
-                speed
-            ))
-            writer.add_scalar("epsilon", epsilon, frame_idx)
-            writer.add_scalar("speed", speed, frame_idx)
-            writer.add_scalar("reward_100", mean_reward, frame_idx)
-            writer.add_scalar("reward", reward, frame_idx)
-            writer.add_scalar("steps", gameSteps, frame_idx)
+         
+        envTest = agent.envTest
+        
+        gameSteps = agent.game_count
+
+        batch_rewards = agent.play_step(net,epsilon,device)
+        for rewardIdx in range(len(batch_rewards)):
+            reward = batch_rewards[rewardIdx]
             
-            if best_mean_reward is None or best_mean_reward < mean_reward:
+            if reward is not None:
+                total_rewards.append(reward)
                 
-                torch.save(net.state_dict(), myFilePath)
-                if best_mean_reward is not None:
-                    print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
-                best_mean_reward = mean_reward
+                speed = (frame_idx - ts_frame) / (time.time() - ts)
+                ts_frame = frame_idx
+                ts = time.time()
+                mean_reward = np.mean(np.array(total_rewards,copy=False)[-100:])
+                print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f , epsilon %.2f, speed %.2f f/s" % (
+                    frame_idx, len(total_rewards) , reward , gameSteps , mean_reward,epsilon,
+                    speed
+                ))
+                writer.add_scalar("epsilon", epsilon, frame_idx)
+                writer.add_scalar("speed", speed, frame_idx)
+                writer.add_scalar("reward_100", mean_reward, frame_idx)
+                writer.add_scalar("reward", reward, frame_idx)
+                writer.add_scalar("steps", gameSteps, frame_idx)
+                writer.add_scalar("win step value", agent.currentWinStepValue , frame_idx)
+                
+                if best_mean_reward is None or best_mean_reward < mean_reward:
+                    
+                    torch.save(net.state_dict(), myFilePath)
+                    if best_mean_reward is not None:
+                        print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
+                    best_mean_reward = mean_reward
+                
+                
+
+
+
+                if mean_reward > args.reward:
+                    print("Solved in %d frames!" % frame_idx)
+                    break
             
+            frame_idx +=1
             
-
-
-
-            if mean_reward > args.reward:
-                print("Solved in %d frames!" % frame_idx)
-                break
-
         if frame_idx % 10000 == 0 and frame_idx > 0:
-                torch.save(net.state_dict(), myFilePath1000)
+            torch.save(net.state_dict(), myFilePath1000)
         
         if frame_idx % 10000 == 0 and frame_idx > 10000:
             #start testing
