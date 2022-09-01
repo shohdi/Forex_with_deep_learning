@@ -365,7 +365,7 @@ class AgentPolicy:
                 state_v = torch.tensor(state_a).to(device)
                 q_vals_v = net(state_v)
                 _, act_v = torch.max(q_vals_v, dim=1)
-                action = act_v.detach().numpy()
+                action = act_v.detach().cpu().numpy()
 
         # do step in the environment
         done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in range(len(self.envs))]
