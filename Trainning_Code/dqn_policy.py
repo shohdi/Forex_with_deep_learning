@@ -493,7 +493,7 @@ if __name__ == "__main__":
     testRewards = collections.deque(maxlen=213)
     testRewardsLastMean = -10000
     while True:
-        frame_idx = agent.currentFrame
+        
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
          
         envTest = agent.envTest
@@ -502,6 +502,7 @@ if __name__ == "__main__":
 
         batch_rewards = agent.play_step(net,epsilon,device)
         for rewardIdx in range(len(batch_rewards)):
+            frame_idx +=1
             reward = batch_rewards[rewardIdx]
             
             if reward is not None:
@@ -537,36 +538,39 @@ if __name__ == "__main__":
                     print("Solved in %d frames!" % frame_idx)
                     break
             
-            frame_idx +=1
             
-        if frame_idx % 10000 == 0 and frame_idx > 0:
-            torch.save(net.state_dict(), myFilePath1000)
+            
+            if frame_idx % 10000 == 0 and frame_idx > 0:
+                torch.save(net.state_dict(), myFilePath1000)
         
-        if frame_idx % 10000 == 0 and frame_idx > 10000:
-            #start testing
-            rewardTest = None
-            testSteps = 0
-            while rewardTest is None:
-                testSteps += 1
-                rewardTest = agent.play_step_test(net,device)
-            testRewards.append(rewardTest)
-            testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
-            testRewardsMean = np.mean(testRewardsnp)
-            writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
-            writer.add_scalar("test reward",rewardTest,frame_idx)
-            writer.add_scalar("test steps",testSteps,frame_idx)
-            print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
-            if testRewardsLastMean < testRewardsMean:
-                testRewardsLastMean = testRewardsMean
-                print("found better test model , saving ... ")
-                torch.save(net.state_dict(), myFilePathTest)
+            if frame_idx % 10000 == 0 and frame_idx > 10000:
+                #start testing
+                rewardTest = None
+                testSteps = 0
+                while rewardTest is None:
+                    testSteps += 1
+                    rewardTest = agent.play_step_test(net,device)
+                testRewards.append(rewardTest)
+                testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
+                testRewardsMean = np.mean(testRewardsnp)
+                writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
+                writer.add_scalar("test reward",rewardTest,frame_idx)
+                writer.add_scalar("test steps",testSteps,frame_idx)
+                print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+                if testRewardsLastMean < testRewardsMean:
+                    testRewardsLastMean = testRewardsMean
+                    print("found better test model , saving ... ")
+                    torch.save(net.state_dict(), myFilePathTest)
+                
+
+            if frame_idx % SYNC_TARGET_FRAMES == 0:
+                tgt_net.load_state_dict(net.state_dict())
 
 
         if len(buffer) < BATCH_SIZE:
             continue
 
-        if frame_idx % SYNC_TARGET_FRAMES == 0:
-            tgt_net.load_state_dict(net.state_dict())
+
 
         optimizer.zero_grad()
         batch = buffer.sample(BATCH_SIZE)
