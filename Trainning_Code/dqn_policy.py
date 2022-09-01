@@ -280,6 +280,7 @@ class AgentPolicy:
         self.currentWinStepValue = WIN_STEP_START
         self.total_reward = [0.0 for env in self.envs]
         self.state= [None for env in self.envs]
+        self.gameSteps = [env.stepIndex for env in self.envs]
         
         _=[self._reset(i) for i in range(len(self.envs)) ]
         self._resetTest()
@@ -349,6 +350,7 @@ class AgentPolicy:
         self.state[envIndex] = new_state
         if is_done:
             done_reward = self.total_reward[envIndex]
+            self.gameSteps[envIndex] = self.envs[envIndex].stepIndex
             self._reset(envIndex)
         return done_reward
 
@@ -498,13 +500,13 @@ if __name__ == "__main__":
          
         envTest = agent.envTest
         
-        gameSteps = agent.game_count
+        
 
         batch_rewards = agent.play_step(net,epsilon,device)
         for rewardIdx in range(len(batch_rewards)):
             frame_idx +=1
             reward = batch_rewards[rewardIdx]
-            
+            gameSteps = agent.gameSteps[rewardIdx]
             if reward is not None:
                 total_rewards.append(reward)
                 
@@ -513,7 +515,7 @@ if __name__ == "__main__":
                 ts = time.time()
                 mean_reward = np.mean(np.array(total_rewards,copy=False)[-100:])
                 print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f , epsilon %.2f, speed %.2f f/s" % (
-                    frame_idx, len(total_rewards) , reward , gameSteps , mean_reward,epsilon,
+                    frame_idx, (agent.game_count-32) , reward , gameSteps , mean_reward,epsilon,
                     speed
                 ))
                 writer.add_scalar("epsilon", epsilon, frame_idx)
