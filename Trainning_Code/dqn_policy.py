@@ -357,7 +357,7 @@ class AgentPolicy:
 
     def play_step(self, net, epsilon=0.0, device="cpu"):
         done_reward = None
-        if self.game_count % ((WIN_STEP_START -  self.currentWinStepValue)+1) == 0:
+        if self.game_count % ((WIN_STEP_START -  self.currentWinStepValue)+1) == 0 and self.currentWinStepValue > 0:
             action = [self.play_stepWin(envIndex) for envIndex in range(len(self.envs)) ]
         else: 
             if np.random.random() < epsilon:
