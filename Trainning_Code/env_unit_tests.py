@@ -46,6 +46,30 @@ def testNormalizeIsOk():
         return False,"testNormalizeIsOk : %s"%(str(ex))
 
 
+def testReturnRewardWithoutDoneIs0():
+    try:
+        #assign
+        #global
+        env.reset()
+        
+        
+        #action
+        state,reward,_,_ = env.step(1)
+        state,reward,_,_ = env.step(0)
+        state,reward,_,_ = env.step(0)
+        state,reward,_,_ = env.step(0)
+        state,reward,_,_ = env.step(0)
+        #assert
+        expected = 0
+        
+        if reward != expected:
+            return False,"testReturnRewardWithoutDoneIs0 : reward expected : %.5f found : %.5f"%(expected,reward)
+        else:
+            return True,"testReturnRewardWithoutDoneIs0 : Success"
+    except Exception as ex:
+        return False,"testReturnRewardWithoutDoneIs0 : %s"%(str(ex))
+
+
 
 
 
@@ -61,6 +85,9 @@ if __name__ == "__main__":
         f.write("%r %s\r\n"%(ret,msg))
         ret,msg = testNormalizeIsOk()
         f.write("%r %s\r\n"%(ret,msg))
+        ret,msg = testReturnRewardWithoutDoneIs0()
+        f.write("%r %s\r\n"%(ret,msg))
+
 
 
 
