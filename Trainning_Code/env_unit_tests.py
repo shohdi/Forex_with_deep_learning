@@ -70,6 +70,35 @@ def testReturnRewardWithoutDoneIs0():
         return False,"testReturnRewardWithoutDoneIs0 : %s"%(str(ex))
 
 
+def test200StepsReturnMinus0Point01():
+    try:
+        #assign
+        #global
+        env.reset()
+        
+        
+        #action
+        i  =0
+        done = False
+
+        while i< 202 and not done:
+            state,reward,done,_ = env.step(0)
+            i+=1
+
+
+        #assert
+        expected = 201
+        expectedDone = True
+        expectedReward = -0.01
+        
+        if i != expected or done != expectedDone or reward != expectedReward:
+            return False,"test200StepsReturnMinus0Point01 : i expected : %.5f found : %.5f , done expected %b found %b , reward expected %.5f , found %.5f"%(expected,i,expectedDone,done,expectedReward,reward)
+        else:
+            return True,"test200StepsReturnMinus0Point01 : Success"
+    except Exception as ex:
+        return False,"test200StepsReturnMinus0Point01 : %s"%(str(ex))
+
+
 
 
 
@@ -87,6 +116,9 @@ if __name__ == "__main__":
         f.write("%r %s\r\n"%(ret,msg))
         ret,msg = testReturnRewardWithoutDoneIs0()
         f.write("%r %s\r\n"%(ret,msg))
+        ret,msg = test200StepsReturnMinus0Point01()
+        f.write("%r %s\r\n"%(ret,msg))
+
 
 
 
