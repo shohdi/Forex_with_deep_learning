@@ -1,3 +1,4 @@
+from os import stat
 from lib.env import ForexEnv
 
 
@@ -99,6 +100,45 @@ def test200StepsReturnMinus0Point01():
         return False,"test200StepsReturnMinus0Point01 : %s"%(str(ex))
 
 
+def test200StepsAfterTradeIsOkAndReturnRealReward():
+    try:
+        #assign
+        #global
+        env.reset()
+        
+        
+        #action
+        i  =0
+        done = False
+        env.step(1)
+        beforeDoneState = None
+        while i< 202 and not done:
+            state,reward,done,_ = env.step(0)
+            if not done:
+                beforeDoneState = state
+            
+
+
+            i+=1
+
+
+        #assert
+        expected = 201
+        expectedDone = True
+        bid = beforeDoneState[-1,5]
+        openTradeAsk = beforeDoneState[-1,6]
+        expectedReward = str(round( bid-openTradeAsk,5))
+        reward = str(round(reward,5))
+
+        
+        if i != expected or done != expectedDone or reward != expectedReward:
+            return False,"test200StepsAfterTradeIsOkAndReturnRealReward : i expected : %.5f found : %.5f , done expected %r found %r , reward expected %s , found %s"%(expected,i,expectedDone,done,expectedReward,reward)
+        else:
+            return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
+    except Exception as ex:
+        return False,"test200StepsAfterTradeIsOkAndReturnRealReward : %s"%(str(ex))
+
+
 
 
 
@@ -117,6 +157,8 @@ if __name__ == "__main__":
         ret,msg = testReturnRewardWithoutDoneIs0()
         f.write("%r %s\r\n"%(ret,msg))
         ret,msg = test200StepsReturnMinus0Point01()
+        f.write("%r %s\r\n"%(ret,msg))
+        ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
         f.write("%r %s\r\n"%(ret,msg))
 
 
