@@ -56,6 +56,14 @@ class ForexEnv(gym.Env):
 
 
     def step(self,action_idx):
+        #check punish
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
+            action_idx = 2
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
+            action_idx = 1
+
+        #end of punish action
+
         reward = 0
         done = False
         if action_idx == 0:
@@ -71,18 +79,17 @@ class ForexEnv(gym.Env):
                 reward = self.closeDownTrade()
                 done = True
         else :#2 :
-            if action_idx == 0:
+            
+            
+            #check open trade
+            if  self.openTradeDir == 0 :
+                self.openDownTrade()
+            elif self.openTradeDir == 2:
                 None
-            elif action_idx == 2:
-                #check open trade
-                if  self.openTradeDir == 0 :
-                    self.openDownTrade()
-                elif self.openTradeDir == 2:
-                    None
-                else : # 1
-                    #close trade
-                    reward = self.closeUpTrade()
-                    done = True
+            else : # 1
+                #close trade
+                reward = self.closeUpTrade()
+                done = True
         if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
@@ -95,10 +102,7 @@ class ForexEnv(gym.Env):
         self.stepIndex+=1
         state = self.getState()
         
-        if self.startTradeStep is not None:
-            if (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
-                reward = -0.01
-                done = True
+        
         if self.startTradeStep is None:
             if self.stepIndex > 200 and self.punishAgent:
                 reward = -0.01
