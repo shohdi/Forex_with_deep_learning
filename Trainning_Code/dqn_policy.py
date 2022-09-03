@@ -509,13 +509,13 @@ if __name__ == "__main__":
             gameSteps = agent.gameSteps[rewardIdx]
             if reward is not None:
                 total_rewards.append(reward)
-                
+                gameCount+=1
                 speed = (frame_idx - ts_frame) / (time.time() - ts)
                 ts_frame = frame_idx
                 ts = time.time()
                 mean_reward = np.mean(np.array(total_rewards,copy=False)[-100:])
                 print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f , epsilon %.2f, speed %.2f f/s" % (
-                    frame_idx, (agent.game_count-32) , reward , gameSteps , mean_reward,epsilon,
+                    frame_idx, gameCount , reward , gameSteps , mean_reward,epsilon,
                     speed
                 ))
                 writer.add_scalar("epsilon", epsilon, frame_idx)
