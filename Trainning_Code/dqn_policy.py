@@ -266,7 +266,7 @@ class Agent:
 
 
 class AgentPolicy:
-    def __init__(self, envs, exp_buffer,envTest,currentFrame,gameSteps):
+    def __init__(self, envs, exp_buffer,envTest,currentFrame,gameCount):
         self.envs = envs
         self.envTest = envTest
         self.exp_buffer = exp_buffer
@@ -275,7 +275,7 @@ class AgentPolicy:
         self.winStep = [None for y in self.envs]
         self.tradeDir = [0 for y in self.envs]
         self.actionTraded = [0 for y in self.envs]
-        self.game_count = gameSteps
+        self.game_count = gameCount
 
         self.currentWinStepValue = WIN_STEP_START
         self.total_reward = [0.0 for env in self.envs]
@@ -426,12 +426,12 @@ def createAgents(buffer):
     
     return retColl
 
-def createOnePolicyAgents(buffer,currentFrame,gameSteps):
+def createOnePolicyAgents(buffer,currentFrame,gameCount):
     
  
     envs = [ForexEnv('minutes15_100/data/train_data.csv') for i in range(BATCH_SIZE)]  
     envTest = ForexEnv('minutes15_100/data/test_data.csv')
-    agent = AgentPolicy (envs, buffer,envTest,currentFrame,gameSteps)
+    agent = AgentPolicy (envs, buffer,envTest,currentFrame,gameCount)
     
     return agent
 
@@ -445,7 +445,7 @@ if __name__ == "__main__":
         os.makedirs(MY_DATA_PATH)
     
     parser.add_argument("-f","--frame", default=0, help="Current Frame Idx")
-    parser.add_argument("-g","--gameSteps", default=0, help="Current game count")     
+    parser.add_argument("-g","--gameCount", default=0, help="Current game count")     
     parser.add_argument("-c","--cuda", default=cudaDefault, help="Enable cuda")
     parser.add_argument("--env", default=DEFAULT_ENV_NAME,
                         help="Name of the environment, default=" + DEFAULT_ENV_NAME)
@@ -461,8 +461,8 @@ if __name__ == "__main__":
     buffer_path = os.path.join(buffer_path,'data')
     buffer = ExperienceBuffer(BATCH_SIZE)
     frame_idx = int(args.frame) #0#len(buffer)
-    gameSteps = int(args.gameSteps)
-    agent = createOnePolicyAgents(buffer,frame_idx,gameSteps)
+    gameCount = int(args.gameCount)
+    agent = createOnePolicyAgents(buffer,frame_idx,gameCount)
     
     env = agent.envs[0]
     net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
