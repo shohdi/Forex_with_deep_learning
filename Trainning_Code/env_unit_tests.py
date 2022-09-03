@@ -10,10 +10,11 @@ def testStartCloseIsOkAndNotChangesAfterStep():
         #assign
         #global
         env.reset()
-        startClose = env.startClose
+        
         expectedClose = env.data[env.stepIndex + env.startIndex ,1]
         #action
         env.step(0)
+        startClose = env.startClose
         #assert
         if startClose != expectedClose:
             return False,"testStartCloseIsOkAndNotChangesAfterStep : start close expected : %.5f found : %.5f"%(expectedClose,startClose)
@@ -21,6 +22,29 @@ def testStartCloseIsOkAndNotChangesAfterStep():
             return True,"testStartCloseIsOkAndNotChangesAfterStep : Success"
     except Exception as ex:
         return False,"testStartCloseIsOkAndNotChangesAfterStep : %s"%(str(ex))
+
+
+def testNormalizeIsOk():
+    try:
+        #assign
+        #global
+        env.reset()
+        startClose = env.startClose
+        
+        #action
+        state,_,_,_ = env.step(0)
+        state,_,_,_ = env.step(0)
+        #assert
+        lastOpen =state[-1,0]
+        lastOpenReal = env.data[(env.stepIndex+env.startIndex+100)-1,0]
+        expected = (lastOpenReal/startClose)/2.0
+        if lastOpen != expected:
+            return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)
+        else:
+            return True,"testNormalizeIsOk : Success"
+    except Exception as ex:
+        return False,"testNormalizeIsOk : %s"%(str(ex))
+
 
 
 
@@ -34,7 +58,9 @@ if __name__ == "__main__":
     with open('data/env_unit_tests_result.txt','w') as f:
         
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
-        f.write("%r %s"%(ret,msg))
+        f.write("%r %s\r\n"%(ret,msg))
+        ret,msg = testNormalizeIsOk()
+        f.write("%r %s\r\n"%(ret,msg))
 
 
 
