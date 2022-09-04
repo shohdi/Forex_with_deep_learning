@@ -17,7 +17,7 @@ def testStartCloseIsOkAndNotChangesAfterStep():
         #global
         env.reset()
         
-        expectedClose = env.data[env.stepIndex + env.startIndex ,1]
+        expectedClose = env.states[env.stepIndex][1]
         #action
         env.step(0)
         startClose = env.startClose
@@ -42,7 +42,7 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         #assert
         lastOpen =state[-1,0]
-        lastOpenReal = env.data[(env.stepIndex+env.startIndex+100)-1,0]
+        lastOpenReal = env.states[-1][0]
         expected = (lastOpenReal/startClose)/2.0
         if lastOpen != expected:
             return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)
