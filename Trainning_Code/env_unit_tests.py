@@ -140,6 +140,44 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
 
 
 
+def testStepIsWrittenInState():
+    try:
+        #assign
+        #global
+        env.reset()
+        
+        
+        #action
+        i  =0
+        done = False
+        
+        beforeDoneState = None
+        while i< 202 and not done:
+            state,reward,done,_ = env.step(0)
+            if not done:
+                beforeDoneState = state
+            
+
+
+            i+=1
+
+
+        #assert
+        expected = 200/400
+        
+        value = beforeDoneState[-1,8]
+        
+
+        
+        if value != expected  :
+            return False,"testStepIsWrittenInState : step index expected : %.5f found : %.5f "%(expected,value)
+        else:
+            return True,"testStepIsWrittenInState : Success"
+    except Exception as ex:
+        return False,"testStepIsWrittenInState : %s"%(str(ex))
+
+
+
 
 
 
@@ -152,14 +190,22 @@ if __name__ == "__main__":
         
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
         f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = testNormalizeIsOk()
         f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = testReturnRewardWithoutDoneIs0()
         f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = test200StepsReturnMinus0Point01()
         f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
         f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testStepIsWrittenInState()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
 
 
 
