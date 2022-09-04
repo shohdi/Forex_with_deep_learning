@@ -152,10 +152,13 @@ def testStepIsWrittenInState():
         done = False
         
         beforeDoneState = None
+        after5stepsState = None
         while i< 202 and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
+            if i == 5:
+                after5stepsState = state
             
 
 
@@ -167,12 +170,19 @@ def testStepIsWrittenInState():
         
         value = beforeDoneState[-1,8]
         
+        expectedAfter5 = 6/400
+        valueAfter5 = after5stepsState[-1,8]
+
 
         
         if value != expected  :
             return False,"testStepIsWrittenInState : step index expected : %.5f found : %.5f "%(expected,value)
-        else:
-            return True,"testStepIsWrittenInState : Success"
+        
+        if str(round(valueAfter5,5)) != str(round(expectedAfter5,5)):
+            return False,"testStepIsWrittenInState : step index 6 expected : %.5f found : %.5f "%(expectedAfter5,valueAfter5)
+
+
+        return True,"testStepIsWrittenInState : Success"
     except Exception as ex:
         return False,"testStepIsWrittenInState : %s"%(str(ex))
 
