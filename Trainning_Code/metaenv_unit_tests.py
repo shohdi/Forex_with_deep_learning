@@ -8,7 +8,7 @@ from flask_restful import Resource, Api,reqparse
 
 #global init
    
-env = ForexMetaEnv(stateObj,options)
+env = None 
 
 
 def testStartCloseIsOkAndNotChangesAfterStep():
@@ -197,8 +197,10 @@ def testStepIsWrittenInState():
 
 
 def runTests():
+    global env 
+    env = ForexMetaEnv(stateObj,options)
     #run tests
-    with open('data/env_unit_tests_result.txt','w') as f:
+    with open('data/metaenv_unit_tests_result.txt','w') as f:
         
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
         f.write("%r %s\r\n"%(ret,msg))
