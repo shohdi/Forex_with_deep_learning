@@ -560,7 +560,7 @@ if __name__ == "__main__":
                 writer.add_scalar("test reward",rewardTest,frame_idx)
                 writer.add_scalar("test steps",testSteps,frame_idx)
                 print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
-                if testRewardsLastMean < testRewardsMean:
+                if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 and testRewardsMean > 0) or not os.path.exists(myFilePathTest)  :
                     testRewardsLastMean = testRewardsMean
                     print("found better test model , saving ... ")
                     torch.save(net.state_dict(), myFilePathTest)
