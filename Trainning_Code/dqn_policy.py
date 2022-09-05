@@ -564,6 +564,8 @@ if __name__ == "__main__":
                     writer.add_scalar("test reward",rewardTest,frame_idx)
                     writer.add_scalar("test steps",testSteps,frame_idx)
                     print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+                testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-%.5f.dat"%(testRewardsMean)))
+                torch.save(net.state_dict(), testPeriodPath)
                 print("test last mean reward before checking ",testRewardsLastMean)
                 if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 ) or not os.path.exists(myFilePathTest)  :
                     if len(testRewards) == 213:
