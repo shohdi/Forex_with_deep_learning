@@ -34,7 +34,7 @@ def startApp():
     warnings.filterwarnings("ignore")
     
     
-    env = ForexMetaEnv(stateObj,options,False)
+    env = ForexMetaEnv(stateObj,options,False,True)
     state = env.reset()
     print("start " , state[0])
     print("start close ",env.startClose)

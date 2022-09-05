@@ -78,7 +78,7 @@ def startApp():
     if (torch.cuda.is_available()):
         cudaDefault = True
     myFilePath = os.path.join(MY_DATA_PATH,DEFAULT_ENV_NAME + "-10000.dat")
-    env = ForexMetaEnv(stateObj,options,False)
+    env = ForexMetaEnv(stateObj,options,False,True)
     device = torch.device("cuda" if cudaDefault else "cpu")
     print("device : ",device)
     net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
