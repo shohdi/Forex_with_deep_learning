@@ -420,8 +420,8 @@ def createAgents(buffer):
     i = 0
     for i in range(BATCH_SIZE):
         
-        env = ForexEnv('minutes15_100/data/train_data.csv')
-        envTest = ForexEnv('minutes15_100/data/test_data.csv')
+        env = ForexEnv('minutes15_100/data/train_data.csv',False,True)
+        envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
         agent = Agent(env, buffer,envTest)
         retColl.append((env,envTest,agent))
     
@@ -430,8 +430,8 @@ def createAgents(buffer):
 def createOnePolicyAgents(buffer,currentFrame,gameCount):
     
  
-    envs = [ForexEnv('minutes15_100/data/train_data.csv') for i in range(BATCH_SIZE)]  
-    envTest = ForexEnv('minutes15_100/data/test_data.csv')
+    envs = [ForexEnv('minutes15_100/data/train_data.csv',False,True) for i in range(BATCH_SIZE)]  
+    envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
     agent = AgentPolicy (envs, buffer,envTest,currentFrame,gameCount)
     
     return agent
