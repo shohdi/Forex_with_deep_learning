@@ -1,9 +1,14 @@
 from os import stat
-from lib.env import ForexEnv
+from lib.metaenv import ForexMetaEnv
+from metarun import headers,options,stateObj,MetaTrade
+from threading import Thread
+from flask import Flask
+from flask_restful import Resource, Api,reqparse
 
 
-#global init   
-env = ForexEnv('minutes15_100/data/test_data.csv')
+#global init
+   
+env = None 
 
 
 def testStartCloseIsOkAndNotChangesAfterStep():
@@ -12,7 +17,7 @@ def testStartCloseIsOkAndNotChangesAfterStep():
         #global
         env.reset()
         
-        expectedClose = env.data[env.stepIndex + env.startIndex ,1]
+        expectedClose = env.states[env.stepIndex][1]
         #action
         env.step(0)
         startClose = env.startClose
@@ -37,7 +42,7 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         #assert
         lastOpen =state[-1,0]
-        lastOpenReal = env.data[(env.stepIndex+env.startIndex+100)-1,0]
+        lastOpenReal = env.states[-1][0]
         expected = (lastOpenReal/startClose)/2.0
         if lastOpen != expected:
             return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)
@@ -191,12 +196,11 @@ def testStepIsWrittenInState():
 
 
 
-
-
-
-if __name__ == "__main__":
+def runTests():
+    global env 
+    env = ForexMetaEnv(stateObj,options)
     #run tests
-    with open('data/env_unit_tests_result.txt','w') as f:
+    with open('data/metaenv_unit_tests_result.txt','w') as f:
         
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
         f.write("%r %s\r\n"%(ret,msg))
@@ -216,6 +220,19 @@ if __name__ == "__main__":
         ret,msg = testStepIsWrittenInState()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
+
+
+
+if __name__ == "__main__":
+    thread = Thread(target=runTests)
+    thread.start()
+    
+    #start server
+    app = Flask(__name__)
+    api = Api(app)
+    api.add_resource(MetaTrade, '/')
+    app.run()
+
 
 
 
