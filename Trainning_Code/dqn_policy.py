@@ -495,6 +495,7 @@ if __name__ == "__main__":
     
     testRewards = collections.deque(maxlen=213)
     testRewardsLastMean = -10000
+    testRewardsMean = 0
     while True:
         
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
@@ -546,20 +547,23 @@ if __name__ == "__main__":
             if frame_idx % 10000 == 0 and frame_idx > 0:
                 torch.save(net.state_dict(), myFilePath1000)
         
-            if frame_idx % 10000 == 0 and frame_idx > 10000:
-                #start testing
-                rewardTest = None
-                testSteps = 0
-                while rewardTest is None:
-                    testSteps += 1
-                    rewardTest = agent.play_step_test(net,device)
-                testRewards.append(rewardTest)
-                testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
-                testRewardsMean = np.mean(testRewardsnp)
-                writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
-                writer.add_scalar("test reward",rewardTest,frame_idx)
-                writer.add_scalar("test steps",testSteps,frame_idx)
-                print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+            if frame_idx % (10000 * 213) == 0 and frame_idx > 10000:
+                testIdx = 0
+                while testIdx < 213:
+                    testIdx+=1
+                    #start testing
+                    rewardTest = None
+                    testSteps = 0
+                    while rewardTest is None:
+                        testSteps += 1
+                        rewardTest = agent.play_step_test(net,device)
+                    testRewards.append(rewardTest)
+                    testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
+                    testRewardsMean = np.mean(testRewardsnp)
+                    writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
+                    writer.add_scalar("test reward",rewardTest,frame_idx)
+                    writer.add_scalar("test steps",testSteps,frame_idx)
+                    print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
                 print("test last mean reward before checking ",testRewardsLastMean)
                 if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 ) or not os.path.exists(myFilePathTest)  :
                     if len(testRewards) == 213:
