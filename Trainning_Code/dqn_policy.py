@@ -37,7 +37,7 @@ REPLAY_START_SIZE = 10000
 
 EPSILON_DECAY_LAST_FRAME = 10**6 * BATCH_SIZE
 EPSILON_START = 1
-EPSILON_FINAL = 0.004
+EPSILON_FINAL = 0.02
 WIN_STEP_START = 0
 WIN_STEP_FINAL = 0
 WIN_STEP_DECAY_LAST_FRAME = 10**6 * BATCH_SIZE
@@ -560,8 +560,10 @@ if __name__ == "__main__":
                 writer.add_scalar("test reward",rewardTest,frame_idx)
                 writer.add_scalar("test steps",testSteps,frame_idx)
                 print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
-                if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 and testRewardsMean > 0) or not os.path.exists(myFilePathTest)  :
-                    testRewardsLastMean = testRewardsMean
+                print("test last mean reward before checking ",testRewardsLastMean)
+                if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 ) or not os.path.exists(myFilePathTest)  :
+                    if len(testRewards) == 213:
+                        testRewardsLastMean = testRewardsMean
                     print("found better test model , saving ... ")
                     torch.save(net.state_dict(), myFilePathTest)
                 
