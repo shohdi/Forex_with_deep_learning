@@ -370,7 +370,7 @@ class AgentPolicy:
                 action = act_v.detach().cpu().numpy()
 
         # do step in the environment
-        action[0] =0
+        #action[0] =0
         done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in range(len(self.envs))]
         return done_reward
 

@@ -11,11 +11,12 @@ import time
 
 class ForexMetaEnv(gym.Env):
 
-    def __init__(self,statesCol,options,punishAgent = True):
+    def __init__(self,statesCol,options,punishAgent = True,stopTrade = True):
+
         self.states = statesCol
         self.options = options
         self.punishAgent = punishAgent
-        
+        self.stopTrade = stopTrade
         self.action_space = gym.spaces.Discrete(n=3)
         
         
@@ -98,9 +99,9 @@ class ForexMetaEnv(gym.Env):
     def step(self,action_idx):
         self.wait100()
         #check punish
-        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > 200 and self.stopTrade:
             action_idx = 2
-        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > 200 and self.stopTrade:
             action_idx = 1
         beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         self.waitForTakeAction(action_idx)

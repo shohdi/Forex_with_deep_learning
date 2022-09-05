@@ -8,8 +8,9 @@ import csv
 import time
 
 class ForexEnv(gym.Env):
-    def __init__(self,filePath , punishAgent = True):
+    def __init__(self,filePath , punishAgent = True,stopTrade = True):
         self.punishAgent = punishAgent
+        self.stopTrade = stopTrade
         self.filePath = filePath
         self.action_space = gym.spaces.Discrete(n=3)
         
@@ -57,9 +58,9 @@ class ForexEnv(gym.Env):
 
     def step(self,action_idx):
         #check punish
-        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > 200 and self.stopTrade:
             action_idx = 2
-        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > 200 and self.punishAgent:
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > 200 and self.stopTrade:
             action_idx = 1
 
         #end of punish action
