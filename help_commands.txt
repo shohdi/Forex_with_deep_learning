@@ -7,3 +7,25 @@ sudo python Trainning_Code/metarun.py -p 80
 
 the server command to recieve state :
 http://127.0.0.1/?open=.1&close=.2&high=.3&low=.4&ask=.5&bid=.6
+
+
+
+install packages :
+
+conda create --name torchCpu python=3.7 numpy tensorflow
+conda activate torchCpu
+
+#pytorch windows cpu installation
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+
+#pytorch mac installation
+conda install pytorch torchvision torchaudio -c pytorch
+
+conda install -c conda-forge flask-restful
+
+conda install -c conda-forge gym
+
+
+conda install -c anaconda requests
+
+pip install opencv-python

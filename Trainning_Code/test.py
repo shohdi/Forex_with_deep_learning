@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+import torch
 import gym
 import time
 import argparse
 import numpy as np
 
-import torch
+
 
 
 from lib.SummaryWriter import SummaryWriter
