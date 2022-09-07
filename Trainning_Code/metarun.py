@@ -39,12 +39,12 @@ class MetaTrade(Resource):
         while options.StateAvailable:
             None
         parser = reqparse.RequestParser()
-        parser.add_argument('open', type=float)
-        parser.add_argument('close', type=float)
-        parser.add_argument('high', type=float)
-        parser.add_argument('low', type=float)
-        parser.add_argument('ask', type=float)
-        parser.add_argument('bid', type=float)
+        parser.add_argument('open', type=float,location='args')
+        parser.add_argument('close', type=float,location='args')
+        parser.add_argument('high', type=float,location='args')
+        parser.add_argument('low', type=float,location='args')
+        parser.add_argument('ask', type=float,location='args')
+        parser.add_argument('bid', type=float,location='args')
         args = parser.parse_args()
         open = args.open
         close = args.close
