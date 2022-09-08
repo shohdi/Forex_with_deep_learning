@@ -35,12 +35,12 @@ LEARNING_RATE = 1e-4
 SYNC_TARGET_FRAMES = BATCH_SIZE * 1000
 REPLAY_START_SIZE = 10000
 
-EPSILON_DECAY_LAST_FRAME = 10**6 * BATCH_SIZE
+EPSILON_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
 EPSILON_START = 1
-EPSILON_FINAL = 0.02
+EPSILON_FINAL = 0.004
 WIN_STEP_START = 0
 WIN_STEP_FINAL = 0
-WIN_STEP_DECAY_LAST_FRAME = 10**6 * BATCH_SIZE
+WIN_STEP_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
 MY_DATA_PATH = 'data'
 
 
@@ -370,7 +370,9 @@ class AgentPolicy:
                 action = act_v.detach().cpu().numpy()
 
         # do step in the environment
-        #action[0] =0
+        action[0] =1
+        action[1] =2
+        action[2] =0
         done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in range(len(self.envs))]
         return done_reward
 
@@ -420,7 +422,7 @@ def createAgents(buffer):
     i = 0
     for i in range(BATCH_SIZE):
         
-        env = ForexEnv('minutes15_100/data/train_data.csv',False,True)
+        env = ForexEnv('minutes15_100/data/train_data.csv',True,True)
         envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
         agent = Agent(env, buffer,envTest)
         retColl.append((env,envTest,agent))
@@ -430,7 +432,7 @@ def createAgents(buffer):
 def createOnePolicyAgents(buffer,currentFrame,gameCount):
     
  
-    envs = [ForexEnv('minutes15_100/data/train_data.csv',False,True) for i in range(BATCH_SIZE)]  
+    envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
     envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
     agent = AgentPolicy (envs, buffer,envTest,currentFrame,gameCount)
     
