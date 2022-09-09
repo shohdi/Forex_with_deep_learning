@@ -36,10 +36,10 @@ SYNC_TARGET_FRAMES = BATCH_SIZE * 1000
 REPLAY_START_SIZE = 10000
 
 EPSILON_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
-EPSILON_START = 1
-EPSILON_FINAL = 0.004
-WIN_STEP_START = 0
-WIN_STEP_FINAL = 0
+EPSILON_START = 0
+EPSILON_FINAL = 0
+WIN_STEP_START = 1
+WIN_STEP_FINAL = 1
 WIN_STEP_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
 MY_DATA_PATH = 'data'
 
@@ -354,6 +354,14 @@ class AgentPolicy:
             self._reset(envIndex)
         return done_reward
 
+    def getNetActions(self,state,net,device="cpu"):
+        state_a = np.array(state, copy=False)
+        state_v = torch.tensor(state_a).to(device)
+        q_vals_v = net(state_v)
+        _, act_v = torch.max(q_vals_v, dim=1)
+        action = act_v.detach().cpu().numpy()
+        return action
+
 
     def play_step(self, net, epsilon=0.0, device="cpu"):
         done_reward = None
@@ -363,16 +371,12 @@ class AgentPolicy:
             if np.random.random() < epsilon:
                 action = [env.action_space.sample() for env in self.envs]
             else:
-                state_a = np.array(self.state, copy=False)
-                state_v = torch.tensor(state_a).to(device)
-                q_vals_v = net(state_v)
-                _, act_v = torch.max(q_vals_v, dim=1)
-                action = act_v.detach().cpu().numpy()
+                
+                action = self.getNetActions(self.state,net,device)
 
         # do step in the environment
-        action[0] =1
-        action[1] =2
-        action[2] =0
+        action[0] =0
+        action[1:4] = self.getNetActions(self.state[1:4],net,device)
         done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in range(len(self.envs))]
         return done_reward
 
