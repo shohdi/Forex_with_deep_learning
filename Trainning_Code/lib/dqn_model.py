@@ -3,7 +3,11 @@ import torch.nn as nn
 
 import numpy as np
 
-
+# C51
+Vmax = 0.01
+Vmin = -0.01
+N_ATOMS = 51
+DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 class DQN(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(DQN, self).__init__()
@@ -18,11 +22,20 @@ class DQN(nn.Module):
         )
 
         conv_out_size = self._get_conv_out(input_shape)
-        self.fc = nn.Sequential(
+        self.fc_val = nn.Sequential(
             nn.Linear(conv_out_size, 512),
             nn.ReLU(),
-            nn.Linear(512, n_actions)
+            nn.Linear(512, N_ATOMS)
         )
+
+        self.fc_adv = nn.Sequential(
+            nn.Linear(conv_out_size, 512),
+            nn.ReLU(),
+            nn.Linear(512, n_actions * N_ATOMS)
+        )
+
+        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
+        self.softmax = nn.Softmax(dim=1)
 
     def _get_conv_out(self, shape):
         o = self.conv(torch.zeros(1, *shape))
@@ -30,7 +43,24 @@ class DQN(nn.Module):
 
     def forward(self, x):
         conv_out = self.conv(x).view(x.size()[0], -1)
-        return self.fc(conv_out)
+        val_out = self.fc_val(conv_out).view(x.size()[0], 1, N_ATOMS)
+        adv_out = self.fc_adv(conv_out).view(x.size()[0], -1, N_ATOMS)
+        adv_mean = adv_out.mean(dim=1, keepdim=True)
+        return val_out + (adv_out - adv_mean)
+
+    def both(self, x):
+        cat_out = self(x)
+        probs = self.apply_softmax(cat_out)
+        weights = probs * self.supports
+        res = weights.sum(dim=2)
+        return cat_out, res
+
+    def qvals(self, x):
+        return self.both(x)[1]
+
+    def apply_softmax(self, t):
+        return self.softmax(t.view(-1, N_ATOMS)).view(t.size())
+        
 
 
 
@@ -48,18 +78,46 @@ class LSTM_Forex (nn.Module):
         self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
         
         
-        self.fc = nn.Sequential(
+
+
+        self.fc_val = nn.Sequential(
             nn.Linear(self.hiddenSize, 512),
             nn.ReLU(),
-            nn.Linear(512, self.actions)
+            nn.Linear(512, N_ATOMS)
         )
+
+        self.fc_adv = nn.Sequential(
+            nn.Linear(self.hiddenSize, 512),
+            nn.ReLU(),
+            nn.Linear(512, self.actions * N_ATOMS)
+        )
+
+        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
+        self.softmax = nn.Softmax(dim=1)
     
     def forward(self,x):
         h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
         c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
         out,(hn,cn) = self.lstm(x,(h0,c0))
-        out = self.fc(out[:,-1,:])
-        return out
+        val_out = self.fc_val(out[:,-1,:]).view(x.size()[0], 1, N_ATOMS)
+        adv_out = self.fc_adv(out[:,-1,:]).view(x.size()[0], -1, N_ATOMS)
+        adv_mean = adv_out.mean(dim=1, keepdim=True)
+        return val_out + (adv_out - adv_mean)
+    
+
+    def both(self, x):
+        cat_out = self(x)
+        probs = self.apply_softmax(cat_out)
+        weights = probs * self.supports
+        res = weights.sum(dim=2)
+        return cat_out, res
+
+    def qvals(self, x):
+        return self.both(x)[1]
+
+    def apply_softmax(self, t):
+        return self.softmax(t.view(-1, N_ATOMS)).view(t.size())
+
 
     
     

@@ -9,6 +9,7 @@ import collections
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import os
 import glob
@@ -24,6 +25,12 @@ from lib.SummaryWriter import SummaryWriter
 
 from lib.env import ForexEnv
 
+
+# C51
+Vmax = 0.01
+Vmin = -0.01
+N_ATOMS = 51
+DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 
 DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
 MEAN_REWARD_BOUND = 0.01
@@ -363,10 +370,11 @@ class AgentPolicy:
     def getNetActions(self,state,net,device="cpu"):
         state_a = np.array(state, copy=False)
         state_v = torch.tensor(state_a).to(device)
-        q_vals_v = net(state_v)
-        _, act_v = torch.max(q_vals_v, dim=1)
-        action = act_v.detach().cpu().numpy()
-        return action
+        q_vals_v = net.qvals(state_v)
+        q_vals_v = q_vals_v.detach().data.cpu().numpy()
+        actions = np.argmax(q_vals_v, axis=1)
+        
+        return actions
 
 
     def play_step(self, net, epsilon=0.0, device="cpu"):
@@ -432,25 +440,81 @@ class AgentPolicy:
         return done_reward
 
 
+def distr_projection(next_distr, rewards, dones, Vmin, Vmax, n_atoms, gamma):
+    """
+    Perform distribution projection aka Catergorical Algorithm from the
+    "A Distributional Perspective on RL" paper
+    """
+    batch_size = len(rewards)
+    proj_distr = np.zeros((batch_size, n_atoms), dtype=np.float32)
+    delta_z = (Vmax - Vmin) / (n_atoms - 1)
+    for atom in range(n_atoms):
+        tz_j = np.minimum(Vmax, np.maximum(Vmin, rewards + (Vmin + atom * delta_z) * gamma))
+        b_j = (tz_j - Vmin) / delta_z
+        l = np.floor(b_j).astype(np.int64)
+        u = np.ceil(b_j).astype(np.int64)
+        eq_mask = u == l
+        proj_distr[eq_mask, l[eq_mask]] += next_distr[eq_mask, atom]
+        ne_mask = u != l
+        proj_distr[ne_mask, l[ne_mask]] += next_distr[ne_mask, atom] * (u - b_j)[ne_mask]
+        proj_distr[ne_mask, u[ne_mask]] += next_distr[ne_mask, atom] * (b_j - l)[ne_mask]
+    if dones.any():
+        proj_distr[dones] = 0.0
+        tz_j = np.minimum(Vmax, np.maximum(Vmin, rewards[dones]))
+        b_j = (tz_j - Vmin) / delta_z
+        l = np.floor(b_j).astype(np.int64)
+        u = np.ceil(b_j).astype(np.int64)
+        eq_mask = u == l
+        eq_dones = dones.copy()
+        eq_dones[dones] = eq_mask
+        if eq_dones.any():
+            proj_distr[eq_dones, l[eq_mask]] = 1.0
+        ne_mask = u != l
+        ne_dones = dones.copy()
+        ne_dones[dones] = ne_mask
+        if ne_dones.any():
+            proj_distr[ne_dones, l[ne_mask]] = (u - b_j)[ne_mask]
+            proj_distr[ne_dones, u[ne_mask]] = (b_j - l)[ne_mask]
+    return proj_distr
 
-def calc_loss(batch, net, tgt_net, device="cpu"):
+def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
     states, actions, rewards, dones, next_states = batch
+    batch_size = len(states)
 
     states_v = torch.tensor(states).to(device)
-    next_states_v = torch.tensor(next_states).to(device)
     actions_v = torch.tensor(actions).to(device)
-    rewards_v = torch.tensor(rewards).to(device)
-    done_mask = torch.ByteTensor(dones).to(device)
+    next_states_v = torch.tensor(next_states).to(device)
+    
 
-    state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
-    next_state_actions =net(next_states_v).max(1)[1]
+    # next state distribution
+    # dueling arch -- actions from main net, distr from tgt_net
 
-    next_state_values = tgt_net(next_states_v).gather(1,next_state_actions.unsqueeze(-1)).squeeze(-1)
-    next_state_values[done_mask] = 0.0
-    next_state_values = next_state_values.detach()
+    # calc at once both next and cur states
+    distr_v, qvals_v = net.both(torch.cat((states_v, next_states_v)))
+    next_qvals_v = qvals_v[batch_size:]
+    distr_v = distr_v[:batch_size]
 
-    expected_state_action_values = next_state_values * GAMMA + rewards_v
-    return nn.MSELoss()(state_action_values, expected_state_action_values)
+    next_actions_v = next_qvals_v.max(1)[1]
+    next_distr_v = tgt_net(next_states_v)
+    next_best_distr_v = next_distr_v[range(batch_size), next_actions_v.data]
+    next_best_distr_v = tgt_net.apply_softmax(next_best_distr_v)
+    next_best_distr = next_best_distr_v.data.cpu().numpy()
+
+    dones = dones.astype(np.bool)
+
+    # project our distribution using Bellman update
+    proj_distr = distr_projection(next_best_distr, rewards, dones, Vmin, Vmax, N_ATOMS, gamma)
+
+    # calculate net output
+    state_action_values = distr_v[range(batch_size), actions_v.data]
+    state_log_sm_v = F.log_softmax(state_action_values, dim=1)
+    proj_distr_v = torch.tensor(proj_distr).to(device)
+
+    loss_v = -state_log_sm_v * proj_distr_v
+    loss_v =  loss_v.sum(dim=1)
+    return loss_v.mean()
+
+
 
 def createAgents(buffer):
     retColl = collections.deque(maxlen=BATCH_SIZE)
@@ -645,7 +709,7 @@ if __name__ == "__main__":
 
         optimizer.zero_grad()
         batch = buffer.sample(BATCH_SIZE)
-        loss_t = calc_loss(batch, net, tgt_net, device=device)
+        loss_t = calc_loss(batch, net, tgt_net,GAMMA, device=device)
         loss_t.backward()
         optimizer.step()
         buffer.clear()
