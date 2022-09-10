@@ -398,12 +398,8 @@ class AgentPolicy:
         done_reward = None
 
         
+        action = self.getNetActions([self.stateTest],net,device)[0]
         
-        state_a = np.array([self.stateTest], copy=False)
-        state_v = torch.tensor(state_a).to(device)
-        q_vals_v = net(state_v)
-        _, act_v = torch.max(q_vals_v, dim=1)
-        action = int(act_v.detach().item())
 
         # do step in the environment
         new_state, reward, is_done, _ = self.envTest.step(action)
@@ -422,11 +418,7 @@ class AgentPolicy:
 
         
         
-        state_a = np.array([self.stateVal], copy=False)
-        state_v = torch.tensor(state_a).to(device)
-        q_vals_v = net(state_v)
-        _, act_v = torch.max(q_vals_v, dim=1)
-        action = int(act_v.detach().item())
+        action = self.getNetActions([self.stateVal],net,device)[0]
 
         # do step in the environment
         new_state, reward, is_done, _ = self.envVal.step(action)
