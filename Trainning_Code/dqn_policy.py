@@ -269,6 +269,7 @@ class AgentPolicy:
     def __init__(self, envs, exp_buffer,envTest,currentFrame,gameCount):
         self.envs = envs
         self.envTest = envTest
+        self.envVal = envs[-1]
         self.exp_buffer = exp_buffer
         self.currentFrame = currentFrame
         self.win = [ False for y in self.envs]
@@ -284,6 +285,7 @@ class AgentPolicy:
         
         _=[self._reset(i) for i in range(len(self.envs)) ]
         self._resetTest()
+        self._resetVal()
         
     def calcWinStep(self):
         self.currentWinStepValue = WIN_STEP_START - int(round(((WIN_STEP_START-WIN_STEP_FINAL)/WIN_STEP_DECAY_LAST_FRAME ) * self.currentFrame))
@@ -306,6 +308,10 @@ class AgentPolicy:
     def _resetTest(self):
         self.stateTest = self.envTest.reset()
         self.total_rewardTest = 0.0
+    
+    def _resetVal(self):
+        self.stateVal = self.envVal.reset()
+        self.total_rewardVal = 0.0
 
 
     def play_stepWin(self,envIndex):
@@ -400,6 +406,29 @@ class AgentPolicy:
         if is_done:
             done_reward = self.total_rewardTest
             self._resetTest()
+        return done_reward
+
+
+    def play_step_val(self, net, device="cpu"):
+        done_reward = None
+
+        
+        
+        state_a = np.array([self.stateVal], copy=False)
+        state_v = torch.tensor(state_a).to(device)
+        q_vals_v = net(state_v)
+        _, act_v = torch.max(q_vals_v, dim=1)
+        action = int(act_v.detach().item())
+
+        # do step in the environment
+        new_state, reward, is_done, _ = self.envVal.step(action)
+        self.total_rewardVal += reward
+
+        
+        self.stateVal = new_state
+        if is_done:
+            done_reward = self.total_rewardVal
+            self._resetVal()
         return done_reward
 
 
@@ -504,6 +533,9 @@ if __name__ == "__main__":
     testRewards = collections.deque(maxlen=213)
     testRewardsLastMean = -10000
     testRewardsMean = 0
+    valRewards = collections.deque(maxlen=213)
+    valRewardsLastMean = -10000
+    valRewardsMean = 0
     while True:
         
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
@@ -580,6 +612,26 @@ if __name__ == "__main__":
                         testRewardsLastMean = testRewardsMean
                     print("found better test model , saving ... ")
                     torch.save(net.state_dict(), myFilePathTest)
+            
+                valIndx = 0
+                while valIndx < 213:
+                    valIndx+=1
+                    #start testing
+                    rewardVal = None
+                    valSteps = 0
+                    while rewardVal is None:
+                        valSteps += 1
+                        rewardVal = agent.play_step_val(net,device)
+                    valRewards.append(rewardVal)
+                    valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
+                    valRewardsMean = np.mean(valRewardsnp)
+                    writer.add_scalar("val mean reward",valRewardsMean,frame_idx)
+                    writer.add_scalar("val reward",rewardVal,frame_idx)
+                    writer.add_scalar("val steps",valSteps,frame_idx)
+                    print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
+                valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val-%.5f.dat"%(valRewardsMean)))
+                torch.save(net.state_dict(), valPeriodPath)
+               
                 
 
             if frame_idx % SYNC_TARGET_FRAMES == 0:
