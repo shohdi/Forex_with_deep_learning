@@ -10,7 +10,7 @@
 
 #define MAGICMA  182182
 
-
+int tradeDir = 0;
 
 //my functions
 int CalculateCurrentOrders()
@@ -39,6 +39,14 @@ void openUp(double lots)
      {
          Print("Opening Up Order !!");
         int res=OrderSend(Symbol(),OP_BUY,lots,Ask,5,0,0,"",MAGICMA,0,Green);
+        if (res == -1)
+        {
+         tradeDir = 0;
+        }
+        else
+        {
+         tradeDir = 1;
+        }
         
          return;
      }
@@ -53,7 +61,14 @@ void openUp(double lots)
      {
          Print("Opening Down Order !!");
          int res=OrderSend(Symbol(),OP_SELL,lots,Bid,5,0,0,"",MAGICMA,0,Red);
-         
+         if (res == -1)
+        {
+         tradeDir = 0;
+        }
+        else
+        {
+         tradeDir = 2;
+        }
          return;
      }
      
@@ -73,7 +88,7 @@ void openUp(double lots)
          if(OrderType()==OP_SELL) {
             Print("Closing down order ",OrderTicket());
             OrderClose(OrderTicket(),OrderLots(),Ask,5,Red);
-           
+            tradeDir = 0;
          }
         }
      }
@@ -94,7 +109,7 @@ void openUp(double lots)
          if(OrderType()==OP_BUY) {
             Print("Closing up order ",OrderTicket());
             OrderClose(OrderTicket(),OrderLots(),Bid,5,Red);
-            
+            tradeDir = 0;
          }
         }
      }
@@ -118,7 +133,7 @@ void openUp(double lots)
          
       }
       
-      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f",open,close,high,low,ask,bid);
+      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d",open,close,high,low,ask,bid,tradeDir);
       
      string ret = createRequest(url);
      
@@ -145,6 +160,9 @@ void openUp(double lots)
       Print("Error in WebRequest. Error code  =",GetLastError());
       //--- Perhaps the URL is not listed, display a message about the necessity to add the address
       //MessageBox("Add the address '"+url+"' in the list of allowed URLs on tab 'Expert Advisors'","Error",MB_ICONINFORMATION);
+      ExpertRemove();
+      MessageBox("can't find server 127.0.0.1:80");
+      
       return "";
      }
    else
