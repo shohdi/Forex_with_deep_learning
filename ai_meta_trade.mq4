@@ -87,7 +87,12 @@ void openUp(double lots)
          //if(OrderType()==OP_BUY)  buys++;
          if(OrderType()==OP_SELL) {
             Print("Closing down order ",OrderTicket());
-            OrderClose(OrderTicket(),OrderLots(),Ask,5,Red);
+            bool isClosed = OrderClose(OrderTicket(),OrderLots(),Ask,5,Red);
+            if (!isClosed)
+            {
+               ExpertRemove();
+               MessageBox("Error Closing Order!");
+            }
             tradeDir = 0;
          }
         }
@@ -108,7 +113,12 @@ void openUp(double lots)
          //if(OrderType()==OP_BUY)  buys++;
          if(OrderType()==OP_BUY) {
             Print("Closing up order ",OrderTicket());
-            OrderClose(OrderTicket(),OrderLots(),Bid,5,Red);
+            bool isClosed = OrderClose(OrderTicket(),OrderLots(),Bid,5,Red);
+             if (!isClosed)
+            {
+               ExpertRemove();
+               MessageBox("Error Closing Order!");
+            }
             tradeDir = 0;
          }
         }
