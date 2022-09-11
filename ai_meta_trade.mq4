@@ -181,7 +181,15 @@ void openUp(double lots)
          //PrintFormat("The file has been successfully loaded, File size =%d bytes.",ArraySize(result));
          string ret = "";
          ret = CharArrayToString(result);
-         ret = StringSubstr(ret,1,1);
+         if (StringFind(ret,"12") >= 0)
+         {
+            ret = StringSubstr(ret,1,2);
+         }
+         else
+         {
+         
+            ret = StringSubstr(ret,1,1);
+         }
          
          return ret;
      }
