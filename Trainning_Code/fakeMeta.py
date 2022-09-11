@@ -27,11 +27,11 @@ if __name__ == "__main__":
         action = int(requests.get(url).text.strip().replace('"','').replace('\r','').replace('\n',''))
         print('i : ' , i , 'action : ' , action)
         if action == 1 or action == 2:
-            if np.random.randint(2) == 1:
-                tradeDir = action
-            else:
-                tradeDir = 0
-        else:
+            #if np.random.randint(2) == 1:
+            tradeDir = action
+            #else:
+            #tradeDir = 0
+        elif action == 12:
             tradeDir = 0
 
         
