@@ -27,6 +27,7 @@ class Options:
         self.ActionAvailable = False
         self.StateAvailable = False
         self.takenAction = 0
+        self.tradeDir = 0
 
 options = Options()
 
@@ -45,6 +46,7 @@ class MetaTrade(Resource):
         parser.add_argument('low', type=float,location='args')
         parser.add_argument('ask', type=float,location='args')
         parser.add_argument('bid', type=float,location='args')
+        parser.add_argument('tradeDir' , type=int,location='args')
         args = parser.parse_args()
         open = args.open
         close = args.close
@@ -52,9 +54,17 @@ class MetaTrade(Resource):
         low = args.low
         ask = args.ask
         bid = args.bid
+        tradeDir = args.tradeDir
+        assert open > 0
+        assert close > 0
+        assert high > 0
+        assert low > 0
+        assert ask > 0
+        assert bid > 0
+        assert tradeDir == 0 or tradeDir == 1 or tradeDir == 2
         print("new state ",open,close,high,low,ask,bid)
         stateObj.append(np.array([open,close,high,low,ask,bid],dtype=np.float32))
-
+        options.tradeDir = tradeDir
         options.StateAvailable = True
         while not options.ActionAvailable:
             None

@@ -56,6 +56,10 @@ class ForexMetaEnv(gym.Env):
     def waitForTakeAction(self,action):
         while self.options.ActionAvailable:
             None
+        if action == 1 and self.openTradeDir == 2:
+            action = 12
+        if action == 2 and self.openTradeDir == 1:
+            action = 12
         self.options.takenAction = action
         self.options.ActionAvailable = True
     
@@ -64,9 +68,16 @@ class ForexMetaEnv(gym.Env):
         self.options.StateAvailable = False
         while not self.options.StateAvailable:
             None
-
-        myState = np.array(self.states,dtype=np.float32,copy=True)
         
+        if self.options.tradeDir == 0 and self.openTradeDir != 0  :
+            #close trade dir
+            self.openTradeDir = 0
+            self.startTradeStep = None
+            self.openTradeAsk = None
+            self.openTradeBid = None
+        myState = np.array(self.states,dtype=np.float32,copy=True)
+    
+            
 
         return myState
         

@@ -7,12 +7,12 @@ import requests
 if __name__ == "__main__":
     data = None
     header = None
-
+    tradeDir = 0
     with open('minutes15_100/data/test_data.csv', 'r') as f:
         reader = csv.reader(f, delimiter=';')
         header = next(reader)
         data = np.array(list(reader)).astype(np.float32)
-    urlFormat = 'http://127.0.0.1:5000?open={open}&close={close}&high={high}&low={low}&ask={ask}&bid={bid}'
+    urlFormat = 'http://127.0.0.1:5000?open={open}&close={close}&high={high}&low={low}&ask={ask}&bid={bid}&tradeDir={tradeDir}'
     for i in range(len(data)):
         url = urlFormat.format(
             open=data[i,header.index("open")]
@@ -21,11 +21,18 @@ if __name__ == "__main__":
             ,low=data[i,header.index("low")]
             ,ask=data[i,header.index("ask")]
             ,bid=data[i,header.index("bid")]
+            ,tradeDir=tradeDir
             )
         
         action = int(requests.get(url).text.strip().replace('"','').replace('\r','').replace('\n',''))
         print('i : ' , i , 'action : ' , action)
-        
+        if action == 1 or action == 2:
+            #if np.random.randint(2) == 1:
+            tradeDir = action
+            #else:
+            #tradeDir = 0
+        elif action == 12:
+            tradeDir = 0
 
         
         
