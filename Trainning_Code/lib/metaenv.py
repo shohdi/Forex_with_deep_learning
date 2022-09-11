@@ -56,6 +56,10 @@ class ForexMetaEnv(gym.Env):
     def waitForTakeAction(self,action):
         while self.options.ActionAvailable:
             None
+        if action == 1 and self.openTradeDir == 2:
+            action = 12
+        if action == 2 and self.openTradeDir == 1:
+            action = 12
         self.options.takenAction = action
         self.options.ActionAvailable = True
     
