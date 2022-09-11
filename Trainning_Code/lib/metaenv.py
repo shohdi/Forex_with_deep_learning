@@ -64,9 +64,16 @@ class ForexMetaEnv(gym.Env):
         self.options.StateAvailable = False
         while not self.options.StateAvailable:
             None
-
-        myState = np.array(self.states,dtype=np.float32,copy=True)
         
+        if self.options.tradeDir == 0 and self.openTradeDir != 0  :
+            #close trade dir
+            self.openTradeDir = 0
+            self.startTradeStep = None
+            self.openTradeAsk = None
+            self.openTradeBid = None
+        myState = np.array(self.states,dtype=np.float32,copy=True)
+    
+            
 
         return myState
         
