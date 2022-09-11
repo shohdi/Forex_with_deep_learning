@@ -72,7 +72,7 @@ class LSTM_Forex (nn.Module):
         self.actions = actions
         self.selected_device = selDevice
         self.inSize = self.input_shape[1]
-        self.hiddenSize = 100
+        self.hiddenSize = 200
         self.numLayers = 2
         self.outSize = 512
         self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
