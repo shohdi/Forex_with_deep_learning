@@ -37,12 +37,12 @@ MEAN_REWARD_BOUND = 20
 
 GAMMA = 0.99
 BATCH_SIZE = 32
-REPLAY_SIZE = 1000000
+#REPLAY_SIZE = 1000000
 LEARNING_RATE = 1e-4
 SYNC_TARGET_FRAMES = BATCH_SIZE * 1000
-REPLAY_START_SIZE = 10000
+#REPLAY_START_SIZE = 10000
 
-EPSILON_DECAY_LAST_FRAME = 10**5 #* BATCH_SIZE
+EPSILON_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
 EPSILON_START = 1
 EPSILON_FINAL = 0.02
 WIN_STEP_START = 0
@@ -153,127 +153,11 @@ class ExperienceBuffer:
 
 
 
-class Agent:
-    def __init__(self, env, exp_buffer,envTest):
-        self.env = env
-        self.envTest = envTest
-        self.exp_buffer = exp_buffer
-        self.win = False
-        self.winStep = None
-        self.tradeDir = 0
-        self.actionTraded = 0
-        self.game_count = 0
-        self._reset()
-        self._resetTest()
-        
-
-
-    def _reset(self):
-        self.state = self.env.reset()
-        
-        self.total_reward = 0.0
-        
-        self.win = False
-        self.winStep = None
-        self.tradeDir = 0
-        self.actionTraded = 0
-        self.game_count+=1
-    
-    def _resetTest(self):
-        self.stateTest = self.envTest.reset()
-        self.total_rewardTest = 0.0
-
-
-    def play_stepWin(self, net, epsilon=0.0, device="cpu"):
-        done_reward = None
-        action = None
-        if not self.win :
-            self.win,self.winStep = self.env.analysisUpTrade()
-            if self.win:
-                self.tradeDir = 1
-            if not self.win:
-                self.win,self.winStep = self.env.analysisDownTrade()
-                if self.win:
-                    self.tradeDir = 2
-
-        if self.actionTraded == 0 and self.win :
-            #take action
-            action = self.tradeDir
-            self.actionTraded = action
-        elif self.actionTraded != 0 and self.env.stepIndex >= self.winStep:
-            if self.actionTraded == 1:
-                action = 2
-            else :
-                action = 1
-        else :
-            action = 0
-
-                
-
-        
-
-        # do step in the environment
-        new_state, reward, is_done, _ = self.env.step(action)
-        self.total_reward += reward
-
-        exp = Experience(self.state, action, reward, is_done, new_state)
-        self.exp_buffer.append(exp)
-        self.state = new_state
-        if is_done:
-            done_reward = self.total_reward
-            self._reset()
-        return done_reward
-
-    def play_step(self, net, epsilon=0.0, device="cpu"):
-        done_reward = None
-
-        if np.random.random() < epsilon:
-            action = env.action_space.sample()
-        else:
-            state_a = np.array([self.state], copy=False)
-            state_v = torch.tensor(state_a).to(device)
-            q_vals_v = net.qvals(state_v)
-            _, act_v = torch.max(q_vals_v, dim=1)
-            action = int(act_v.item())
-
-        # do step in the environment
-        new_state, reward, is_done, _ = self.env.step(action)
-        self.total_reward += reward
-
-        exp = Experience(self.state, action, reward, is_done, new_state)
-        self.exp_buffer.append(exp)
-        self.state = new_state
-        if is_done:
-            done_reward = self.total_reward
-            self._reset()
-        return done_reward
-
-    def play_step_test(self, net, device="cpu"):
-        done_reward = None
-
-        
-        
-        state_a = np.array([self.stateTest], copy=False)
-        state_v = torch.tensor(state_a).to(device)
-        q_vals_v = net.qvals(state_v)
-        _, act_v = torch.max(q_vals_v, dim=1)
-        action = int(act_v.item())
-
-        # do step in the environment
-        new_state, reward, is_done, _ = self.envTest.step(action)
-        self.total_rewardTest += reward
-
-        
-        self.stateTest = new_state
-        if is_done:
-            done_reward = self.total_rewardTest
-            self._resetTest()
-        return done_reward
-
 
 
 class AgentPolicy:
-    def __init__(self, envs, exp_buffer,envTest,currentFrame,gameCount):
+    def __init__(self,net, envs, exp_buffer,envTest,currentFrame,gameCount):
+        self.net = net
         self.envs = envs
         self.envTest = envTest
         self.envVal = envs[-1]
@@ -300,9 +184,9 @@ class AgentPolicy:
             self.currentWinStepValue = WIN_STEP_FINAL
 
     def _reset(self,envIndex):
-        self.currentFrame +=1# self.envs[envIndex].stepIndex
+        self.currentFrame +=self.gameSteps[envIndex]# self.envs[envIndex].stepIndex
         self.state[envIndex] = self.envs[envIndex].reset()
-        
+        self.gameSteps[envIndex] = 0
         self.total_reward[envIndex] = 0.0
         
         self.win[envIndex] = False
@@ -356,6 +240,7 @@ class AgentPolicy:
         # do step in the environment
         done_reward = None
         new_state, reward, is_done, _ = self.envs[envIndex].step(action)
+        self.gameSteps[envIndex]+=1
         self.total_reward[envIndex] += reward
 
         exp = Experience(self.state[envIndex], action, reward, is_done, new_state)
@@ -363,42 +248,38 @@ class AgentPolicy:
         self.state[envIndex] = new_state
         if is_done:
             done_reward = self.total_reward[envIndex]
-            self.gameSteps[envIndex] = 1#self.envs[envIndex].stepIndex
+            
             self._reset(envIndex)
         return done_reward
 
-    def getNetActions(self,state,net,device="cpu"):
+    def getNetActions(self,state,device="cpu"):
         state_a = np.array(state, copy=False)
         state_v = torch.tensor(state_a).to(device)
-        q_vals_v = net.qvals(state_v)
+        q_vals_v = self.net(state_v)
         q_vals_v = q_vals_v.detach().data.cpu().numpy()
         actions = np.argmax(q_vals_v, axis=1)
         
         return actions
 
 
-    def play_step(self, net, epsilon=0.0, device="cpu"):
+    def play_step(self, epsilon=0.0, device="cpu"):
         done_reward = None
-        if self.game_count % ((WIN_STEP_START -  self.currentWinStepValue)+1) == 0 and self.currentWinStepValue > 0:
-            action = [self.play_stepWin(envIndex) for envIndex in range(len(self.envs)) ]
-        else: 
-            if np.random.random() < epsilon:
-                action = [env.action_space.sample() for env in self.envs]
-            else:
-                
-                action = self.getNetActions(self.state,net,device)
+        
+        if np.random.random() < epsilon:
+            action = [env.action_space.sample() for env in self.envs]
+        else:
+            
+            action = self.getNetActions(self.state,device)
 
-        # do step in the environment
-        action[0] =0
-        action[1:4] = self.getNetActions(self.state[1:4],net,device)
+        
         done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in range(len(self.envs))]
         return done_reward
 
-    def play_step_test(self, net, device="cpu"):
+    def play_step_test(self, device="cpu"):
         done_reward = None
 
         
-        action = self.getNetActions([self.stateTest],net,device)[0]
+        action = self.getNetActions([self.stateTest],device)[0]
         
 
         # do step in the environment
@@ -413,12 +294,12 @@ class AgentPolicy:
         return done_reward
 
 
-    def play_step_val(self, net, device="cpu"):
+    def play_step_val(self, device="cpu"):
         done_reward = None
 
         
         
-        action = self.getNetActions([self.stateVal],net,device)[0]
+        action = self.getNetActions([self.stateVal],device)[0]
 
         # do step in the environment
         new_state, reward, is_done, _ = self.envVal.step(action)
@@ -508,25 +389,15 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
 
 
 
-def createAgents(buffer):
-    retColl = collections.deque(maxlen=BATCH_SIZE)
-    i = 0
-    for i in range(BATCH_SIZE):
-        
-        env = ForexEnv('minutes15_100/data/train_data.csv',True,True)
-        envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
-        agent = Agent(env, buffer,envTest)
-        retColl.append((env,envTest,agent))
-    
-    return retColl
 
-def createOnePolicyAgents(buffer,currentFrame,gameCount):
+
+def createOnePolicyAgents(net,buffer,currentFrame,gameCount):
     
     envs = [wrappers.make_env(args.env) for i in range(BATCH_SIZE)]
     #envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
     envTest = wrappers.make_env(args.env)
     #envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
-    agent = AgentPolicy (envs, buffer,envTest,currentFrame,gameCount)
+    agent = AgentPolicy (lambda x: net.qvals(x),envs, buffer,envTest,currentFrame,gameCount)
     
     return agent
 
@@ -557,13 +428,15 @@ if __name__ == "__main__":
     buffer = ExperienceBuffer(BATCH_SIZE)
     frame_idx = int(args.frame) #0#len(buffer)
     gameCount = int(args.gameCount)
-    agent = createOnePolicyAgents(buffer,frame_idx,gameCount)
     
-    env = agent.envs[0]
+    
+    env = wrappers.make_env(args.env)
     net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
     tgt_net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
+    
     #net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     #tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
+    agent = createOnePolicyAgents(net,buffer,frame_idx,gameCount)
     writer = SummaryWriter(comment="-" + args.env)
     print(net)
     
@@ -595,6 +468,7 @@ if __name__ == "__main__":
     valRewards = collections.deque(maxlen=213)
     valRewardsLastMean = -10000
     valRewardsMean = 0
+    gameStep = [0 for i in range(BATCH_SIZE)]
     while True:
         
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
@@ -603,12 +477,14 @@ if __name__ == "__main__":
         
         
 
-        batch_rewards = agent.play_step(net,epsilon,device)
+        batch_rewards = agent.play_step(epsilon,device)
         for rewardIdx in range(len(batch_rewards)):
             frame_idx +=1
             reward = batch_rewards[rewardIdx]
-            gameSteps = agent.gameSteps[rewardIdx]
+            gameStep[rewardIdx]+=1
             if reward is not None:
+                gameSteps = gameStep[rewardIdx]
+                gameStep[rewardIdx] = 0
                 total_rewards.append(reward)
                 gameCount+=1
                 speed = (frame_idx - ts_frame) / (time.time() - ts)
@@ -655,7 +531,7 @@ if __name__ == "__main__":
                     testSteps = 0
                     while rewardTest is None:
                         testSteps += 1
-                        rewardTest = agent.play_step_test(net,device)
+                        rewardTest = agent.play_step_test(device)
                     testRewards.append(rewardTest)
                     testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
                     testRewardsMean = np.mean(testRewardsnp)
@@ -680,7 +556,7 @@ if __name__ == "__main__":
                     valSteps = 0
                     while rewardVal is None:
                         valSteps += 1
-                        rewardVal = agent.play_step_val(net,device)
+                        rewardVal = agent.play_step_val(device)
                     valRewards.append(rewardVal)
                     valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
                     valRewardsMean = np.mean(valRewardsnp)
