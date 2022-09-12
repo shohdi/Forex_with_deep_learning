@@ -256,7 +256,7 @@ class Agent:
         
         state_a = np.array([self.stateTest], copy=False)
         state_v = torch.tensor(state_a).to(device)
-        q_vals_v = net(state_v)
+        q_vals_v = net.qvals(state_v)
         _, act_v = torch.max(q_vals_v, dim=1)
         action = int(act_v.item())
 
