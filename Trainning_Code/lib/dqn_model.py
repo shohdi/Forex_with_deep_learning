@@ -4,8 +4,8 @@ import torch.nn as nn
 import numpy as np
 
 # C51
-Vmax = 20
-Vmin = -20
+Vmax = 0.02
+Vmin = -0.02
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 class DQN(nn.Module):

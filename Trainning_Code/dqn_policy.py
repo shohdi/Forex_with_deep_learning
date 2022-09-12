@@ -16,7 +16,7 @@ import glob
 import pickle
 import warnings
 import math
-from lib import wrappers
+
 
 
 
@@ -392,10 +392,10 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
 
 def createAgent(net,buffer,currentFrame,gameCount):
     
-    env = wrappers.make_env(args.env)
-    #envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
-    envTest = wrappers.make_env(args.env)
-    #envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
+    #env = wrappers.make_env(args.env)
+    env = ForexEnv('minutes15_100/data/train_data.csv',True,True ) 
+    #envTest = wrappers.make_env(args.env)
+    envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
     agent = AgentPolicy (lambda x: net.qvals(x),env, buffer,envTest,currentFrame,gameCount)
     
     return agent
@@ -429,12 +429,12 @@ if __name__ == "__main__":
     gameCount = int(args.gameCount)
     
     
-    env = wrappers.make_env(args.env)
-    net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
-    tgt_net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
+    env = ForexEnv('minutes15_100/data/train_data.csv',True,True ) 
+    #net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
+    #tgt_net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
     
-    #net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
-    #tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
+    net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
+    tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
     agent = createAgent(net,buffer,frame_idx,gameCount)
     writer = SummaryWriter(comment="-" + args.env)
     print(net)
