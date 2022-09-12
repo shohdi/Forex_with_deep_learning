@@ -95,7 +95,7 @@ def startApp():
     if os.path.exists(myFilePath):
         print('loading model')
         net.load_state_dict(torch.load(myFilePath, map_location=device))
-        state = env.reset()
+    state = env.reset()
     total_reward = 0.0
     c = collections.Counter()
     printed_reward = 0.0
