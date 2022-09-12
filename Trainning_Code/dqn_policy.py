@@ -131,10 +131,10 @@ class FileDataset(torch.utils.data.Dataset):
 
 
 class ExperienceBuffer:
-    def __init__(self,capacity):
+    def __init__(self,buffer_path,capacity):
         self.capacity = capacity
-        #self.buffer = FileDataset(buffer_path,capacity)
-        self.buffer = collections.deque(maxlen=capacity)
+        self.buffer = FileDataset(buffer_path,capacity)
+        #self.buffer = collections.deque(maxlen=capacity)
 
     def __len__(self):
         return len(self.buffer)
@@ -148,8 +148,7 @@ class ExperienceBuffer:
         return np.array(states), np.array(actions), np.array(rewards, dtype=np.float32), \
                np.array(dones, dtype=np.uint8), np.array(next_states)
     
-    def clear(self):
-        self.buffer = collections.deque(maxlen=self.capacity)
+    
 
 
 
@@ -425,7 +424,7 @@ if __name__ == "__main__":
     
     buffer_path = os.path.join(MY_DATA_PATH,'buffer')
     buffer_path = os.path.join(buffer_path,'data')
-    buffer = ExperienceBuffer(BATCH_SIZE)
+    buffer = ExperienceBuffer(buffer_path,REPLAY_SIZE)
     frame_idx = int(args.frame) #0#len(buffer)
     gameCount = int(args.gameCount)
     
