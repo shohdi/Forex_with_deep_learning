@@ -31,9 +31,9 @@ from lib.dqn_model import DELTA_Z
 
 
 
-#DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
-DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
-MEAN_REWARD_BOUND = 20
+DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
+#DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
+MEAN_REWARD_BOUND = 0.02
 
 GAMMA = 0.99
 BATCH_SIZE = 32
