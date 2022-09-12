@@ -37,17 +37,17 @@ MEAN_REWARD_BOUND = 20
 
 GAMMA = 0.99
 BATCH_SIZE = 32
-#REPLAY_SIZE = 1000000
+REPLAY_SIZE = 100000
 LEARNING_RATE = 1e-4
-SYNC_TARGET_FRAMES = BATCH_SIZE * 1000
-#REPLAY_START_SIZE = 10000
+SYNC_TARGET_FRAMES = 1000
+REPLAY_START_SIZE = 10000
 
-EPSILON_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
+EPSILON_DECAY_LAST_FRAME = 10**5 
 EPSILON_START = 1
 EPSILON_FINAL = 0.02
 WIN_STEP_START = 0
 WIN_STEP_FINAL = 0
-WIN_STEP_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
+WIN_STEP_DECAY_LAST_FRAME = 10**5 
 MY_DATA_PATH = 'data'
 
 
@@ -156,25 +156,25 @@ class ExperienceBuffer:
 
 
 class AgentPolicy:
-    def __init__(self,net, envs, exp_buffer,envTest,currentFrame,gameCount):
+    def __init__(self,net, env, exp_buffer,envTest,currentFrame,gameCount):
         self.net = net
-        self.envs = envs
+        self.env = env
         self.envTest = envTest
-        self.envVal = envs[-1]
+        self.envVal = env
         self.exp_buffer = exp_buffer
         self.currentFrame = currentFrame
-        self.win = [ False for y in self.envs]
-        self.winStep = [None for y in self.envs]
-        self.tradeDir = [0 for y in self.envs]
-        self.actionTraded = [0 for y in self.envs]
+        self.win = False
+        self.winStep = None
+        self.tradeDir = 0
+        self.actionTraded = 0
         self.game_count = gameCount
 
         self.currentWinStepValue = WIN_STEP_START
-        self.total_reward = [0.0 for env in self.envs]
-        self.state= [None for env in self.envs]
-        #self.gameSteps = [env.stepIndex for env in self.envs]
-        self.gameSteps = [0 for env in self.envs]
-        _=[self._reset(i) for i in range(len(self.envs)) ]
+        self.total_reward = 0.0
+        self.state= None
+        
+        self.gameSteps = 0
+        self._reset()
         self._resetTest()
         self._resetVal()
         
@@ -183,16 +183,16 @@ class AgentPolicy:
         if self.currentWinStepValue < WIN_STEP_FINAL:
             self.currentWinStepValue = WIN_STEP_FINAL
 
-    def _reset(self,envIndex):
-        self.currentFrame +=self.gameSteps[envIndex]# self.envs[envIndex].stepIndex
-        self.state[envIndex] = self.envs[envIndex].reset()
-        self.gameSteps[envIndex] = 0
-        self.total_reward[envIndex] = 0.0
+    def _reset(self):
+        self.currentFrame +=self.gameSteps
+        self.state = self.env.reset()
+        self.gameSteps = 0
+        self.total_reward = 0.0
         
-        self.win[envIndex] = False
-        self.winStep[envIndex] = None
-        self.tradeDir[envIndex] = 0
-        self.actionTraded[envIndex] = 0
+        self.win = False
+        self.winStep = None
+        self.tradeDir = 0
+        self.actionTraded = 0
         self.game_count+=1
         self.calcWinStep()
     
@@ -205,25 +205,25 @@ class AgentPolicy:
         self.total_rewardVal = 0.0
 
 
-    def play_stepWin(self,envIndex):
+    def play_stepWin(self):
         done_reward = None
         action = None
         
-        if not self.win[envIndex] :
-            self.win[envIndex],self.winStep[envIndex] = self.envs[envIndex].analysisUpTrade()
-            if self.win[envIndex]:
-                self.tradeDir[envIndex] = 1
-            if not self.win[envIndex]:
-                self.win[envIndex],self.winStep[envIndex] = self.envs[envIndex].analysisDownTrade()
-                if self.win[envIndex]:
-                    self.tradeDir[envIndex] = 2
+        if not self.win :
+            self.win,self.winStep = self.env.analysisUpTrade()
+            if self.win:
+                self.tradeDir = 1
+            if not self.win:
+                self.win,self.winStep = self.env.analysisDownTrade()
+                if self.win:
+                    self.tradeDir = 2
 
-        if self.actionTraded[envIndex] == 0 and self.win[envIndex] :
+        if self.actionTraded == 0 and self.win :
             #take action
-            action = self.tradeDir[envIndex]
-            self.actionTraded[envIndex] = action
-        elif self.actionTraded[envIndex] != 0 and self.envs[envIndex].stepIndex >= self.winStep[envIndex]:
-            if self.actionTraded[envIndex] == 1:
+            action = self.tradeDir
+            self.actionTraded = action
+        elif self.actionTraded != 0 and self.env.stepIndex >= self.winStep:
+            if self.actionTraded == 1:
                 action = 2
             else :
                 action = 1
@@ -236,20 +236,20 @@ class AgentPolicy:
 
         return action
     
-    def _step_action(self,envIndex,action):
+    def _step_action(self,action):
         # do step in the environment
         done_reward = None
-        new_state, reward, is_done, _ = self.envs[envIndex].step(action)
-        self.gameSteps[envIndex]+=1
-        self.total_reward[envIndex] += reward
+        new_state, reward, is_done, _ = self.env.step(action)
+        self.gameSteps+=1
+        self.total_reward += reward
 
-        exp = Experience(self.state[envIndex], action, reward, is_done, new_state)
+        exp = Experience(self.state, action, reward, is_done, new_state)
         self.exp_buffer.append(exp)
-        self.state[envIndex] = new_state
+        self.state = new_state
         if is_done:
-            done_reward = self.total_reward[envIndex]
+            done_reward = self.total_reward
             
-            self._reset(envIndex)
+            self._reset()
         return done_reward
 
     def getNetActions(self,state,device="cpu"):
@@ -266,13 +266,13 @@ class AgentPolicy:
         done_reward = None
         
         if np.random.random() < epsilon:
-            action = [env.action_space.sample() for env in self.envs]
+            action = self.env.action_space.sample()
         else:
             
-            action = self.getNetActions(self.state,device)
+            action = self.getNetActions([self.state],device)[0]
 
         
-        done_reward = [self._step_action(envIndex,action[envIndex]) for envIndex in range(len(self.envs))]
+        done_reward = self._step_action(action)
         return done_reward
 
     def play_step_test(self, device="cpu"):
@@ -391,13 +391,13 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
 
 
 
-def createOnePolicyAgents(net,buffer,currentFrame,gameCount):
+def createAgent(net,buffer,currentFrame,gameCount):
     
-    envs = [wrappers.make_env(args.env) for i in range(BATCH_SIZE)]
+    env = wrappers.make_env(args.env)
     #envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
     envTest = wrappers.make_env(args.env)
     #envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
-    agent = AgentPolicy (lambda x: net.qvals(x),envs, buffer,envTest,currentFrame,gameCount)
+    agent = AgentPolicy (lambda x: net.qvals(x),env, buffer,envTest,currentFrame,gameCount)
     
     return agent
 
@@ -422,7 +422,7 @@ if __name__ == "__main__":
 
     print("device : ",device)
 
-    #env = wrappers.make_env(args.env)
+    
     buffer_path = os.path.join(MY_DATA_PATH,'buffer')
     buffer_path = os.path.join(buffer_path,'data')
     buffer = ExperienceBuffer(BATCH_SIZE)
@@ -436,7 +436,7 @@ if __name__ == "__main__":
     
     #net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     #tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
-    agent = createOnePolicyAgents(net,buffer,frame_idx,gameCount)
+    agent = createAgent(net,buffer,frame_idx,gameCount)
     writer = SummaryWriter(comment="-" + args.env)
     print(net)
     
@@ -468,112 +468,114 @@ if __name__ == "__main__":
     valRewards = collections.deque(maxlen=213)
     valRewardsLastMean = -10000
     valRewardsMean = 0
-    gameStep = [0 for i in range(BATCH_SIZE)]
+    gameStep = 0
     while True:
         
         epsilon = max(EPSILON_FINAL, EPSILON_START - frame_idx / EPSILON_DECAY_LAST_FRAME)
          
         envTest = agent.envTest
+        envVal = agent.envVal
+        
+
+        reward = agent.play_step(epsilon,device)
+        
+        frame_idx +=1
+        
+        gameStep+=1
+        if reward is not None:
+            gameSteps = gameStep
+            gameStep = 0
+            total_rewards.append(reward)
+            gameCount+=1
+            speed = (frame_idx - ts_frame) / (time.time() - ts)
+            ts_frame = frame_idx
+            ts = time.time()
+            mean_reward = np.mean(np.array(total_rewards,copy=False)[-100:])
+            print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f , epsilon %.2f, speed %.2f f/s" % (
+                frame_idx, gameCount , reward , gameSteps , mean_reward,epsilon,
+                speed
+            ))
+            writer.add_scalar("epsilon", epsilon, frame_idx)
+            writer.add_scalar("speed", speed, frame_idx)
+            writer.add_scalar("reward_100", mean_reward, frame_idx)
+            writer.add_scalar("reward", reward, frame_idx)
+            writer.add_scalar("steps", gameSteps, frame_idx)
+            writer.add_scalar("win step value", agent.currentWinStepValue , frame_idx)
+            
+            if best_mean_reward is None or best_mean_reward < mean_reward:
+                
+                torch.save(net.state_dict(), myFilePath)
+                if best_mean_reward is not None:
+                    print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
+                best_mean_reward = mean_reward
+            
+            
+
+
+
+            if mean_reward > args.reward:
+                print("Solved in %d frames!" % frame_idx)
+                break
         
         
-
-        batch_rewards = agent.play_step(epsilon,device)
-        for rewardIdx in range(len(batch_rewards)):
-            frame_idx +=1
-            reward = batch_rewards[rewardIdx]
-            gameStep[rewardIdx]+=1
-            if reward is not None:
-                gameSteps = gameStep[rewardIdx]
-                gameStep[rewardIdx] = 0
-                total_rewards.append(reward)
-                gameCount+=1
-                speed = (frame_idx - ts_frame) / (time.time() - ts)
-                ts_frame = frame_idx
-                ts = time.time()
-                mean_reward = np.mean(np.array(total_rewards,copy=False)[-100:])
-                print("%d: done %d games game reward %.7f , game steps : %d , mean reward %.7f , epsilon %.2f, speed %.2f f/s" % (
-                    frame_idx, gameCount , reward , gameSteps , mean_reward,epsilon,
-                    speed
-                ))
-                writer.add_scalar("epsilon", epsilon, frame_idx)
-                writer.add_scalar("speed", speed, frame_idx)
-                writer.add_scalar("reward_100", mean_reward, frame_idx)
-                writer.add_scalar("reward", reward, frame_idx)
-                writer.add_scalar("steps", gameSteps, frame_idx)
-                writer.add_scalar("win step value", agent.currentWinStepValue , frame_idx)
-                
-                if best_mean_reward is None or best_mean_reward < mean_reward:
-                    
-                    torch.save(net.state_dict(), myFilePath)
-                    if best_mean_reward is not None:
-                        print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
-                    best_mean_reward = mean_reward
-                
-                
-
-
-
-                if mean_reward > args.reward:
-                    print("Solved in %d frames!" % frame_idx)
-                    break
-            
-            
-            
-            if frame_idx % 10000 == 0 and frame_idx > 0:
-                torch.save(net.state_dict(), myFilePath1000)
         
-            if frame_idx % (10000 * 213) == 0 and frame_idx > 10000:
-                testIdx = 0
-                while testIdx < 213:
-                    testIdx+=1
-                    #start testing
-                    rewardTest = None
-                    testSteps = 0
-                    while rewardTest is None:
-                        testSteps += 1
-                        rewardTest = agent.play_step_test(device)
-                    testRewards.append(rewardTest)
-                    testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
-                    testRewardsMean = np.mean(testRewardsnp)
-                    writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
-                    writer.add_scalar("test reward",rewardTest,frame_idx)
-                    writer.add_scalar("test steps",testSteps,frame_idx)
-                    print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
-                testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-%.5f.dat"%(testRewardsMean)))
-                torch.save(net.state_dict(), testPeriodPath)
-                print("test last mean reward before checking ",testRewardsLastMean)
-                if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 ) or not os.path.exists(myFilePathTest)  :
-                    if len(testRewards) == 213:
-                        testRewardsLastMean = testRewardsMean
-                    print("found better test model , saving ... ")
-                    torch.save(net.state_dict(), myFilePathTest)
+        if frame_idx % 10000 == 0 and frame_idx > 0:
+            torch.save(net.state_dict(), myFilePath1000)
+    
+        if frame_idx % (10000 * 213) == 0 and frame_idx > 10000:
+            envTest.reset()
+            testIdx = 0
+            while testIdx < 213:
+                testIdx+=1
+                #start testing
+                rewardTest = None
+                testSteps = 0
+                while rewardTest is None:
+                    testSteps += 1
+                    rewardTest = agent.play_step_test(device)
+                testRewards.append(rewardTest)
+                testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
+                testRewardsMean = np.mean(testRewardsnp)
+                writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
+                writer.add_scalar("test reward",rewardTest,frame_idx)
+                writer.add_scalar("test steps",testSteps,frame_idx)
+                print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+            testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-%.5f.dat"%(testRewardsMean)))
+            torch.save(net.state_dict(), testPeriodPath)
+            print("test last mean reward before checking ",testRewardsLastMean)
+            if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 ) or not os.path.exists(myFilePathTest)  :
+                if len(testRewards) == 213:
+                    testRewardsLastMean = testRewardsMean
+                print("found better test model , saving ... ")
+                torch.save(net.state_dict(), myFilePathTest)
+
+            envVal.reset()
+            valIndx = 0
+            while valIndx < 213:
+                valIndx+=1
+                #start testing
+                rewardVal = None
+                valSteps = 0
+                while rewardVal is None:
+                    valSteps += 1
+                    rewardVal = agent.play_step_val(device)
+                valRewards.append(rewardVal)
+                valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
+                valRewardsMean = np.mean(valRewardsnp)
+                writer.add_scalar("val mean reward",valRewardsMean,frame_idx)
+                writer.add_scalar("val reward",rewardVal,frame_idx)
+                writer.add_scalar("val steps",valSteps,frame_idx)
+                print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
+            valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val-%.5f.dat"%(valRewardsMean)))
+            torch.save(net.state_dict(), valPeriodPath)
             
-                valIndx = 0
-                while valIndx < 213:
-                    valIndx+=1
-                    #start testing
-                    rewardVal = None
-                    valSteps = 0
-                    while rewardVal is None:
-                        valSteps += 1
-                        rewardVal = agent.play_step_val(device)
-                    valRewards.append(rewardVal)
-                    valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
-                    valRewardsMean = np.mean(valRewardsnp)
-                    writer.add_scalar("val mean reward",valRewardsMean,frame_idx)
-                    writer.add_scalar("val reward",rewardVal,frame_idx)
-                    writer.add_scalar("val steps",valSteps,frame_idx)
-                    print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
-                valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val-%.5f.dat"%(valRewardsMean)))
-                torch.save(net.state_dict(), valPeriodPath)
-               
-                
+            
 
-            if frame_idx % SYNC_TARGET_FRAMES == 0:
-                tgt_net.load_state_dict(net.state_dict())
+        if frame_idx % SYNC_TARGET_FRAMES == 0:
+            tgt_net.load_state_dict(net.state_dict())
 
 
-        if len(buffer) < BATCH_SIZE:
+        if len(buffer) < REPLAY_START_SIZE:
             continue
 
 
@@ -583,7 +585,7 @@ if __name__ == "__main__":
         loss_t = calc_loss(batch, net, tgt_net,GAMMA, device=device)
         loss_t.backward()
         optimizer.step()
-        buffer.clear()
+        
         
 
 
