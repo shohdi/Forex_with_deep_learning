@@ -554,7 +554,7 @@ if __name__ == "__main__":
     #env = wrappers.make_env(args.env)
     buffer_path = os.path.join(MY_DATA_PATH,'buffer')
     buffer_path = os.path.join(buffer_path,'data')
-    buffer = ExperienceBuffer(10000)
+    buffer = ExperienceBuffer(BATCH_SIZE)
     frame_idx = int(args.frame) #0#len(buffer)
     gameCount = int(args.gameCount)
     agent = createOnePolicyAgents(buffer,frame_idx,gameCount)
@@ -697,19 +697,18 @@ if __name__ == "__main__":
                 tgt_net.load_state_dict(net.state_dict())
 
 
-        if len(buffer) < 10000:
+        if len(buffer) < BATCH_SIZE:
             continue
 
 
-        num =0
-        while num < BATCH_SIZE:
-            optimizer.zero_grad()
-            batch = buffer.sample(BATCH_SIZE)
-            loss_t = calc_loss(batch, net, tgt_net,GAMMA, device=device)
-            loss_t.backward()
-            optimizer.step()
-            #buffer.clear()
-            num+=1
+        
+        optimizer.zero_grad()
+        batch = buffer.sample(BATCH_SIZE)
+        loss_t = calc_loss(batch, net, tgt_net,GAMMA, device=device)
+        loss_t.backward()
+        optimizer.step()
+        buffer.clear()
+        
 
 
 
