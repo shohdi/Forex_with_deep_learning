@@ -24,13 +24,12 @@ from lib import wrappers
 from lib.SummaryWriter import SummaryWriter
 
 from lib.env import ForexEnv
+from lib.dqn_model import Vmax
+from lib.dqn_model import Vmin
+from lib.dqn_model import N_ATOMS
+from lib.dqn_model import DELTA_Z
 
 
-# C51
-Vmax = 20
-Vmin = -20
-N_ATOMS = 51
-DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 
 #DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
 DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
