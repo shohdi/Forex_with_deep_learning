@@ -16,7 +16,7 @@ import glob
 import pickle
 import warnings
 import math
-
+from lib import wrappers
 
 
 
@@ -27,13 +27,14 @@ from lib.env import ForexEnv
 
 
 # C51
-Vmax = 0.01
-Vmin = -0.01
+Vmax = 20
+Vmin = -20
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 
-DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
-MEAN_REWARD_BOUND = 0.01
+#DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
+DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
+MEAN_REWARD_BOUND = 20
 
 GAMMA = 0.99
 BATCH_SIZE = 32
@@ -42,12 +43,12 @@ LEARNING_RATE = 1e-4
 SYNC_TARGET_FRAMES = BATCH_SIZE * 1000
 REPLAY_START_SIZE = 10000
 
-EPSILON_DECAY_LAST_FRAME = 10**6 * BATCH_SIZE
+EPSILON_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
 EPSILON_START = 1
-EPSILON_FINAL = 0.004
+EPSILON_FINAL = 0.02
 WIN_STEP_START = 0
 WIN_STEP_FINAL = 0
-WIN_STEP_DECAY_LAST_FRAME = 10**6 * BATCH_SIZE
+WIN_STEP_DECAY_LAST_FRAME = 10**5 * BATCH_SIZE
 MY_DATA_PATH = 'data'
 
 
@@ -288,8 +289,8 @@ class AgentPolicy:
         self.currentWinStepValue = WIN_STEP_START
         self.total_reward = [0.0 for env in self.envs]
         self.state= [None for env in self.envs]
-        self.gameSteps = [env.stepIndex for env in self.envs]
-        
+        #self.gameSteps = [env.stepIndex for env in self.envs]
+        self.gameSteps = [0 for env in self.envs]
         _=[self._reset(i) for i in range(len(self.envs)) ]
         self._resetTest()
         self._resetVal()
@@ -300,7 +301,7 @@ class AgentPolicy:
             self.currentWinStepValue = WIN_STEP_FINAL
 
     def _reset(self,envIndex):
-        self.currentFrame += self.envs[envIndex].stepIndex
+        self.currentFrame +=1# self.envs[envIndex].stepIndex
         self.state[envIndex] = self.envs[envIndex].reset()
         
         self.total_reward[envIndex] = 0.0
@@ -363,7 +364,7 @@ class AgentPolicy:
         self.state[envIndex] = new_state
         if is_done:
             done_reward = self.total_reward[envIndex]
-            self.gameSteps[envIndex] = self.envs[envIndex].stepIndex
+            self.gameSteps[envIndex] = 1#self.envs[envIndex].stepIndex
             self._reset(envIndex)
         return done_reward
 
@@ -522,9 +523,10 @@ def createAgents(buffer):
 
 def createOnePolicyAgents(buffer,currentFrame,gameCount):
     
- 
-    envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
-    envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
+    envs = [wrappers.make_env(args.env) for i in range(BATCH_SIZE)]
+    #envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
+    envTest = wrappers.make_env(args.env)
+    #envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
     agent = AgentPolicy (envs, buffer,envTest,currentFrame,gameCount)
     
     return agent
@@ -559,8 +561,10 @@ if __name__ == "__main__":
     agent = createOnePolicyAgents(buffer,frame_idx,gameCount)
     
     env = agent.envs[0]
-    net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
-    tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
+    net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
+    tgt_net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
+    #net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
+    #tgt_net = dqn_model.LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
     writer = SummaryWriter(comment="-" + args.env)
     print(net)
     
