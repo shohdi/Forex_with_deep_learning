@@ -37,7 +37,7 @@ MEAN_REWARD_BOUND = 20
 
 GAMMA = 0.99
 BATCH_SIZE = 32
-REPLAY_SIZE = 100000
+REPLAY_SIZE = 1000000
 LEARNING_RATE = 1e-4
 SYNC_TARGET_FRAMES = 1000
 REPLAY_START_SIZE = 10000
@@ -132,9 +132,9 @@ class FileDataset(torch.utils.data.Dataset):
 
 class ExperienceBuffer:
     def __init__(self,buffer_path,capacity):
-        self.capacity = capacity
-        #self.buffer = FileDataset(buffer_path,capacity)
-        self.buffer = collections.deque(maxlen=capacity)
+        #self.capacity = capacity
+        self.buffer = FileDataset(buffer_path,capacity)
+        #self.buffer = collections.deque(maxlen=capacity)
 
     def __len__(self):
         return len(self.buffer)
