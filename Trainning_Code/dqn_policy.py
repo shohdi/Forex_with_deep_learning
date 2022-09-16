@@ -392,11 +392,11 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
 
 def createAgent(net,buffer,currentFrame,gameCount):
     
-    env = wrappers.make_env(args.env)
+    envs = [wrappers.make_env(args.env) for i in range(BATCH_SIZE)]
     #envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
     envTest = wrappers.make_env(args.env)
     #envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
-    agent = AgentPolicy (lambda x: net.qvals(x),env, buffer,envTest,currentFrame,gameCount)
+    agent = AgentPolicy (lambda x: net.qvals(x),envs, buffer,envTest,currentFrame,gameCount)
     
     return agent
 
