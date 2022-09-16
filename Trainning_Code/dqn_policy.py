@@ -184,7 +184,7 @@ class AgentPolicy:
 
     def _reset(self,envIndx):
         self.currentFrame +=self.gameSteps[envIndx]
-        self.state = self.envs[envIndx].reset()
+        self.state[envIndx] = self.envs[envIndx].reset()
         self.gameSteps[envIndx] = 0
         self.total_reward[envIndx] = 0.0
         
