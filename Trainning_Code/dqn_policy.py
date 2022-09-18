@@ -427,6 +427,9 @@ if __name__ == "__main__":
     buffer = ExperienceBuffer(buffer_path,REPLAY_SIZE)
     frame_idx = int(args.frame) #0#len(buffer)
     gameCount = int(args.gameCount)
+
+    test_idx = 0
+    val_idx = 0
     
     
     env = ForexEnv('minutes15_100/data/train_data.csv',True,True ) 
@@ -526,18 +529,20 @@ if __name__ == "__main__":
             testIdx = 0
             while testIdx < 213:
                 testIdx+=1
+                test_idx +=1
                 #start testing
                 rewardTest = None
                 testSteps = 0
                 while rewardTest is None:
+                    test_idx +=1
                     testSteps += 1
                     rewardTest = agent.play_step_test(device)
                 testRewards.append(rewardTest)
                 testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
                 testRewardsMean = np.mean(testRewardsnp)
-                writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
-                writer.add_scalar("test reward",rewardTest,frame_idx)
-                writer.add_scalar("test steps",testSteps,frame_idx)
+                writer.add_scalar("test mean reward",testRewardsMean,test_idx)
+                writer.add_scalar("test reward",rewardTest,test_idx)
+                writer.add_scalar("test steps",testSteps,test_idx)
                 print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
             testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-%.5f.dat"%(testRewardsMean)))
             torch.save(net.state_dict(), testPeriodPath)
@@ -552,18 +557,20 @@ if __name__ == "__main__":
             valIndx = 0
             while valIndx < 213:
                 valIndx+=1
+                val_idx+=1
                 #start testing
                 rewardVal = None
                 valSteps = 0
                 while rewardVal is None:
+                    val_idx+=1
                     valSteps += 1
                     rewardVal = agent.play_step_val(device)
                 valRewards.append(rewardVal)
                 valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
                 valRewardsMean = np.mean(valRewardsnp)
-                writer.add_scalar("val mean reward",valRewardsMean,frame_idx)
-                writer.add_scalar("val reward",rewardVal,frame_idx)
-                writer.add_scalar("val steps",valSteps,frame_idx)
+                writer.add_scalar("val mean reward",valRewardsMean,val_idx)
+                writer.add_scalar("val reward",rewardVal,val_idx)
+                writer.add_scalar("val steps",valSteps,val_idx)
                 print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
             valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val-%.5f.dat"%(valRewardsMean)))
             torch.save(net.state_dict(), valPeriodPath)
