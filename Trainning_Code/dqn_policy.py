@@ -521,7 +521,7 @@ if __name__ == "__main__":
         if frame_idx % 10000 == 0 and frame_idx > 0:
             torch.save(net.state_dict(), myFilePath1000)
     
-        if frame_idx % (10000 * 213) == 0 and frame_idx > 10000:
+        if frame_idx % (1000 * 213) == 0 and frame_idx > 10000:
             envTest.reset()
             testIdx = 0
             while testIdx < 213:
