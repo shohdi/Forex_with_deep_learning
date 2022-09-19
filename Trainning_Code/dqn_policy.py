@@ -132,24 +132,18 @@ class FileDataset(torch.utils.data.Dataset):
 
 class ExperienceBuffer:
     def __init__(self,buffer_path,capacity):
-        self.capacity = capacity
-        #self.buffer = FileDataset(buffer_path,capacity)
-        self.buffer = [None] * self.capacity #collections.deque(maxlen=capacity)
-        self.myLen = 0
-        self.current = 0
+        #self.capacity = capacity
+        self.buffer = FileDataset(buffer_path,capacity)
+        #self.buffer = collections.deque(maxlen=capacity)
 
     def __len__(self):
-        return self.myLen
+        return len(self.buffer)
 
     def append(self, experience):
-        self.buffer[self.current] = experience
-        if self.myLen < self.capacity:
-            self.myLen +=1
-        self.current = (self.current + 1) % self.capacity
-        
+        self.buffer.append(experience)
 
     def sample(self, batch_size):
-        indices = np.random.choice(self.myLen, batch_size, replace=False)
+        indices = np.random.choice(len(self.buffer), batch_size, replace=False)
         states, actions, rewards, dones, next_states = zip(*[self.buffer[idx] for idx in indices])
         return np.array(states,dtype=np.float32), np.array(actions,dtype=np.int64), np.array(rewards, dtype=np.float32), \
                np.array(dones, dtype=np.uint8), np.array(next_states,dtype=np.float32)
