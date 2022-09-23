@@ -16,6 +16,7 @@ import glob
 import pickle
 import warnings
 import sys
+from datetime import datetime
 
 
 
@@ -403,6 +404,7 @@ def createAgent(net,buffer,currentFrame,gameCount):
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
+    startTime = time.time()
     parser = argparse.ArgumentParser()
     cudaDefault = False
     if (torch.cuda.is_available()):
@@ -600,6 +602,15 @@ if __name__ == "__main__":
         loss_t.backward()
         optimizer.step()
         
+        currentTime = time.time()
+        if (currentTime-startTime) > 3600:
+            startTime = time.time()
+            print('sleeping 5 minutes on ' + str(datetime.now()))
+            sys.stdout.flush()
+            time.sleep(5*60)
+            print('resuming on ' + str(datetime.now()))
+            sys.stdout.flush()
+
         
 
 
