@@ -15,7 +15,8 @@ import os
 import glob
 import pickle
 import warnings
-import math
+import sys
+
 
 
 
@@ -145,8 +146,8 @@ class ExperienceBuffer:
     def sample(self, batch_size):
         indices = np.random.choice(len(self.buffer), batch_size, replace=False)
         states, actions, rewards, dones, next_states = zip(*[self.buffer[idx] for idx in indices])
-        return np.array(states,dtype=np.float32), np.array(actions,dtype=np.int64), np.array(rewards, dtype=np.float32), \
-               np.array(dones, dtype=np.uint8), np.array(next_states,dtype=np.float32)
+        return np.array(states,dtype=np.float32,copy=False), np.array(actions,dtype=np.int64,copy=False), np.array(rewards, dtype=np.float32,copy=False), \
+               np.array(dones, dtype=np.uint8,copy=False), np.array(next_states,dtype=np.float32,copy=False)
     
     
 
@@ -497,6 +498,7 @@ if __name__ == "__main__":
                 frame_idx, gameCount , reward , gameSteps , mean_reward,epsilon,
                 speed
             ))
+            sys.stdout.flush()
             writer.add_scalar("epsilon", epsilon, frame_idx)
             writer.add_scalar("speed", speed, frame_idx)
             writer.add_scalar("reward_100", mean_reward, frame_idx)
@@ -509,6 +511,7 @@ if __name__ == "__main__":
                 torch.save(net.state_dict(), myFilePath)
                 if best_mean_reward is not None:
                     print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
+                    sys.stdout.flush()
                 best_mean_reward = mean_reward
             
             
@@ -517,6 +520,7 @@ if __name__ == "__main__":
 
             if mean_reward > args.reward:
                 print("Solved in %d frames!" % frame_idx)
+                sys.stdout.flush()
                 break
         
         
@@ -544,13 +548,16 @@ if __name__ == "__main__":
                 writer.add_scalar("test reward",rewardTest,test_idx)
                 writer.add_scalar("test steps",testSteps,test_idx)
                 print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+                sys.stdout.flush()
             testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-%.5f.dat"%(testRewardsMean)))
             torch.save(net.state_dict(), testPeriodPath)
             print("test last mean reward before checking ",testRewardsLastMean)
+            sys.stdout.flush()
             if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 ) or not os.path.exists(myFilePathTest)  :
                 if len(testRewards) == 213:
                     testRewardsLastMean = testRewardsMean
                 print("found better test model , saving ... ")
+                sys.stdout.flush()
                 torch.save(net.state_dict(), myFilePathTest)
 
             envVal.reset()
@@ -572,6 +579,7 @@ if __name__ == "__main__":
                 writer.add_scalar("val reward",rewardVal,val_idx)
                 writer.add_scalar("val steps",valSteps,val_idx)
                 print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
+                sys.stdout.flush()
             valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val-%.5f.dat"%(valRewardsMean)))
             torch.save(net.state_dict(), valPeriodPath)
             
