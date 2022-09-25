@@ -281,7 +281,7 @@ class AgentPolicy:
         done_reward = None
 
         
-        action = self.getNetActions([self.stateTest],device)[0]
+        action = self.getNetActions(np.reshape(self.stateTest,(1,*self.stateTest.shape)),device)[0]
         
 
         # do step in the environment
@@ -301,7 +301,7 @@ class AgentPolicy:
 
         
         
-        action = self.getNetActions([self.stateVal],device)[0]
+        action = self.getNetActions(np.reshape(self.stateVal,(1,*self.stateVal.shape)),device)[0]
 
         # do step in the environment
         new_state, reward, is_done, _ = self.envVal.step(action)
