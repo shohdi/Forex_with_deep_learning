@@ -271,7 +271,7 @@ class AgentPolicy:
             action = self.env.action_space.sample()
         else:
             
-            action = self.getNetActions(np.reshape(self.state,(1,-1)),device)[0]
+            action = self.getNetActions(np.reshape(self.state,(1,*self.state.shape)),device)[0]
 
         
         done_reward = self._step_action(action)
