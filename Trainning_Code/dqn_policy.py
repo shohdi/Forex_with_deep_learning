@@ -15,7 +15,8 @@ import os
 import glob
 import pickle
 import warnings
-import math
+import sys
+from datetime import datetime
 from lib import wrappers
 
 
@@ -33,11 +34,11 @@ from lib.dqn_model import DELTA_Z
 
 #DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm"
 DEFAULT_ENV_NAME = "PongNoFrameskip-v4"
-MEAN_REWARD_BOUND = 20
+MEAN_REWARD_BOUND = 22
 
 GAMMA = 0.99
 BATCH_SIZE = 32
-REPLAY_SIZE = 100000
+REPLAY_SIZE = 1000000
 LEARNING_RATE = 1e-4
 SYNC_TARGET_FRAMES = 1000
 REPLAY_START_SIZE = 10000
@@ -47,7 +48,7 @@ EPSILON_START = 1
 EPSILON_FINAL = 0.02
 WIN_STEP_START = 0
 WIN_STEP_FINAL = 0
-WIN_STEP_DECAY_LAST_FRAME = 10**5 
+WIN_STEP_DECAY_LAST_FRAME = 10**6 
 MY_DATA_PATH = 'data'
 
 
@@ -132,9 +133,10 @@ class FileDataset(torch.utils.data.Dataset):
 
 class ExperienceBuffer:
     def __init__(self,buffer_path,capacity):
-        self.capacity = capacity
-        #self.buffer = FileDataset(buffer_path,capacity)
-        self.buffer = collections.deque(maxlen=capacity)
+        #self.capacity = capacity
+        self.buffer = FileDataset(buffer_path,capacity)
+        #self.buffer = collections.deque(maxlen=capacity)
+
 
     def __len__(self):
         return len(self.buffer)
@@ -145,8 +147,8 @@ class ExperienceBuffer:
     def sample(self, batch_size):
         indices = np.random.choice(len(self.buffer), batch_size, replace=False)
         states, actions, rewards, dones, next_states = zip(*[self.buffer[idx] for idx in indices])
-        return np.array(states), np.array(actions), np.array(rewards, dtype=np.float32), \
-               np.array(dones, dtype=np.uint8), np.array(next_states)
+        return np.array(states,dtype=np.float32,copy=False), np.array(actions,dtype=np.int64,copy=False), np.array(rewards, dtype=np.float32,copy=False), \
+               np.array(dones, dtype=np.uint8,copy=False), np.array(next_states,dtype=np.float32,copy=False)
     
     
 
@@ -193,7 +195,7 @@ class AgentPolicy:
         self.tradeDir = 0
         self.actionTraded = 0
         self.game_count+=1
-        self.calcWinStep()
+        #self.calcWinStep()
     
     def _resetTest(self):
         self.stateTest = self.envTest.reset()
@@ -393,7 +395,7 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
 def createAgent(net,buffer,currentFrame,gameCount):
     
     env = wrappers.make_env(args.env)
-    #envs = [ForexEnv('minutes15_100/data/train_data.csv',True,True) for i in range(BATCH_SIZE)]  
+    #env = ForexEnv('minutes15_100/data/train_data.csv',True,True ) 
     envTest = wrappers.make_env(args.env)
     #envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True)
     agent = AgentPolicy (lambda x: net.qvals(x),env, buffer,envTest,currentFrame,gameCount)
@@ -402,6 +404,7 @@ def createAgent(net,buffer,currentFrame,gameCount):
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
+    startTime = time.time()
     parser = argparse.ArgumentParser()
     cudaDefault = False
     if (torch.cuda.is_available()):
@@ -427,9 +430,12 @@ if __name__ == "__main__":
     buffer = ExperienceBuffer(buffer_path,REPLAY_SIZE)
     frame_idx = int(args.frame) #0#len(buffer)
     gameCount = int(args.gameCount)
-    
+
+    test_idx = 0
+    val_idx = 0
     
     env = wrappers.make_env(args.env)
+    #env = ForexEnv('minutes15_100/data/train_data.csv',True,True ) 
     net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
     tgt_net = dqn_model.DQN(env.observation_space.shape,env.action_space.n).to(device)
     
@@ -494,6 +500,7 @@ if __name__ == "__main__":
                 frame_idx, gameCount , reward , gameSteps , mean_reward,epsilon,
                 speed
             ))
+            sys.stdout.flush()
             writer.add_scalar("epsilon", epsilon, frame_idx)
             writer.add_scalar("speed", speed, frame_idx)
             writer.add_scalar("reward_100", mean_reward, frame_idx)
@@ -506,6 +513,7 @@ if __name__ == "__main__":
                 torch.save(net.state_dict(), myFilePath)
                 if best_mean_reward is not None:
                     print("Best mean reward updated %.3f -> %.3f, model saved" % (best_mean_reward, mean_reward))
+                    sys.stdout.flush()
                 best_mean_reward = mean_reward
             
             
@@ -514,6 +522,7 @@ if __name__ == "__main__":
 
             if mean_reward > args.reward:
                 print("Solved in %d frames!" % frame_idx)
+                sys.stdout.flush()
                 break
         
         
@@ -521,50 +530,58 @@ if __name__ == "__main__":
         if frame_idx % 10000 == 0 and frame_idx > 0:
             torch.save(net.state_dict(), myFilePath1000)
     
-        if frame_idx % (10000 * 213) == 0 and frame_idx > 10000:
+        if frame_idx % (1000 * 213) == 0 and frame_idx > 10000:
             envTest.reset()
             testIdx = 0
             while testIdx < 213:
                 testIdx+=1
+                test_idx +=1
                 #start testing
                 rewardTest = None
                 testSteps = 0
                 while rewardTest is None:
+                    test_idx +=1
                     testSteps += 1
                     rewardTest = agent.play_step_test(device)
                 testRewards.append(rewardTest)
                 testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
                 testRewardsMean = np.mean(testRewardsnp)
-                writer.add_scalar("test mean reward",testRewardsMean,frame_idx)
-                writer.add_scalar("test reward",rewardTest,frame_idx)
-                writer.add_scalar("test steps",testSteps,frame_idx)
+                writer.add_scalar("test mean reward",testRewardsMean,test_idx)
+                writer.add_scalar("test reward",rewardTest,test_idx)
+                writer.add_scalar("test steps",testSteps,test_idx)
                 print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+                sys.stdout.flush()
             testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-%.5f.dat"%(testRewardsMean)))
             torch.save(net.state_dict(), testPeriodPath)
             print("test last mean reward before checking ",testRewardsLastMean)
+            sys.stdout.flush()
             if (testRewardsLastMean < testRewardsMean and len(testRewards) == 213 ) or not os.path.exists(myFilePathTest)  :
                 if len(testRewards) == 213:
                     testRewardsLastMean = testRewardsMean
                 print("found better test model , saving ... ")
+                sys.stdout.flush()
                 torch.save(net.state_dict(), myFilePathTest)
 
             envVal.reset()
             valIndx = 0
             while valIndx < 213:
                 valIndx+=1
+                val_idx+=1
                 #start testing
                 rewardVal = None
                 valSteps = 0
                 while rewardVal is None:
+                    val_idx+=1
                     valSteps += 1
                     rewardVal = agent.play_step_val(device)
                 valRewards.append(rewardVal)
                 valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
                 valRewardsMean = np.mean(valRewardsnp)
-                writer.add_scalar("val mean reward",valRewardsMean,frame_idx)
-                writer.add_scalar("val reward",rewardVal,frame_idx)
-                writer.add_scalar("val steps",valSteps,frame_idx)
+                writer.add_scalar("val mean reward",valRewardsMean,val_idx)
+                writer.add_scalar("val reward",rewardVal,val_idx)
+                writer.add_scalar("val steps",valSteps,val_idx)
                 print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
+                sys.stdout.flush()
             valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val-%.5f.dat"%(valRewardsMean)))
             torch.save(net.state_dict(), valPeriodPath)
             
@@ -585,6 +602,15 @@ if __name__ == "__main__":
         loss_t.backward()
         optimizer.step()
         
+        currentTime = time.time()
+        if (currentTime-startTime) > 3600:
+            startTime = time.time()
+            print('sleeping 5 minutes on ' + str(datetime.now()))
+            sys.stdout.flush()
+            time.sleep(5*60)
+            print('resuming on ' + str(datetime.now()))
+            sys.stdout.flush()
+
         
 
 
