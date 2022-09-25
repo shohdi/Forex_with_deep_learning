@@ -34,7 +34,7 @@ class DQN(nn.Module):
             nn.Linear(512, n_actions * N_ATOMS)
         )
 
-        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
+        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z-(DELTA_Z/1000.0), DELTA_Z))
         self.softmax = nn.Softmax(dim=1)
 
     def _get_conv_out(self, shape):
@@ -92,7 +92,7 @@ class LSTM_Forex (nn.Module):
             nn.Linear(512, self.actions * N_ATOMS)
         )
 
-        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
+        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z-(DELTA_Z/1000.0), DELTA_Z))
         self.softmax = nn.Softmax(dim=1)
     
     def forward(self,x):
