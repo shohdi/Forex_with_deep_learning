@@ -257,8 +257,9 @@ class AgentPolicy:
         state_a = np.array(state, copy=False)
         state_v = torch.tensor(state_a).to(device)
         q_vals_v = self.net(state_v)
-        q_vals_v = q_vals_v.detach().data.cpu().numpy()
-        actions = np.argmax(q_vals_v, axis=1)
+        #q_vals_v = q_vals_v.detach().data.cpu().numpy()
+        q_vals_v = q_vals_v.detach()
+        actions = torch.argmax(q_vals_v,dim=1).data.cpu().numpy()
         
         return actions
 
