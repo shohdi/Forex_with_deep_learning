@@ -254,8 +254,8 @@ class AgentPolicy:
         return done_reward
 
     def getNetActions(self,state,device="cpu"):
-        state_a = np.array(state, copy=False)
-        state_v = torch.tensor(state_a).to(device)
+        #state_a = np.array(state, copy=False)
+        state_v = torch.tensor(state).to(device)
         q_vals_v = self.net(state_v)
         #q_vals_v = q_vals_v.detach().data.cpu().numpy()
         q_vals_v = q_vals_v.detach()
@@ -271,7 +271,7 @@ class AgentPolicy:
             action = self.env.action_space.sample()
         else:
             
-            action = self.getNetActions([self.state],device)[0]
+            action = self.getNetActions(np.reshape(self.state,(1,-1)),device)[0]
 
         
         done_reward = self._step_action(action)
