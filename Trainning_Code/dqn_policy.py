@@ -134,8 +134,8 @@ class FileDataset(torch.utils.data.Dataset):
 class ExperienceBuffer:
     def __init__(self,buffer_path,capacity):
         #self.capacity = capacity
-        self.buffer = FileDataset(buffer_path,capacity)
-        #self.buffer = collections.deque(maxlen=capacity)
+        #self.buffer = FileDataset(buffer_path,capacity)
+        self.buffer = collections.deque(maxlen=capacity)
 
 
     def __len__(self):
