@@ -254,12 +254,11 @@ class AgentPolicy:
         return done_reward
 
     def getNetActions(self,state,device="cpu"):
-        #state_a = np.array(state, copy=False)
-        state_v = torch.tensor(state).to(device)
+        state_a = np.array(state, copy=False)
+        state_v = torch.tensor(state_a).to(device)
         q_vals_v = self.net(state_v)
-        #q_vals_v = q_vals_v.detach().data.cpu().numpy()
-        q_vals_v = q_vals_v.detach()
-        actions = torch.argmax(q_vals_v,dim=1).data.cpu().numpy()
+        q_vals_v = q_vals_v.detach().data.cpu().numpy()
+        actions = np.argmax(q_vals_v, axis=1)
         
         return actions
 
@@ -271,7 +270,7 @@ class AgentPolicy:
             action = self.env.action_space.sample()
         else:
             
-            action = self.getNetActions(np.reshape(self.state,(1,*self.state.shape)),device)[0]
+            action = self.getNetActions([self.state],device)[0]
 
         
         done_reward = self._step_action(action)
@@ -281,7 +280,7 @@ class AgentPolicy:
         done_reward = None
 
         
-        action = self.getNetActions(np.reshape(self.stateTest,(1,*self.stateTest.shape)),device)[0]
+        action = self.getNetActions([self.stateTest],device)[0]
         
 
         # do step in the environment
@@ -301,7 +300,7 @@ class AgentPolicy:
 
         
         
-        action = self.getNetActions(np.reshape(self.stateVal,(1,*self.stateVal.shape)),device)[0]
+        action = self.getNetActions([self.stateVal],device)[0]
 
         # do step in the environment
         new_state, reward, is_done, _ = self.envVal.step(action)
@@ -531,7 +530,7 @@ if __name__ == "__main__":
         if frame_idx % 10000 == 0 and frame_idx > 0:
             torch.save(net.state_dict(), myFilePath1000)
     
-        if frame_idx % (1000 * 213) == 0 and frame_idx > 10000:
+        if frame_idx % (1000 * 100) == 0 and frame_idx > 10000:
             envTest.reset()
             testIdx = 0
             while testIdx < 213:
