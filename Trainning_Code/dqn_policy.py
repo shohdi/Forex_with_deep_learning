@@ -147,8 +147,8 @@ class ExperienceBuffer:
     def sample(self, batch_size):
         indices = np.random.choice(len(self.buffer), batch_size, replace=False)
         states, actions, rewards, dones, next_states = zip(*[self.buffer[idx] for idx in indices])
-        return np.array(states,dtype=np.float32,copy=False), np.array(actions,dtype=np.int64,copy=False), np.array(rewards, dtype=np.float32,copy=False), \
-               np.array(dones, dtype=np.uint8,copy=False), np.array(next_states,dtype=np.float32,copy=False)
+        return np.array(states), np.array(actions), np.array(rewards,dtype=np.float32), \
+               np.array(dones,dtype=np.uint8), np.array(next_states)
     
     
 
