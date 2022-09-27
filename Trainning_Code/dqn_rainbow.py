@@ -204,7 +204,8 @@ if __name__ == "__main__":
     if args.cpu :
         isCuda = False
     device = torch.device("cuda" if isCuda else "cpu")
-
+    print('device : ')
+    print(device)
     if (not os.path.exists(MY_DATA_PATH)):
         os.makedirs(MY_DATA_PATH)
     modelRoot = os.path.join(MY_DATA_PATH,params['env_name'] + "-")
