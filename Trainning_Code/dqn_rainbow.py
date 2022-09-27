@@ -19,6 +19,7 @@ from lib import dqn_model, common
 import os
 import sys
 import collections
+from lib.env import ForexEnv
 
 MY_DATA_PATH = 'data'
 # n-step
@@ -30,8 +31,8 @@ BETA_START = 0.4
 BETA_FRAMES = 100000
 
 # C51
-Vmax = 30.0
-Vmin = -30.0
+Vmax = 0.02
+Vmin = -0.02
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 
@@ -195,7 +196,7 @@ if __name__ == "__main__":
     testRewardsMean = 0
     valRewards = collections.deque(maxlen=213)
     valRewardsMean = 0
-    params = common.HYPERPARAMS['pong']
+    params = common.HYPERPARAMS['Forex']
     params['epsilon_frames'] *= 2
     parser = argparse.ArgumentParser()
     parser.add_argument("--cpu", default=False, action="store_true", help="Disable cuda")
@@ -212,15 +213,19 @@ if __name__ == "__main__":
     modelRoot = os.path.join(MY_DATA_PATH,params['env_name'] + "-")
     modelCurrentPath = modelRoot + "current.dat"
 
-    env = gym.make(params['env_name'])
-    env = ptan.common.wrappers.wrap_dqn(env)
-    envTest = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
-    envVal = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
-    
-
+    #env = gym.make(params['env_name'])
+    #env = ptan.common.wrappers.wrap_dqn(env)
+    #envTest = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
+    #envVal = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
+    env = ForexEnv('minutes15_100/data/train_data.csv',True,True ) 
+    envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True )
+    envVal = ForexEnv('minutes15_100/data/train_data.csv',False,True )
     writer = SummaryWriter(comment="-" + params['run_name'] + "-rainbow")
-    net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
+    #net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
+    #tgt_net = ptan.agent.TargetNet(net)
+    net = LSTM_Forex(device,env.observation_space.shape, env.action_space.n).to(device)
     tgt_net = ptan.agent.TargetNet(net)
+    
     if exists(modelCurrentPath):
         print('loading model ' , modelCurrentPath)
         net.load_state_dict(torch.load(modelCurrentPath,map_location=device))

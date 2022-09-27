@@ -20,6 +20,20 @@ HYPERPARAMS = {
         'gamma':            0.99,
         'batch_size':       32
     },
+        'Forex': {
+        'env_name':         "Forex-100-15m-200max-200hidden-lstm",
+        'stop_reward':      0.02,
+        'run_name':         'Forex-100-15m-200max-200hidden-lstm',
+        'replay_size':      100000,
+        'replay_initial':   10000,
+        'target_net_sync':  1000,
+        'epsilon_frames':   10**5,
+        'epsilon_start':    1.0,
+        'epsilon_final':    0.02,
+        'learning_rate':    0.0001,
+        'gamma':            0.99,
+        'batch_size':       32
+    },
     'breakout-small': {
         'env_name':         "BreakoutNoFrameskip-v4",
         'stop_reward':      500.0,
@@ -119,7 +133,7 @@ class RewardTracker:
         self.ts = time.time()
         mean_reward = np.mean(self.total_rewards[-100:])
         epsilon_str = "" if epsilon is None else ", eps %.2f" % epsilon
-        print("%d: done %d games, mean reward %.3f, speed %.2f f/s%s" % (
+        print("%d: done %d games, mean reward %.5f, speed %.2f f/s%s" % (
             frame, len(self.total_rewards), mean_reward, speed, epsilon_str
         ))
         sys.stdout.flush()
