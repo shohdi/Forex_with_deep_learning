@@ -51,15 +51,15 @@ class RainbowDQN(nn.Module):
 
         conv_out_size = self._get_conv_out(input_shape)
         self.fc_val = nn.Sequential(
-            dqn_model.NoisyLinear(conv_out_size, 256),
+            dqn_model.NoisyLinear(conv_out_size, 512),
             nn.ReLU(),
-            dqn_model.NoisyLinear(256, N_ATOMS)
+            dqn_model.NoisyLinear(512, N_ATOMS)
         )
 
         self.fc_adv = nn.Sequential(
-            dqn_model.NoisyLinear(conv_out_size, 256),
+            dqn_model.NoisyLinear(conv_out_size, 512),
             nn.ReLU(),
-            dqn_model.NoisyLinear(256, n_actions * N_ATOMS)
+            dqn_model.NoisyLinear(512, n_actions * N_ATOMS)
         )
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z-(DELTA_Z/1000.0) , DELTA_Z))
@@ -109,15 +109,15 @@ class LSTM_Forex (nn.Module):
 
 
         self.fc_val = nn.Sequential(
-            nn.Linear(self.hiddenSize, 512),
+            dqn_model.NoisyLinear(self.hiddenSize, 512),
             nn.ReLU(),
-            nn.Linear(512, N_ATOMS)
+            dqn_model.NoisyLinear(512, N_ATOMS)
         )
 
         self.fc_adv = nn.Sequential(
-            nn.Linear(self.hiddenSize, 512),
+            dqn_model.NoisyLinear(self.hiddenSize, 512),
             nn.ReLU(),
-            nn.Linear(512, self.actions * N_ATOMS)
+            dqn_model.NoisyLinear(512, self.actions * N_ATOMS)
         )
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z-(DELTA_Z/1000.0), DELTA_Z))
