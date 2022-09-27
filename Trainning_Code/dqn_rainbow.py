@@ -199,7 +199,7 @@ if __name__ == "__main__":
     params['epsilon_frames'] *= 2
     parser = argparse.ArgumentParser()
     parser.add_argument("--cpu", default=False, action="store_true", help="Disable cuda")
-
+    parser.add_argument("-f","--frame", default=0, help="Current Frame Idx")
     args = parser.parse_args()
     isCuda = torch.cuda.is_available()
     if args.cpu :
@@ -231,7 +231,7 @@ if __name__ == "__main__":
     buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
     optimizer = optim.Adam(net.parameters(), lr=params['learning_rate'])
 
-    frame_idx = 0
+    frame_idx = int(args.frame)
     beta = BETA_START
     test_idx = 0
     val_idx = 0
@@ -246,7 +246,8 @@ if __name__ == "__main__":
                 if reward_tracker.reward(new_rewards[0], frame_idx):
                     torch.save(net.state_dict(), modelCurrentPath)
                     break
-
+            if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:
+                continue
             if len(buffer) < params['replay_initial']:
                 continue
 
