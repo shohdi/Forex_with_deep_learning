@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from genericpath import exists
 import gym
-import ptan
+from ptan import ptan
 import argparse
 import numpy as np
 
@@ -260,7 +260,7 @@ if __name__ == "__main__":
                 torch.save(net.state_dict(), modelCurrentPath)
             
             if frame_idx % 100000 == 0:
-                envTest.reset()
+                testState = envTest.reset()
                 testIdx = 0
                 while testIdx < 213:
                     testIdx+=1
@@ -268,10 +268,17 @@ if __name__ == "__main__":
                     #start testing
                     rewardTest = None
                     testSteps = 0
-                    while rewardTest is None:
+                    isDone = False
+                    while not isDone:
                         test_idx +=1
                         testSteps += 1
                         #play step
+                        states_v = torch.tensor([testState]).to(device)
+                        q_v = net.qvals(states_v)
+                        q = q_v.detach().data.cpu().numpy()
+                        actions = np.argmax(q, axis=1)
+                        
+                        testState,rewardTest,isDone,_ = envTest.step(actions[0])
                     testRewards.append(rewardTest)
                     testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
                     testRewardsMean = np.mean(testRewardsnp)
@@ -280,11 +287,12 @@ if __name__ == "__main__":
                     writer.add_scalar("test steps",testSteps,test_idx)
                     print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
                     sys.stdout.flush()
+                    testState = envTest.reset()
                 testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-test_%.5f.dat"%(testRewardsMean)))
                 torch.save(net.state_dict(), testPeriodPath)
                
 
-                envVal.reset()
+                valState = envVal.reset()
                 valIndx = 0
                 while valIndx < 213:
                     valIndx+=1
@@ -292,10 +300,17 @@ if __name__ == "__main__":
                     #start testing
                     rewardVal = None
                     valSteps = 0
-                    while rewardVal is None:
+                    isDone = False
+                    while not isDone:
                         val_idx+=1
                         valSteps += 1
                         #play step
+                        states_v = torch.tensor([valState]).to(device)
+                        q_v = net.qvals(states_v)
+                        q = q_v.detach().data.cpu().numpy()
+                        actions = np.argmax(q, axis=1)
+                        
+                        valState,rewardVal,isDone,_ = envVal.step(actions[0])
                     valRewards.append(rewardVal)
                     valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
                     valRewardsMean = np.mean(valRewardsnp)
@@ -304,6 +319,8 @@ if __name__ == "__main__":
                     writer.add_scalar("val steps",valSteps,val_idx)
                     print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
                     sys.stdout.flush()
+                    isDone = False
+                    valState = envVal.reset()
                 valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val_%.5f.dat"%(valRewardsMean)))
                 torch.save(net.state_dict(), valPeriodPath)
             
