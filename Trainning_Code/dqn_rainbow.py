@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from genericpath import exists
+from imghdr import tests
+import warnings
 import gym
 from ptan import ptan
 import argparse
@@ -60,7 +62,7 @@ class RainbowDQN(nn.Module):
             dqn_model.NoisyLinear(256, n_actions * N_ATOMS)
         )
 
-        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
+        self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z-(DELTA_Z/1000.0) , DELTA_Z))
         self.softmax = nn.Softmax(dim=1)
 
     def _get_conv_out(self, shape):
@@ -186,6 +188,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 
 
 if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
     testRewards = collections.deque(maxlen=213)
     
     testRewardsMean = 0
@@ -204,13 +207,14 @@ if __name__ == "__main__":
 
     if (not os.path.exists(MY_DATA_PATH)):
         os.makedirs(MY_DATA_PATH)
-    modelRoot = os.path.join(MY_DATA_PATH,args.env + "-")
+    modelRoot = os.path.join(MY_DATA_PATH,params['env_name'] + "-")
     modelCurrentPath = modelRoot + "current.dat"
 
     env = gym.make(params['env_name'])
-    envTest = gym.make(params['env_name'])
-    envVal = gym.make(params['env_name'])
     env = ptan.common.wrappers.wrap_dqn(env)
+    envTest = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
+    envVal = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
+    
 
     writer = SummaryWriter(comment="-" + params['run_name'] + "-rainbow")
     net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
@@ -260,13 +264,15 @@ if __name__ == "__main__":
                 torch.save(net.state_dict(), modelCurrentPath)
             
             if frame_idx % 100000 == 0:
-                testState = envTest.reset()
+                
                 testIdx = 0
                 while testIdx < 213:
+                    testState = envTest.reset()
+                    testState = np.array(testState,dtype=np.float32)
                     testIdx+=1
                     test_idx +=1
                     #start testing
-                    rewardTest = None
+                    rewardTest = 0
                     testSteps = 0
                     isDone = False
                     while not isDone:
@@ -278,7 +284,9 @@ if __name__ == "__main__":
                         q = q_v.detach().data.cpu().numpy()
                         actions = np.argmax(q, axis=1)
                         
-                        testState,rewardTest,isDone,_ = envTest.step(actions[0])
+                        testState,r_w,isDone,_ = envTest.step(actions[0])
+                        rewardTest += r_w
+                        testState = np.array(testState,dtype=np.float32)
                     testRewards.append(rewardTest)
                     testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
                     testRewardsMean = np.mean(testRewardsnp)
@@ -287,18 +295,21 @@ if __name__ == "__main__":
                     writer.add_scalar("test steps",testSteps,test_idx)
                     print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
                     sys.stdout.flush()
-                    testState = envTest.reset()
-                testPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-test_%.5f.dat"%(testRewardsMean)))
+                    
+                testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-test_%.5f.dat"%(testRewardsMean)))
                 torch.save(net.state_dict(), testPeriodPath)
                
 
-                valState = envVal.reset()
+                
                 valIndx = 0
                 while valIndx < 213:
+                    valState = envVal.reset()
+                
+                    valState = np.array(valState,dtype=np.float32)
                     valIndx+=1
                     val_idx+=1
                     #start testing
-                    rewardVal = None
+                    rewardVal = 0
                     valSteps = 0
                     isDone = False
                     while not isDone:
@@ -310,7 +321,9 @@ if __name__ == "__main__":
                         q = q_v.detach().data.cpu().numpy()
                         actions = np.argmax(q, axis=1)
                         
-                        valState,rewardVal,isDone,_ = envVal.step(actions[0])
+                        valState,r_w,isDone,_ = envVal.step(actions[0])
+                        rewardVal += r_w
+                        valState = np.array(valState,dtype=np.float32)
                     valRewards.append(rewardVal)
                     valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
                     valRewardsMean = np.mean(valRewardsnp)
@@ -319,9 +332,8 @@ if __name__ == "__main__":
                     writer.add_scalar("val steps",valSteps,val_idx)
                     print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
                     sys.stdout.flush()
-                    isDone = False
-                    valState = envVal.reset()
-                valPeriodPath = os.path.join(MY_DATA_PATH,args.env + ("-val_%.5f.dat"%(valRewardsMean)))
+                    
+                valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-val_%.5f.dat"%(valRewardsMean)))
                 torch.save(net.state_dict(), valPeriodPath)
             
         
