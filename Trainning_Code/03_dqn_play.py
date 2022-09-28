@@ -30,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--cpu", default=False, action="store_true", help="Disable cuda")
     args = parser.parse_args()
 
-    env =ptan.common.wrappers.wrap_dqn( gym.make(params['env_name']))
+    env =ptan.common.wrappers.wrap_dqn( gym.make(params['env_name'],render_mode='human'))
     isCuda = torch.cuda.is_available()
     if args.cpu :
         isCuda = False
@@ -42,19 +42,20 @@ if __name__ == "__main__":
         print('loading model ' , modelCurrentPath)
         net.load_state_dict(torch.load(modelCurrentPath,map_location=device))
 
-    state = env.reset()
+    state = np.array( env.reset(),dtype=np.float32)
     total_reward = 0.0
     c = collections.Counter()
 
     while True:
         start_ts = time.time()
         
-        env.render()
+       
         state_v = torch.tensor(np.array([state], copy=False)).to(device)
-        q_vals = net.qvals(state_v).data.numpy()[0]
+        q_vals = net.qvals(state_v).detach().cpu().data.numpy()[0]
         action = np.argmax(q_vals)
         c[action] += 1
         state, reward, done, _ = env.step(action)
+        state = np.array(state,dtype=np.float32)
         total_reward += reward
         if done:
             break
