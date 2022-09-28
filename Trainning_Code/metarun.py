@@ -19,7 +19,7 @@ import argparse
 
 
 
-from lib import dqn_model
+from dqn_rainbow import LSTM_Forex
 import time
 
 class Options:
@@ -91,11 +91,12 @@ def startApp():
     env = ForexMetaEnv(stateObj,options,False,True)
     device = torch.device("cuda" if cudaDefault else "cpu")
     print("device : ",device)
-    net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
+    net = LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     if os.path.exists(myFilePath):
         print('loading model')
         net.load_state_dict(torch.load(myFilePath, map_location=device))
         state = env.reset()
+    net = net.qvals
     total_reward = 0.0
     c = collections.Counter()
     printed_reward = 0.0
