@@ -8,7 +8,7 @@ import torch.nn as nn
 HYPERPARAMS = {
     'pong': {
         'env_name':         "PongNoFrameskip-v4",
-        'stop_reward':      22.0,
+        'stop_reward':      21.0,
         'run_name':         'pong',
         'replay_size':      100000,
         'replay_initial':   10000,
