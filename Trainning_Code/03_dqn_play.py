@@ -22,7 +22,7 @@ MY_DATA_PATH = 'data'
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-    params = HYPERPARAMS['Pong']
+    params = HYPERPARAMS['pong']
     modelRoot = os.path.join(MY_DATA_PATH,params['env_name'] + "-")
     modelCurrentPath = os.path.join(MY_DATA_PATH,'model.dat')
     parser = argparse.ArgumentParser()
