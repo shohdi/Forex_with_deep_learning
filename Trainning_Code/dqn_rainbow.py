@@ -20,6 +20,8 @@ import os
 import sys
 import collections
 from lib.env import ForexEnv
+from datetime import datetime
+import time
 
 MY_DATA_PATH = 'data'
 # n-step
@@ -191,6 +193,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
+    startTime = time.time()
     testRewards = collections.deque(maxlen=213)
     
     testRewardsMean = 0
@@ -263,6 +266,16 @@ if __name__ == "__main__":
             loss_v.backward()
             optimizer.step()
             buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
+
+
+            currentTime = time.time()
+            if (currentTime-startTime) > 3600:
+                startTime = time.time()
+                print('sleeping 5 minutes on ' + str(datetime.now()))
+                sys.stdout.flush()
+                time.sleep(5*60)
+                print('resuming on ' + str(datetime.now()))
+                sys.stdout.flush()
 
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
