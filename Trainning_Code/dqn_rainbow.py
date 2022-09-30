@@ -267,7 +267,7 @@ if __name__ == "__main__":
             optimizer.step()
             buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
-
+            '''
             currentTime = time.time()
             if (currentTime-startTime) > 3600:
                 startTime = time.time()
@@ -276,7 +276,7 @@ if __name__ == "__main__":
                 time.sleep(5*60)
                 print('resuming on ' + str(datetime.now()))
                 sys.stdout.flush()
-
+            '''
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
 
