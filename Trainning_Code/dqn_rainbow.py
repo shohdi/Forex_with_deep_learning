@@ -233,7 +233,7 @@ if __name__ == "__main__":
         print('loading model ' , modelCurrentPath)
         net.load_state_dict(torch.load(modelCurrentPath,map_location=device))
         tgt_net.sync()
-    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.EpsilonGreedyActionSelector(epsilon=0.05, selector=ptan.actions.ArgmaxActionSelector()) , device=device)
+    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.EpsilonGreedyActionSelector(epsilon=0.001, selector=ptan.actions.ArgmaxActionSelector()) , device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
     buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
@@ -267,7 +267,7 @@ if __name__ == "__main__":
             optimizer.step()
             buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
-            '''
+            
             currentTime = time.time()
             if (currentTime-startTime) > 3600:
                 startTime = time.time()
@@ -276,7 +276,7 @@ if __name__ == "__main__":
                 time.sleep(5*60)
                 print('resuming on ' + str(datetime.now()))
                 sys.stdout.flush()
-            '''
+            
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
 
