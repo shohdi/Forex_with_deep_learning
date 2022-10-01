@@ -37,7 +37,7 @@ Vmin = -30.0
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 
-
+lossCol = collections.deque(maxlen=100)
 class RainbowDQN(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(RainbowDQN, self).__init__()
@@ -187,6 +187,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 
     loss_v = -state_log_sm_v * proj_distr_v
     loss_v = batch_weights_v * loss_v.sum(dim=1)
+    lossCol.append(loss_v.mean().detach().cpu().numpy())
     return loss_v.mean(), loss_v + 1e-5
 
 
@@ -272,6 +273,12 @@ if __name__ == "__main__":
                 sys.stdout.flush()
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
+
+            if frame_idx % 1000 == 0:
+                lossMean =  np.mean(np.abs( np.array(lossCol,dtype=np.float32,copy=False)))
+                lr = params['learning_rate']
+                print("loss 100 mean : %0.9f , lr : %0.9f , lr/loss : %0.9f"%(lossMean,lr,lr/lossMean))
+
 
             if frame_idx % 10000 == 0:
                 
