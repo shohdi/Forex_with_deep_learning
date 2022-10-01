@@ -19,6 +19,8 @@ from lib import dqn_model, common
 import os
 import sys
 import collections
+from datetime import datetime
+import time
 
 MY_DATA_PATH = 'data'
 # n-step
@@ -190,6 +192,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
+    startTime = time.time()
     testRewards = collections.deque(maxlen=213)
     
     testRewardsMean = 0
@@ -225,7 +228,7 @@ if __name__ == "__main__":
         print('loading model ' , modelCurrentPath)
         net.load_state_dict(torch.load(modelCurrentPath,map_location=device))
         tgt_net.sync()
-    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector(), device=device)
+    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.EpsilonGreedyActionSelector(epsilon=0.003, selector=ptan.actions.ArgmaxActionSelector()) , device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
     buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
@@ -259,6 +262,14 @@ if __name__ == "__main__":
             optimizer.step()
             buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
+            currentTime = time.time()
+            if (currentTime-startTime) > 3600:
+                startTime = time.time()
+                print('sleeping 5 minutes on ' + str(datetime.now()))
+                sys.stdout.flush()
+                time.sleep(5*60)
+                print('resuming on ' + str(datetime.now()))
+                sys.stdout.flush()
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
 
