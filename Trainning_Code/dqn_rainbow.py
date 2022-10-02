@@ -233,7 +233,7 @@ if __name__ == "__main__":
         print('loading model ' , modelCurrentPath)
         net.load_state_dict(torch.load(modelCurrentPath,map_location=device))
         tgt_net.sync()
-    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.EpsilonGreedyActionSelector(epsilon=0.003, selector=ptan.actions.ArgmaxActionSelector()) , device=device)
+    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector() , device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
     buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
