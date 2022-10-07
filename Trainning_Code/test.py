@@ -11,7 +11,7 @@ import numpy as np
 from lib.SummaryWriter import SummaryWriter
 
 from lib.env import ForexEnv
-from lib import dqn_model
+from dqn_rainbow import LSTM_Forex
 
 import collections
 import os
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     print("device : ",device)
     #if args.record:
     #    env = gym.wrappers.Monitor(env, args.record)
-    net = dqn_model.LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
+    net = LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     if os.path.exists(args.model):
         print('loading model')
         net.load_state_dict(torch.load(args.model, map_location=device))
