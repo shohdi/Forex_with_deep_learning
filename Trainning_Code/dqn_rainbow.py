@@ -317,7 +317,7 @@ if __name__ == "__main__":
                     print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
                     sys.stdout.flush()
                     
-                testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-test_%.5f.dat"%(testRewardsMean)))
+                testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
                 torch.save(net.state_dict(), testPeriodPath)
                
 
@@ -354,7 +354,7 @@ if __name__ == "__main__":
                     print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
                     sys.stdout.flush()
                     
-                valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-val_%.5f.dat"%(valRewardsMean)))
+                valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
                 torch.save(net.state_dict(), valPeriodPath)
             
         
