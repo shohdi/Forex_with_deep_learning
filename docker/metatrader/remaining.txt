@@ -1,0 +1,6 @@
+pip install opencv-python
+
+pip install autorom[accept-rom-license]
+
+
+pip install gym[atari]
