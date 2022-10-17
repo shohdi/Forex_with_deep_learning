@@ -8,6 +8,9 @@ WORKDIR /usr/share/metatraderai
 COPY environment.yml /usr/share/metatraderai/environment.yml
 WORKDIR /usr/share/metatraderai
 
+RUN apt-get update
+RUN apt-get install ffmpeg libsm6 libxext6  -y
+
 RUN conda env create -f environment.yml
 
 # Make RUN commands use the new environment:
@@ -20,8 +23,7 @@ RUN python -c "import flask"
 #RUN pip install autorom[accept-rom-license]
 #RUN pip install gym[atari]
 
-RUN apt-get update
-RUN apt-get install ffmpeg libsm6 libxext6  -y
+
 
 RUN python -c "import cv2"
 # The code to run when container is started:

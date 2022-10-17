@@ -207,10 +207,21 @@ void handleAction(int action)
       
       
       long factor = (long)(balance / 100.0);
+      long twoMultiply = 1;
+      while (twoMultiply <= factor)
+      {
+         twoMultiply *= 2;
+      }
+      twoMultiply /= 2;
+      
+      factor = twoMultiply;
+      
+      
       if (factor < 1)
       {
          factor = 1;
       }
+      
       
       lots = lots * factor;
          
