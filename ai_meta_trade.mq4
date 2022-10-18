@@ -142,8 +142,12 @@ void openUp(double lots)
          bid = Bid;
          
       }
-      
-      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d",open,close,high,low,ask,bid,tradeDir);
+      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&isCandle=%d",open,close,high,low,ask,bid,tradeDir,1);
+      if (i == 0)
+      {
+         url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&isCandle=%d",open,close,high,low,ask,bid,tradeDir,0);
+      }
+         
       
      string ret = createRequest(url);
      
@@ -272,6 +276,7 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 
 datetime D1;
+datetime S5 = TimeCurrent();
 void OnTick()
   {
 //---
@@ -286,6 +291,25 @@ void OnTick()
             
          //Do Something...
       D1=iTime(Symbol(),PERIOD_M15,0);    // overwrite old with new value
+      S5 = TimeCurrent();
+     }
+     else
+     {
+         if (tradeDir != 0)
+         {
+            //there is trade
+            datetime timeNow = TimeCurrent();
+            if ((S5 + 5) < timeNow)
+            {
+               //do five sec code here
+               
+               int action =  OpenRequestGetAction(0,false);
+               handleAction(action);
+               
+               
+               S5 = timeNow;
+            }
+         }
      }
   }
 //+------------------------------------------------------------------+

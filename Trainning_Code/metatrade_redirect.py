@@ -46,7 +46,7 @@ class MetaTrade(Resource):
 
         assert tradeDir == 0 or tradeDir == 1 or tradeDir == 2
         assert isCandle == 0 or isCandle == 1
-        return redirect("http://127.0.0.1:5000/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%f&isCandle=%f"%(open,
+        return redirect("http://127.0.0.1:5000/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&isCandle=%d"%(open,
         close,high,low,ask,bid,tradeDir,isCandle))
         
 
