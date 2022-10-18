@@ -76,6 +76,9 @@ class ForexMetaEnv(gym.Env):
             self.openTradeAsk = None
             self.openTradeBid = None
         myState = np.array(self.states,dtype=np.float32,copy=True)
+        if self.options.isCandle == 0:
+            myState[0:-1] = myState[1:]
+            myState[-1] = self.options.lastCandle
     
             
 
@@ -118,6 +121,7 @@ class ForexMetaEnv(gym.Env):
         self.waitForTakeAction(action_idx)
         
         myState = self.waitForNewState()
+
         reward = 0
         done = False
         if action_idx == 0:
@@ -145,8 +149,8 @@ class ForexMetaEnv(gym.Env):
                 reward = self.closeUpTrade(beforeActionState)
                 done = True
 
-        
-        self.stepIndex+=1
+        if self.options.isCandle == 1:
+            self.stepIndex+=1
         state = self.getState(myState)
         
         
