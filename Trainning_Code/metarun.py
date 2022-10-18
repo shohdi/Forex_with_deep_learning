@@ -28,6 +28,8 @@ class Options:
         self.StateAvailable = False
         self.takenAction = 0
         self.tradeDir = 0
+        self.lastCandle = None
+        self.isCandle = 1
 
 options = Options()
 
@@ -66,7 +68,10 @@ class MetaTrade(Resource):
         assert tradeDir == 0 or tradeDir == 1 or tradeDir == 2
         assert isCandle == 0 or isCandle == 1
         print("new state ",open,close,high,low,ask,bid)
-        stateObj.append(np.array([open,close,high,low,ask,bid],dtype=np.float32))
+        options.lastCandle = np.array([open,close,high,low,ask,bid],dtype=np.float32)
+        options.isCandle = isCandle
+        if options.isCandle == 1:
+            stateObj.append(options.lastCandle)
         options.tradeDir = tradeDir
         options.StateAvailable = True
         while not options.ActionAvailable:
