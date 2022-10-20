@@ -146,7 +146,7 @@ void openUp(double lots)
       }
       
       string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d",open,close,high,low,ask,bid,tradeDir);
-      
+      Print("calling url : ",url);
      string ret = createRequest(url);
      
      int action = StrToInteger(ret);
@@ -256,6 +256,7 @@ int OnInit()
    for (int i = 99;i>= 1;i--)
    {
       int action = OpenRequestGetAction(i,true);
+      Print("action taken : ",action);
       handleAction(action);
    }
 //---
@@ -282,6 +283,7 @@ void OnTick()
             //new candle
             
            int action =  OpenRequestGetAction(1,false);
+           Print("action taken : ",action);
            handleAction(action);
             
             
