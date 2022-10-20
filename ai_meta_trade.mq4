@@ -90,8 +90,9 @@ void openUp(double lots)
             bool isClosed = OrderClose(OrderTicket(),OrderLots(),Ask,5,Red);
             if (!isClosed)
             {
-               ExpertRemove();
-               MessageBox("Error Closing Order!");
+               //ExpertRemove();
+               //MessageBox("Error Closing Order!");
+               isClosed = OrderClose(OrderTicket(),OrderLots(),Ask,5,Red);
             }
             tradeDir = 0;
          }
@@ -116,8 +117,9 @@ void openUp(double lots)
             bool isClosed = OrderClose(OrderTicket(),OrderLots(),Bid,5,Red);
              if (!isClosed)
             {
-               ExpertRemove();
-               MessageBox("Error Closing Order!");
+               //ExpertRemove();
+               //MessageBox("Error Closing Order!");
+               isClosed = OrderClose(OrderTicket(),OrderLots(),Bid,5,Red);
             }
             tradeDir = 0;
          }
@@ -170,8 +172,8 @@ void openUp(double lots)
       Print("Error in WebRequest. Error code  =",GetLastError());
       //--- Perhaps the URL is not listed, display a message about the necessity to add the address
       //MessageBox("Add the address '"+url+"' in the list of allowed URLs on tab 'Expert Advisors'","Error",MB_ICONINFORMATION);
-      ExpertRemove();
-      MessageBox("can't find server 127.0.0.1:80");
+      //ExpertRemove();
+      //MessageBox("can't find server 127.0.0.1:80");
       
       return "";
      }
