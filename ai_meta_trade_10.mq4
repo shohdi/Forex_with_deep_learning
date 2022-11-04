@@ -295,16 +295,18 @@ void OnTick()
      {
             
             //check balance
-            if (CalculateCurrentOrders() == 0)
+           
+            double currentBalance = AccountEquity() ;
+            if (currentBalance > stopBalance)
             {
-               double currentBalance = AccountBalance();
-               if (currentBalance >= stopBalance)
-               {
-                  Print("Balance reached : ",currentBalance);
-                  ExpertRemove();
-                  return;
-               }
+               closeDown();
+               closeUp();
+               currentBalance = AccountBalance();
+               Print("Balance reached : ",currentBalance);
+               ExpertRemove();
+               return;
             }
+            
             
             //new candle
             
