@@ -60,6 +60,9 @@ class ForexMetaEnv(gym.Env):
             action = 12
         if action == 2 and self.openTradeDir == 1:
             action = 12
+        #don't open down trade
+        if action == 2 and self.openTradeDir == 0:
+            action = 0
         self.options.takenAction = action
         self.options.ActionAvailable = True
     
