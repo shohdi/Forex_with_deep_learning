@@ -64,6 +64,10 @@ class ForexEnv(gym.Env):
             action_idx = 1
 
         #end of punish action
+        
+        #check only buy
+        
+
 
         reward = 0
         done = False
@@ -84,7 +88,8 @@ class ForexEnv(gym.Env):
             
             #check open trade
             if  self.openTradeDir == 0 :
-                self.openDownTrade()
+                None
+                #self.openDownTrade()
             elif self.openTradeDir == 2:
                 None
             else : # 1

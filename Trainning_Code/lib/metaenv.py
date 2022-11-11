@@ -137,7 +137,8 @@ class ForexMetaEnv(gym.Env):
             
             #check open trade
             if  self.openTradeDir == 0 :
-                self.openDownTrade(beforeActionState)
+                #self.openDownTrade(beforeActionState)
+                None
             elif self.openTradeDir == 2:
                 None
             else : # 1

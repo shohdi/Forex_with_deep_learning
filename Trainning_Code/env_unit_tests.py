@@ -188,6 +188,34 @@ def testStepIsWrittenInState():
 
 
 
+def testOnlyBuyWork():
+    try:
+        #assign
+        #global
+        env.reset()
+        env.step(0)
+        env.step(0)
+
+
+        
+        #action
+        env.step(2)
+        
+
+        
+        #assert
+        expected = 0
+        actual = env.openTradeDir
+        if expected != actual:
+            return False , "testOnlyBuyWork tradeDir expected : %d found : %d "%(expected,actual)
+
+        
+       
+
+        return True,"testOnlyBuyWork : Success"
+    except Exception as ex:
+        return False,"testOnlyBuyWork : %s"%(str(ex))
+
 
 
 
@@ -214,6 +242,9 @@ if __name__ == "__main__":
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testStepIsWrittenInState()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testOnlyBuyWork()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
 
