@@ -283,6 +283,8 @@ if __name__ == "__main__":
             if frame_idx % 10000 == 0:
                 
                 torch.save(net.state_dict(), modelCurrentPath)
+                #currentFilePath = modelCurrentPath + '_' + frame_idx + '_' + reward_tracker.last_mean + '.dat'
+                #torch.save(net.state_dict(), currentFilePath)
             
             if frame_idx % 100000 == 0:
                 
