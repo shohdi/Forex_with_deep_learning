@@ -76,7 +76,7 @@ def testReturnRewardWithoutDoneIs0():
         return False,"testReturnRewardWithoutDoneIs0 : %s"%(str(ex))
 
 
-def test200StepsReturns0():
+def test200StepsReturnsMinus0_01():
     try:
         #assign
         #global
@@ -95,14 +95,14 @@ def test200StepsReturns0():
         #assert
         expected = 201
         expectedDone = True
-        expectedReward = 0
+        expectedReward = -0.01
         
         if i != expected or done != expectedDone or reward != expectedReward:
-            return False,"test200StepsReturns0 : i expected : %.5f found : %.5f , done expected %s found %s , reward expected %.5f , found %.5f"%(expected,i,expectedDone,done,expectedReward,reward)
+            return False,"test200StepsReturnsMinus0_01 : i expected : %.5f found : %.5f , done expected %s found %s , reward expected %.5f , found %.5f"%(expected,i,expectedDone,done,expectedReward,reward)
         else:
-            return True,"test200StepsReturns0 : Success"
+            return True,"test200StepsReturnsMinus0_01 : Success"
     except Exception as ex:
-        return False,"test200StepsReturns0 : %s"%(str(ex))
+        return False,"test200StepsReturnsMinus0_01 : %s"%(str(ex))
 
 
 def test200StepsAfterTradeIsOkAndReturnRealReward():
@@ -239,7 +239,7 @@ def runTests():
         ret,msg = testReturnRewardWithoutDoneIs0()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = test200StepsReturns0()
+        ret,msg = test200StepsReturnsMinus0_01()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
