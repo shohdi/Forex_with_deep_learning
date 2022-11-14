@@ -156,7 +156,7 @@ class ForexMetaEnv(gym.Env):
         
         if self.startTradeStep is None:
             if self.stepIndex > 200 and self.punishAgent:
-                reward = 0
+                reward = -0.01
                 done = True
         return state , reward , done ,None
 
