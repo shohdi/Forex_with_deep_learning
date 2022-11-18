@@ -233,7 +233,7 @@ if __name__ == "__main__":
         print('loading model ' , modelCurrentPath)
         net.load_state_dict(torch.load(modelCurrentPath,map_location=device))
         tgt_net.sync()
-    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector() , device=device)
+    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.EpsilonGreedyActionSelector(0.0025,ptan.actions.ArgmaxActionSelector()) , device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
     buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
@@ -243,6 +243,7 @@ if __name__ == "__main__":
     beta = BETA_START
     test_idx = 0
     val_idx = 0
+    mean_reward = -100
     with common.RewardTracker(writer, params['stop_reward']) as reward_tracker:
         while True:
             frame_idx += 1
@@ -254,6 +255,12 @@ if __name__ == "__main__":
                 if reward_tracker.reward(new_rewards[0], frame_idx):
                     torch.save(net.state_dict(), modelCurrentPath)
                     break
+                if len(reward_tracker.total_rewards) >= 100 and reward_tracker.last_mean > mean_reward:
+                    print('better mean reward  old %.5f new %.5f'%(mean_reward,reward_tracker.last_mean))
+                    mean_reward = reward_tracker.last_mean
+                    currentFilePath = '%s_%d_%.5f.dat'%(modelCurrentPath,frame_idx,mean_reward)
+                    print('saving %s'%(currentFilePath))
+                    torch.save(net.state_dict(), currentFilePath)
             if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:
                 continue
             if len(buffer) < params['replay_initial']:
