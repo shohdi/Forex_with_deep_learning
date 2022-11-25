@@ -261,6 +261,8 @@ if __name__ == "__main__":
                     currentFilePath = '%s_%d_%.5f.dat'%(modelCurrentPath,frame_idx,mean_reward)
                     print('saving %s'%(currentFilePath))
                     torch.save(net.state_dict(), currentFilePath)
+
+
             if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:
                 continue
             if len(buffer) < params['replay_initial']:
