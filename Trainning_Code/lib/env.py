@@ -20,6 +20,7 @@ class ForexEnv(gym.Env):
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
         self.header = None
+        self.data_arr = []
         self.data = None
         self.startAsk = None
         self.startBid = None
@@ -31,7 +32,17 @@ class ForexEnv(gym.Env):
         with open(self.filePath, 'r') as f:
             reader = csv.reader(f, delimiter=';')
             self.header = next(reader)
-            self.data = np.array(list(reader)).astype(np.float32)
+            self.data_arr.append( np.array(list(reader)).astype(np.float32))
+            self.data_arr.append(np.array(self.data_arr[0],copy=True))
+            self.data_arr[1] = 1/self.data_arr[1]
+            tempData = np.array(self.data_arr[1][:,4],copy=True)
+            self.data_arr[1][:,4] = np.array(self.data_arr[1][:,5],copy=True)
+            self.data_arr[1][:,5] = tempData
+            tempData = np.array(self.data_arr[1][:,2],copy=True)
+            self.data_arr[1][:,2] = np.array(self.data_arr[1][:,3],copy=True)
+            self.data_arr[1][:,3] = tempData
+
+            self.data = self.data_arr[np.random.randint(2)]
         
         test_state = self.reset()
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
@@ -41,6 +52,7 @@ class ForexEnv(gym.Env):
     def reset(self):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
+        self.data = self.data_arr[np.random.randint(2)]
         self.startIndex = np.random.randint(len(self.data)-500)
         self.startTradeStep = None
         self.stepIndex = 0
