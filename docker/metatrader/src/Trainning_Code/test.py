@@ -38,7 +38,7 @@ if __name__ == "__main__":
                         help="Disable visualization of the game play")
     args = parser.parse_args()
 
-    env = ForexEnv('minutes15_100/data/test_data.csv',False,True)
+    env = ForexEnv('minutes15_100/data/test_data.csv',True,False,True)
     device = torch.device("cuda" if args.cuda else "cpu")
 
     print("device : ",device)

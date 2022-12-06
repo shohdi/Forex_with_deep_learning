@@ -107,7 +107,13 @@ class LSTM_Forex (nn.Module):
         self.numLayers = 2
         self.outSize = 512
         self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
-        
+        """ self.size = np.prod(self.input_shape)
+        self.network = nn.Sequential(
+            nn.Linear(self.size, self.hiddenSize),
+            nn.ReLU(),
+            nn.Linear(self.hiddenSize, self.hiddenSize),
+            nn.ReLU()
+        ) """
         
 
 
@@ -131,8 +137,12 @@ class LSTM_Forex (nn.Module):
         h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
         c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
         out,(hn,cn) = self.lstm(x,(h0,c0))
+        #out = x.view(batch_size,-1)
+        #out = self.network(out)
         val_out = self.fc_val(out[:,-1,:]).view(batch_size, 1, N_ATOMS)
         adv_out = self.fc_adv(out[:,-1,:]).view(batch_size, -1, N_ATOMS)
+        #val_out = self.fc_val(out).view(batch_size, 1, N_ATOMS)
+        #adv_out = self.fc_adv(out).view(batch_size, -1, N_ATOMS)
         adv_mean = adv_out.mean(dim=1, keepdim=True)
         return val_out + (adv_out - adv_mean)
     
@@ -220,9 +230,9 @@ if __name__ == "__main__":
     #env = ptan.common.wrappers.wrap_dqn(env)
     #envTest = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
     #envVal = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
-    env = ForexEnv('minutes15_100/data/train_data.csv',True,True ) 
-    envTest = ForexEnv('minutes15_100/data/test_data.csv',False,True )
-    envVal = ForexEnv('minutes15_100/data/train_data.csv',False,True )
+    env = ForexEnv('minutes15_100/data/train_data.csv',True,True,True ) 
+    envTest = ForexEnv('minutes15_100/data/test_data.csv',False,False,True )
+    envVal = ForexEnv('minutes15_100/data/train_data.csv',False,False,True )
     writer = SummaryWriter(comment="-" + params['run_name'] + "-rainbow")
     #net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
     #tgt_net = ptan.agent.TargetNet(net)
