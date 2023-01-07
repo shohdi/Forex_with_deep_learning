@@ -179,54 +179,16 @@ class ForexEnv(gym.Env):
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
-        currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
-        return ((currentBid - self.openTradeAsk)/self.startClose)/2
+        currentBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        return currentBid - self.openTradeAsk
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
-        currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        return ((self.openTradeBid - currentAsk)/self.startClose)/2
+        currentAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
+        return self.openTradeBid - currentAsk
 
-    def analysisUpTrade(self):
-        startStep = self.startIndex + self.stepIndex
-        currentStep = startStep
-        startAsk = self.data[startStep+99,self.header.index("ask")]
-        currentBid = self.data[currentStep+99,self.header.index("bid")]
-        diff = (startAsk - currentBid)
-        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-self.leave_from_last) and (currentStep - startStep) < 200 ):
-            currentStep += 1
-            currentBid = self.data[currentStep+99,self.header.index("bid")]
-        if currentStep == (len(self.data)-self.leave_from_last) or ((currentStep - startStep) >= 200) :
-            #end of game
-            return False,None
-        
-        if (currentBid - startAsk) >= (diff):
-            #win
-            return True,currentStep - self.startIndex
-        else:
-            #loss
-            return False,None
-
-    def analysisDownTrade(self):
-        startStep = self.startIndex + self.stepIndex
-        currentStep = startStep
-        startBid = self.data[startStep+99,self.header.index("bid")]
-        currentAsk = self.data[currentStep+99,self.header.index("ask")]
-        diff = (currentAsk - startBid)
-        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-self.leave_from_last) and (currentStep - startStep) < 200):
-            currentStep += 1
-            currentAsk = self.data[currentStep+99,self.header.index("ask")]
-        if currentStep == (len(self.data)-self.leave_from_last) or ((currentStep - startStep) >= 200):
-            #end of game
-            return False,None
-        
-        if (startBid - currentAsk) >= (diff):
-            #win
-            return True,currentStep - self.startIndex
-        else:
-            #loss
-            return False,None
+    
         
 
     def render(self, mode='human', close=False):
