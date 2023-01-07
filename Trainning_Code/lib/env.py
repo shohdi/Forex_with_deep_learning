@@ -59,7 +59,7 @@ class ForexEnv(gym.Env):
             self.data = self.data_arr[np.random.randint(len(self.data_arr))]
             self.startIndex = np.random.randint(len(self.data)-self.leave_from_last)
         else:
-            self.startIndex = self.startIndex + self.stepIndex
+            self.startIndex = self.startIndex + self.stepIndex + 1
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
