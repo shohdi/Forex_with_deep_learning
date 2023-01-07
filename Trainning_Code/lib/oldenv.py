@@ -7,7 +7,7 @@ import numpy as np
 import csv
 import time
 
-class ForexEnv(gym.Env):
+class OldEnv(gym.Env):
     def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True):
         self.haveOppsiteData = haveOppsiteData
         self.punishAgent = punishAgent
@@ -19,7 +19,7 @@ class ForexEnv(gym.Env):
         self.startTradeStep = None
         self.startClose = None
         self.openTradeDir = 0
-        
+        self.lastTenData = collections.deque(maxlen=10)
         self.header = None
         self.data_arr = []
         self.data = None
@@ -29,8 +29,6 @@ class ForexEnv(gym.Env):
         self.openTradeBid = None
         self.startIndex = None
         self.stepIndex = 0
-
-        self.leave_from_last = 500
         
         with open(self.filePath, 'r') as f:
             reader = csv.reader(f, delimiter=';')
@@ -52,14 +50,12 @@ class ForexEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
 
-    def reset_is_random(self,is_random):
-        #self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
+
+    def reset(self):
+        self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
-        if is_random == True:
-            self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-            self.startIndex = np.random.randint(len(self.data)-self.leave_from_last)
-        else:
-            self.startIndex = self.startIndex + self.stepIndex
+        self.data = self.data_arr[np.random.randint(len(self.data_arr))]
+        self.startIndex = np.random.randint(len(self.data)-500)
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
@@ -72,11 +68,6 @@ class ForexEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         return self.getState()
-
-
-    def reset(self):
-        return self.reset_is_random(True)
-        
 
 
     def step(self,action_idx):
@@ -114,7 +105,7 @@ class ForexEnv(gym.Env):
                 #close trade
                 reward = self.closeUpTrade()
                 done = True
-        if (self.stepIndex + self.startIndex) >= (len(self.data) - self.leave_from_last) and not done:
+        if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
             elif self.openTradeDir == 2 :
@@ -130,32 +121,32 @@ class ForexEnv(gym.Env):
         if self.startTradeStep is None:
             if self.stepIndex > 200 and self.punishAgent:
                 reward = -0.01
-                state[-3] = reward
                 done = True
         return state , reward , done ,None
 
         
     def getState(self):
-        state = self.data[self.startIndex+self.stepIndex]
+        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
        
-        currentBid = state[self.header.index("bid")]
-        currentAsk = state[self.header.index("ask")]
-        actions = np.zeros((5),dtype=np.float32)
+
+        actions = np.zeros((100,4),dtype=np.float32)
         if self.openTradeDir == 1:
-            actions[0] = self.openTradeAsk
-            actions[2] = currentBid - self.openTradeAsk
+            actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
-            actions[1] = self.openTradeBid
-            actions[2] = self.openTradeBid - currentAsk
-    
+            actions[:,1] = self.openTradeBid
         
         
-        state = np.concatenate((state,actions),axis=0)
-        #state = (state/self.startClose)/2
-        state[-2] = self.stepIndex/(200.0 * 2.0)
+
+
+        
+        
+        
+        state = np.concatenate((state,actions),axis=1)
+        state = (state/self.startClose)/2
+        state[:,-2] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
-            state[-1] = (self.stepIndex - self.startTradeStep)/200.0
+            state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
 
         return state
 
@@ -163,16 +154,16 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
 
     def openDownTrade(self):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
 
 
@@ -194,10 +185,10 @@ class ForexEnv(gym.Env):
         startAsk = self.data[startStep+99,self.header.index("ask")]
         currentBid = self.data[currentStep+99,self.header.index("bid")]
         diff = (startAsk - currentBid)
-        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-self.leave_from_last) and (currentStep - startStep) < 200 ):
+        while (( startAsk - currentBid) < (2*diff) and (currentBid - startAsk) < (diff) and currentStep < (len(self.data)-500) and (currentStep - startStep) < 200 ):
             currentStep += 1
             currentBid = self.data[currentStep+99,self.header.index("bid")]
-        if currentStep == (len(self.data)-self.leave_from_last) or ((currentStep - startStep) >= 200) :
+        if currentStep == (len(self.data)-500) or ((currentStep - startStep) >= 200) :
             #end of game
             return False,None
         
@@ -214,10 +205,10 @@ class ForexEnv(gym.Env):
         startBid = self.data[startStep+99,self.header.index("bid")]
         currentAsk = self.data[currentStep+99,self.header.index("ask")]
         diff = (currentAsk - startBid)
-        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-self.leave_from_last) and (currentStep - startStep) < 200):
+        while (( currentAsk - startBid) < (2*diff) and (startBid - currentAsk) < (diff) and currentStep < (len(self.data)-500) and (currentStep - startStep) < 200):
             currentStep += 1
             currentAsk = self.data[currentStep+99,self.header.index("ask")]
-        if currentStep == (len(self.data)-self.leave_from_last) or ((currentStep - startStep) >= 200):
+        if currentStep == (len(self.data)-500) or ((currentStep - startStep) >= 200):
             #end of game
             return False,None
         
@@ -257,7 +248,7 @@ if __name__ == "__main__":
     reward = 0
     done = False
     win = False
-    while i < self.leave_from_last :
+    while i < 500 :
         i+=1
         print(i)
         win = False
