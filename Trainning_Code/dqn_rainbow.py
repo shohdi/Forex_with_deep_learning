@@ -272,7 +272,9 @@ if __name__ == "__main__":
                     print('saving %s'%(currentFilePath))
                     torch.save(net.state_dict(), currentFilePath)
 
-
+            if isCuda:
+                torch.cuda.empty_cache()
+                
             if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:
                 continue
             if len(buffer) < params['replay_initial']:
@@ -303,8 +305,7 @@ if __name__ == "__main__":
                 
                 torch.save(net.state_dict(), modelCurrentPath)
             
-            if isCuda:
-                torch.cuda.empty_cache()
+            
 
             if frame_idx % 100000 == 0:
                 
