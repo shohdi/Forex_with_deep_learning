@@ -272,7 +272,9 @@ if __name__ == "__main__":
                     print('saving %s'%(currentFilePath))
                     torch.save(net.state_dict(), currentFilePath)
 
-
+            if isCuda:
+                torch.cuda.empty_cache()
+                
             if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:
                 continue
             if len(buffer) < params['replay_initial']:
@@ -303,6 +305,8 @@ if __name__ == "__main__":
                 
                 torch.save(net.state_dict(), modelCurrentPath)
             
+            
+
             if frame_idx % 100000 == 0:
                 
                 testIdx = 0
@@ -335,6 +339,8 @@ if __name__ == "__main__":
                     writer.add_scalar("test steps",testSteps,test_idx)
                     print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
                     sys.stdout.flush()
+                    if isCuda:
+                        torch.cuda.empty_cache()
                     
                 testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
                 torch.save(net.state_dict(), testPeriodPath)
@@ -372,6 +378,8 @@ if __name__ == "__main__":
                     writer.add_scalar("val steps",valSteps,val_idx)
                     print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
                     sys.stdout.flush()
+                    if isCuda:
+                        torch.cuda.empty_cache()
                     
                 valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
                 torch.save(net.state_dict(), valPeriodPath)
