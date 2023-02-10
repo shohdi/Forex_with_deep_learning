@@ -276,10 +276,13 @@ if __name__ == "__main__":
                 torch.cuda.empty_cache()
                 
             if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:
+                time.sleep((1/250))
                 continue
             if len(buffer) < params['replay_initial']:
+                time.sleep((1/250))
                 continue
 
+            time.sleep((1/20))
             optimizer.zero_grad()
             batch, batch_indices, batch_weights = buffer.sample(params['batch_size'], beta)
             loss_v, sample_prios_v = calc_loss(batch, batch_weights, net, tgt_net.target_model,
