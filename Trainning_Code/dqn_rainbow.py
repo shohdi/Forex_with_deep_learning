@@ -301,7 +301,7 @@ if __name__ == "__main__":
                 print('sleeping 5 minutes on ' + str(datetime.now()))
                 sys.stdout.flush()
                 if isCuda:
-                    time.sleep(5*60)
+                    time.sleep(1*60)
                 print('resuming on ' + str(datetime.now()))
                 sys.stdout.flush()
             
