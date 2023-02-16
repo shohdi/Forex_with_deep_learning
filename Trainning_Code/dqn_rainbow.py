@@ -400,7 +400,7 @@ if __name__ == "__main__":
         
 
             except Exception as err:
-                print("exception happen :")
+                print("exception happen : ")
                 print(f"Unexpected {err=}, {type(err)=}")
                 if isCuda:
                     time.sleep(1 * 60)
