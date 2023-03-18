@@ -3,6 +3,7 @@ from genericpath import exists
 from imghdr import tests
 import warnings
 import gym
+from lib.common import EpsilonTracker
 from ptan import ptan
 import argparse
 import numpy as np
@@ -243,8 +244,10 @@ if __name__ == "__main__":
         print('loading model ' , modelCurrentPath)
         net.load_state_dict(torch.load(modelCurrentPath,map_location=device))
         tgt_net.sync()
-    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.EpsilonGreedyActionSelector(0.0025,ptan.actions.ArgmaxActionSelector()) , device=device)
-
+    
+    epsilonTracker = EpsilonTracker(ptan.actions.EpsilonGreedyActionSelector(params['epsilon_start'],ptan.actions.ArgmaxActionSelector()),params)
+    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), epsilonTracker.epsilon_greedy_selector , device=device)
+    
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
     buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
     optimizer = optim.Adam(net.parameters(), lr=params['learning_rate'])
@@ -259,12 +262,13 @@ if __name__ == "__main__":
             try:
 
                 frame_idx += 1
+                epsilonTracker.frame(frame_idx)
                 buffer.populate(1)
                 beta = min(1.0, BETA_START + frame_idx * (1.0 - BETA_START) / BETA_FRAMES)
 
                 new_rewards = exp_source.pop_total_rewards()
                 if new_rewards:
-                    if reward_tracker.reward(new_rewards[0], frame_idx):
+                    if reward_tracker.reward(new_rewards[0], frame_idx,epsilonTracker.epsilon_greedy_selector.epsilon):
                         torch.save(net.state_dict(), modelCurrentPath)
                         break
                     if len(reward_tracker.total_rewards) >= 100 and reward_tracker.last_mean > mean_reward:
@@ -286,8 +290,8 @@ if __name__ == "__main__":
                     #    time.sleep((1/250))
                     continue
 
-                if isCuda:
-                    time.sleep((1/20))
+                #if isCuda:
+                #    time.sleep((1/20))
                 optimizer.zero_grad()
                 batch, batch_indices, batch_weights = buffer.sample(params['batch_size'], beta)
                 loss_v, sample_prios_v = calc_loss(batch, batch_weights, net, tgt_net.target_model,
@@ -300,7 +304,7 @@ if __name__ == "__main__":
                 currentTime = time.time()
                 if (currentTime-startTime) > 3600:
                     startTime = time.time()
-                    print('sleeping 5 minutes on ' + str(datetime.now()))
+                    print('sleeping 1 minutes on ' + str(datetime.now()))
                     sys.stdout.flush()
                     if isCuda:
                         time.sleep(1*60)
