@@ -29,3 +29,8 @@ conda install -c conda-forge gym
 conda install -c anaconda requests
 
 pip install opencv-python
+
+#to build docker
+docker build . -t shohdi2/metatrader:1.0.9
+#to run docker
+docker run -d -p 80:80 -t shohdi2/metatrader:1.0.9
