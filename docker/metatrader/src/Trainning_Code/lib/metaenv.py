@@ -172,7 +172,7 @@ class ForexMetaEnv(gym.Env):
         
         
         state = np.concatenate((state,actions),axis=1)
-        state = (state/self.startClose)/2
+        state = (state/self.startClose)/1.5
         state[:,-2] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
@@ -204,14 +204,14 @@ class ForexMetaEnv(gym.Env):
             return
         currentBid = myState[-1,self.header.index("bid")]
         print('closing up trade start close : ',self.startClose,' close price ',currentBid)
-        return ((currentBid - self.openTradeAsk)/self.startClose)/2
+        return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = myState[-1,self.header.index("ask")]
         print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
-        return ((self.openTradeBid - currentAsk)/self.startClose)/2
+        return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
 
 
         

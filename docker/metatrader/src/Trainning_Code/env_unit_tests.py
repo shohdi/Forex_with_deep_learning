@@ -3,7 +3,7 @@ from lib.env import ForexEnv
 
 
 #global init   
-env = ForexEnv('minutes15_100/data/test_data.csv')
+env = ForexEnv('minutes15_100/data/test_data.csv',True)
 
 
 def testStartCloseIsOkAndNotChangesAfterStep():
