@@ -7,6 +7,8 @@ import numpy as np
 import csv
 import time
 
+DEC_SIZE = 10002
+
 class ForexEnv(gym.Env):
     def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True):
         self.haveOppsiteData = haveOppsiteData
@@ -129,7 +131,7 @@ class ForexEnv(gym.Env):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
        
 
-        actions = np.zeros((100,4),dtype=np.float32)
+        actions = np.zeros((100,5),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -143,10 +145,15 @@ class ForexEnv(gym.Env):
         
         state = np.concatenate((state,actions),axis=1)
         state = (state/self.startClose)/1.5
-        state[:,-2] = self.stepIndex/(200.0 * 2.0)
+        state[:,-3] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
-            state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
+            state[:,-2] = (self.stepIndex - self.startTradeStep)/200.0
+
+        state = state * (DEC_SIZE-2)
+        state[:,-1] = (DEC_SIZE - 1)
+        state = (np.rint(state)).astype(int)
+        state = np.reshape(state,(-1,))
 
         return state
 

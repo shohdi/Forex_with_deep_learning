@@ -23,6 +23,7 @@ import collections
 from lib.env import ForexEnv
 from datetime import datetime
 import time
+from lib.env import DEC_SIZE
 
 MY_DATA_PATH = 'data'
 # n-step
@@ -103,11 +104,12 @@ class LSTM_Forex (nn.Module):
         self.input_shape = input_shape
         self.actions = actions
         self.selected_device = selDevice
-        self.inSize = self.input_shape[1]
+        #self.inSize = self.input_shape[1]
         self.hiddenSize = 200
         self.numLayers = 2
         self.outSize = 512
-        self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
+        self.emb = nn.Embedding(DEC_SIZE,1000)
+        self.lstm = nn.LSTM(1000,self.hiddenSize,self.numLayers,batch_first=True)
         """ self.size = np.prod(self.input_shape)
         self.network = nn.Sequential(
             nn.Linear(self.size, self.hiddenSize),
@@ -137,6 +139,7 @@ class LSTM_Forex (nn.Module):
         batch_size = x.size()[0]
         h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
         c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
+        x = self.emb(x)
         out,(hn,cn) = self.lstm(x,(h0,c0))
         #out = x.view(batch_size,-1)
         #out = self.network(out)
