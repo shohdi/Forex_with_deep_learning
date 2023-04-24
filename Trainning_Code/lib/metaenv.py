@@ -177,7 +177,7 @@ class ForexMetaEnv(gym.Env):
         if self.startTradeStep is not None :
             
             state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
-
+        state = state[-16:]
         return state
 
     def openUpTrade(self,myState):
