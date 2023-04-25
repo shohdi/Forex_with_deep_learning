@@ -91,9 +91,9 @@ class ForexEnv(gym.Env):
 
         #end of one candle
 
-        if self.openTradeDir == 0 and action_idx > 0:
-            print("env new trade direction " + str(action_idx))
-            sys.stdout.flush()
+        #if self.openTradeDir == 0 and action_idx > 0:
+        #    print("env new trade direction " + str(action_idx))
+        #    sys.stdout.flush()
 
         reward = 0
         done = False
@@ -138,6 +138,11 @@ class ForexEnv(gym.Env):
             if self.stepIndex > 200 and self.punishAgent:
                 reward = -0.01
                 done = True
+        if done == True :
+            if reward > 0:
+                reward = 0.82
+            elif reward < 0:
+                reward = -1
         return state , reward , done ,None
 
         
@@ -163,7 +168,7 @@ class ForexEnv(gym.Env):
         if self.startTradeStep is not None :
             
             state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
-        state = state[-16:,:4]
+        state = state[-16:,1:2]
         return state
 
     def openUpTrade(self):
