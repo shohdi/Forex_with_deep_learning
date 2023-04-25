@@ -114,6 +114,17 @@ class ForexMetaEnv(gym.Env):
             action_idx = 2
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > 200 and self.stopTrade:
             action_idx = 1
+        
+        #only one candle
+
+        if self.openTradeDir == 1:
+            action_idx = 2
+        elif self.openTradeDir == 2:
+            action_idx = 1
+
+
+
+        #end of one candle
         beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         self.waitForTakeAction(action_idx)
         
@@ -177,15 +188,15 @@ class ForexMetaEnv(gym.Env):
         if self.startTradeStep is not None :
             
             state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
-        state = state[-16:]
+        state = state[-16:,:4]
         return state
 
     def openUpTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = myState[-1,self.header.index("ask")]
-        self.openTradeBid = myState[-1,self.header.index("bid")]
+        self.openTradeAsk = myState[-1,self.header.index("close")]
+        self.openTradeBid = myState[-1,self.header.index("close")]
         self.startTradeStep = self.stepIndex
         print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
 
@@ -193,8 +204,8 @@ class ForexMetaEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = myState[-1,self.header.index("ask")]
-        self.openTradeBid = myState[-1,self.header.index("bid")]
+        self.openTradeAsk = myState[-1,self.header.index("close")]
+        self.openTradeBid = myState[-1,self.header.index("close")]
         self.startTradeStep = self.stepIndex
         print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
@@ -202,14 +213,14 @@ class ForexMetaEnv(gym.Env):
     def closeUpTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
-        currentBid = myState[-1,self.header.index("bid")]
+        currentBid = myState[-1,self.header.index("close")]
         print('closing up trade start close : ',self.startClose,' close price ',currentBid)
         return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
-        currentAsk = myState[-1,self.header.index("ask")]
+        currentAsk = myState[-1,self.header.index("close")]
         print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
         return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
 

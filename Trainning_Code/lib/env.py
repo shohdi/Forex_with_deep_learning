@@ -79,6 +79,18 @@ class ForexEnv(gym.Env):
 
         #end of punish action
 
+        #only one candle
+
+        if self.openTradeDir == 1:
+            action_idx = 2
+        elif self.openTradeDir == 2:
+            action_idx = 1
+
+
+
+        #end of one candle
+
+
         reward = 0
         done = False
         if action_idx == 0:
@@ -147,36 +159,36 @@ class ForexEnv(gym.Env):
         if self.startTradeStep is not None :
             
             state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
-        state = state[-16:]
+        state = state[-16:,:4]
         return state
 
     def openUpTrade(self):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
         self.startTradeStep = self.stepIndex
 
     def openDownTrade(self):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
         self.startTradeStep = self.stepIndex
 
 
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
-        currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
         return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
-        currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
+        currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
         return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
 
     def analysisUpTrade(self):
