@@ -5,6 +5,7 @@ from gym.utils import seeding
 import collections
 import numpy as np
 import time
+from lib.IqOptionTrade import IqOptionTrade
 
 
 
@@ -31,7 +32,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stepIndex = 0
-   
+        self.iq  = IqOptionTrade()
         
         
         
@@ -198,6 +199,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("close")]
         self.openTradeBid = myState[-1,self.header.index("close")]
         self.startTradeStep = self.stepIndex
+        self.iq.doUpTrade()
         print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
 
     def openDownTrade(self,myState):
@@ -207,6 +209,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("close")]
         self.openTradeBid = myState[-1,self.header.index("close")]
         self.startTradeStep = self.stepIndex
+        self.iq.doDownTrade()
         print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
 
