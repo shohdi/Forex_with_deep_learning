@@ -6,6 +6,7 @@ import collections
 import numpy as np
 import csv
 import time
+import sys
 
 class ForexEnv(gym.Env):
     def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True):
@@ -90,6 +91,9 @@ class ForexEnv(gym.Env):
 
         #end of one candle
 
+        if self.openTradeDir == 0 and action_idx > 0:
+            print("env new trade direction " + action_idx)
+            sys.stdout.flush()
 
         reward = 0
         done = False
