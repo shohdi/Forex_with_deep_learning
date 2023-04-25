@@ -128,9 +128,9 @@ class ForexMetaEnv(gym.Env):
 
         #end of one candle
         if self.openTradeDir == 0 and action_idx > 0:
-            print("env new trade direction " + action_idx)
+            print("env new trade direction " + str(action_idx))
             sys.stdout.flush()
-            
+
         beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         self.waitForTakeAction(action_idx)
         

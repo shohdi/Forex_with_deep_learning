@@ -92,7 +92,7 @@ class ForexEnv(gym.Env):
         #end of one candle
 
         if self.openTradeDir == 0 and action_idx > 0:
-            print("env new trade direction " + action_idx)
+            print("env new trade direction " + str(action_idx))
             sys.stdout.flush()
 
         reward = 0
