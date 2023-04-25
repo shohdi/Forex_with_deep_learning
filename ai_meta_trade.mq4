@@ -8,7 +8,7 @@
 #property version   "1.00"
 #property strict
 
-#define MAGICMA  182182
+#define MAGICMA  182183
 
 int tradeDir = 0;
 
@@ -38,7 +38,8 @@ void openUp(double lots)
      if (CalculateCurrentOrders() == 0)
      {
          Print("Opening Up Order !!");
-        int res=OrderSend(Symbol(),OP_BUY,lots,Ask,5,0,0,"",MAGICMA,0,Green);
+        //int res=OrderSend(Symbol(),OP_BUY,lots,Ask,5,0,0,"",MAGICMA,0,Green);
+        int res = 0;
         if (res == -1)
         {
          tradeDir = 0;
@@ -60,7 +61,8 @@ void openUp(double lots)
      if (CalculateCurrentOrders() == 0)
      {
          Print("Opening Down Order !!");
-         int res=OrderSend(Symbol(),OP_SELL,lots,Bid,5,0,0,"",MAGICMA,0,Red);
+         //int res=OrderSend(Symbol(),OP_SELL,lots,Bid,5,0,0,"",MAGICMA,0,Red);
+         int res = 0;
          if (res == -1)
         {
          tradeDir = 0;
