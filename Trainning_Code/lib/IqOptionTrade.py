@@ -9,6 +9,10 @@ class IqOptionTrade:
     def _doTrade(self,direction):
         width = pyautogui.size().width
         height = pyautogui.size().height
+        x=int((1233/1600) * width)
+        y=int((224/900) * height)
+        pyautogui.moveTo(x=x,y=y)
+        pyautogui.click()
         x=int((1536/1600) * width)
         y=int((224/900) * height)
         pyautogui.moveTo(x=x,y=y)
