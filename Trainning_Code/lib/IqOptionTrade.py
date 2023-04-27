@@ -42,5 +42,6 @@ class IqOptionTrade:
 if __name__ == "__main__":
     time.sleep(5)
     testObj = IqOptionTrade()
-    #testObj.doUpTrade()
+    testObj.doUpTrade()
+    time.sleep(5)
     testObj.doDownTrade()
