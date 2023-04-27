@@ -258,6 +258,7 @@ void handleAction(int action)
 //+------------------------------------------------------------------+
 int OnInit()
   {
+  
 //---
    for (int i = 99;i>= 1;i--)
    {
@@ -266,6 +267,7 @@ int OnInit()
       handleAction(action);
    }
 //---
+   EventSetMillisecondTimer(300);
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
@@ -284,7 +286,13 @@ datetime D1;
 void OnTick()
   {
 //---
-    if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
+    
+  }
+//+------------------------------------------------------------------+
+
+void OnTimer()
+{
+   if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
      {
             //new candle
             
@@ -297,5 +305,4 @@ void OnTick()
          //Do Something...
       D1=iTime(Symbol(),myPeriod,0);    // overwrite old with new value
      }
-  }
-//+------------------------------------------------------------------+
+}
