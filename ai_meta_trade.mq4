@@ -10,7 +10,11 @@
 
 #define MAGICMA  182183
 
+int myPeriod = PERIOD_M5;
+
 int tradeDir = 0;
+
+
 
 //my functions
 int CalculateCurrentOrders()
@@ -133,11 +137,11 @@ void openUp(double lots)
   
   int OpenRequestGetAction(int i,bool history)
   {
-      double open = iOpen(Symbol(),PERIOD_M5,i);
-      double close = iClose(Symbol(),PERIOD_M5,i);
-      double high = iHigh(Symbol(),PERIOD_M5,i); 
+      double open = iOpen(Symbol(),myPeriod,i);
+      double close = iClose(Symbol(),myPeriod,i);
+      double high = iHigh(Symbol(),myPeriod,i); 
       
-      double low = iLow(Symbol(),PERIOD_M5,i); 
+      double low = iLow(Symbol(),myPeriod,i); 
       double ask = close + (Ask-Bid);
       double bid = close;
       if (!history)
@@ -280,7 +284,7 @@ datetime D1;
 void OnTick()
   {
 //---
-    if(D1!=iTime(Symbol(),PERIOD_M5,0)) // new candle on D1
+    if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
      {
             //new candle
             
@@ -291,7 +295,7 @@ void OnTick()
             
             
          //Do Something...
-      D1=iTime(Symbol(),PERIOD_M5,0);    // overwrite old with new value
+      D1=iTime(Symbol(),myPeriod,0);    // overwrite old with new value
      }
   }
 //+------------------------------------------------------------------+
