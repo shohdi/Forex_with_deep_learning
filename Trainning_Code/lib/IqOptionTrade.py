@@ -13,6 +13,7 @@ class IqOptionTrade:
         y=int((224/900) * height)
         pyautogui.moveTo(x=x,y=y)
         pyautogui.click()
+        pyautogui.click()
         x=int((1536/1600) * width)
         y=int((224/900) * height)
         pyautogui.moveTo(x=x,y=y)
