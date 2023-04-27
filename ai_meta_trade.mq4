@@ -294,6 +294,7 @@ void OnTimer()
 {
    if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
      {
+            D1=iTime(Symbol(),myPeriod,0);    // overwrite old with new value
             //new candle
             
            int action =  OpenRequestGetAction(1,false);
@@ -303,6 +304,6 @@ void OnTimer()
             
             
          //Do Something...
-      D1=iTime(Symbol(),myPeriod,0);    // overwrite old with new value
+      
      }
 }
