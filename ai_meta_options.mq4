@@ -144,11 +144,20 @@ void openUp(double lots)
       double low = iLow(Symbol(),myPeriod,i); 
       double ask = close + (Ask-Bid);
       double bid = close;
+      tradeDir = 0;
       if (!history)
       {  
          ask = Ask;
          bid = Bid;
+         if (currentTick > lastTick)
+         {
+            tradeDir = 2;
+         }
          
+         if (currentTick < lastTick)
+         {
+            tradeDir = 1;
+         }
       }
       
       string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d",open,close,high,low,ask,bid,tradeDir);
@@ -283,9 +292,16 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 
 datetime D1;
+double lastTick = 0;
+double currentTick = 0;
 void OnTick()
   {
 //---
+      currentTick = (Ask+Bid)/2.0;
+      if (lastTick == 0)
+      {
+         lastTick = currentTick;
+      }
     if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
      {
             D1=iTime(Symbol(),myPeriod,0);    // overwrite old with new value
@@ -300,6 +316,7 @@ void OnTick()
          //Do Something...
       
      }
+     lastTick = currentTick;
   }
 //+------------------------------------------------------------------+
 

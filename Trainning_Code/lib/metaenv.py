@@ -135,6 +135,9 @@ class ForexMetaEnv(gym.Env):
         self.waitForTakeAction(action_idx)
         
         myState = self.waitForNewState()
+        stateFoundDir = self.options.tradeDir
+        if(action_idx != stateFoundDir):
+            action_idx = 0
         reward = 0
         done = False
         if action_idx == 0:
