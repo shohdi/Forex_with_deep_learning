@@ -8,7 +8,7 @@
 #property version   "1.00"
 #property strict
 
-
+int myPeriod = PERIOD_M15;
 int filehandle;
   datetime D1;
 
@@ -47,13 +47,14 @@ void OnDeinit(const int reason)
 void OnTick()
   {
 //---
-     if(D1!=iTime(Symbol(),PERIOD_M15,0)) // new candle on D1
+     if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
      {
+         D1=iTime(Symbol(),myPeriod,0);
          
-         double open = iOpen(Symbol(),PERIOD_M15,1);
-         double close = iClose(Symbol(),PERIOD_M15,1);
-         double high = iHigh(Symbol(),PERIOD_M15,1);
-         double low = iLow(Symbol(),PERIOD_M15,1);
+         double open = iOpen(Symbol(),myPeriod,1);
+         double close = iClose(Symbol(),myPeriod,1);
+         double high = iHigh(Symbol(),myPeriod,1);
+         double low = iLow(Symbol(),myPeriod,1);
          double ask = Ask;
          double bid = Bid;
          
@@ -65,7 +66,7 @@ void OnTick()
          }
          
      
-         D1=iTime(Symbol(),PERIOD_M15,0);
+         
      }
   }
 //+------------------------------------------------------------------+
