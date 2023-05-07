@@ -106,8 +106,8 @@ def startApp():
     while True:
         start_ts = time.time()
 
-        state_v = torch.tensor(np.array([state], copy=False))
-        q_vals = net(state_v).data.numpy()[0]
+        state_v = torch.tensor(np.array([state], copy=False)).to(device)
+        q_vals = net(state_v).cpu().data.numpy()[0]
         action = np.argmax(q_vals)
         c[action] += 1
         state, reward, done, _ = env.step(action)
