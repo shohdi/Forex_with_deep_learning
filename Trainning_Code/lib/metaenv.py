@@ -62,6 +62,10 @@ class ForexMetaEnv(gym.Env):
             action = 12
         if action == 2 and self.openTradeDir == 1:
             action = 12
+        if action == 1:
+            self.iq.doUpTrade()
+        if action == 2:
+            self.iq.doDownTrade()
         self.options.takenAction = action
         self.options.ActionAvailable = True
     
@@ -212,7 +216,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("close")]
         self.openTradeBid = myState[-1,self.header.index("close")]
         self.startTradeStep = self.stepIndex
-        self.iq.doUpTrade()
+        #self.iq.doUpTrade()
         print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
 
     def openDownTrade(self,myState):
@@ -222,7 +226,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("close")]
         self.openTradeBid = myState[-1,self.header.index("close")]
         self.startTradeStep = self.stepIndex
-        self.iq.doDownTrade()
+        #self.iq.doDownTrade()
         print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
 
