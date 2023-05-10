@@ -103,7 +103,7 @@ def startApp():
     gameNumber = 0
     writer = SummaryWriter(comment="-" + DEFAULT_ENV_NAME)
     frameIdx = 0
-    while True:
+    while printed_reward <10.0 and printed_reward > -10.0:  #True:
         start_ts = time.time()
 
         state_v = torch.tensor(np.array([state], copy=False)).to(device)
