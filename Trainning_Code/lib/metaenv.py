@@ -7,6 +7,7 @@ import numpy as np
 import time
 from lib.IqOptionTrade import IqOptionTrade
 import sys
+from datetime import datetime
 
 
 
@@ -128,6 +129,12 @@ class ForexMetaEnv(gym.Env):
         elif self.openTradeDir == 2:
             action_idx = 1
 
+        myHour = datetime.now().hour
+        
+        if myHour < 21 and myHour > 7 :
+            print("current hour : " +str(myHour) +  " old action " + str(action_idx) + " Waiting 9 PM action now is 0")
+            action_idx = 0
+            
 
 
         #end of one candle
