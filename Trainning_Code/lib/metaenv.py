@@ -36,7 +36,8 @@ class ForexMetaEnv(gym.Env):
         self.stepIndex = 0
         self.iq  = IqOptionTrade()
         
-        
+        myHour = datetime.now().hour
+        print("current hour : " + str(myHour))
         
         
         
