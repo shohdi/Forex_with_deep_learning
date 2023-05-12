@@ -31,9 +31,9 @@ class RsiMetaEnv(ForexMetaEnv):
         myState = self.waitForNewState()
         
         noTrade = True
-        for i in range(len(self.old_actions)):
-            if self.old_actions[i] != 0:
-                noTrade = False
+        #for i in range(len(self.old_actions)):
+        #    if self.old_actions[i] != 0:
+        #        noTrade = False
         
         if self.options.tradeDir == 1 and noTrade:
             #open trade up
