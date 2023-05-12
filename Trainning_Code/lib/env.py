@@ -80,16 +80,19 @@ class ForexEnv(gym.Env):
 
         #end of punish action
 
-        #only one candle
+        #only 5 candle
+        if self.startTradeStep is not None :
+            tradeCount = self.stepIndex - self.startTradeStep
+            if self.openTradeDir == 1 and tradeCount == 5:
+                action_idx = 2
+            elif self.openTradeDir == 2 and tradeCount == 5:
+                action_idx = 1
+            else:
+                action_idx = 0
 
-        if self.openTradeDir == 1:
-            action_idx = 2
-        elif self.openTradeDir == 2:
-            action_idx = 1
 
 
-
-        #end of one candle
+        #end of 5 candle
 
         #if self.openTradeDir == 0 and action_idx > 0:
         #    print("env new trade direction " + str(action_idx))
@@ -163,12 +166,12 @@ class ForexEnv(gym.Env):
         
         
         state = np.concatenate((state,actions),axis=1)
-        state = (state/self.startClose)/1.5
+        state = (state/self.startClose) - 1.0
         state[:,-2] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
             state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
-        state = state[-16:,1:2]
+        #state = state[-16:,1:2]
         return state
 
     def openUpTrade(self):
@@ -192,13 +195,13 @@ class ForexEnv(gym.Env):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
         currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
-        return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
+        return ((currentBid - self.openTradeAsk)/self.startClose)
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
-        return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
+        return ((self.openTradeBid - currentAsk)/self.startClose)
 
     def analysisUpTrade(self):
         startStep = self.startIndex + self.stepIndex

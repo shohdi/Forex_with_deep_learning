@@ -123,12 +123,19 @@ class ForexMetaEnv(gym.Env):
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > 200 and self.stopTrade:
             action_idx = 1
         
-        #only one candle
+        #only 5 candle
+        if self.startTradeStep is not None :
+            tradeCount = self.stepIndex - self.startTradeStep
+            if self.openTradeDir == 1 and tradeCount == 5:
+                action_idx = 2
+            elif self.openTradeDir == 2 and tradeCount == 5:
+                action_idx = 1
+            else:
+                action_idx = 0
 
-        if self.openTradeDir == 1:
-            action_idx = 2
-        elif self.openTradeDir == 2:
-            action_idx = 1
+
+
+        #end of 5 candle
 
         myHour = datetime.now().hour
         
@@ -209,12 +216,12 @@ class ForexMetaEnv(gym.Env):
         
         
         state = np.concatenate((state,actions),axis=1)
-        state = (state/self.startClose)/1.5
+        state = (state/self.startClose)-1.0
         state[:,-2] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
             state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
-        state = state[-16:,1:2]
+        #state = state[-16:,1:2]
         return state
 
     def openUpTrade(self,myState):
@@ -243,14 +250,14 @@ class ForexMetaEnv(gym.Env):
             return
         currentBid = myState[-1,self.header.index("close")]
         print('closing up trade start close : ',self.startClose,' close price ',currentBid)
-        return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
+        return ((currentBid - self.openTradeAsk)/self.startClose)
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = myState[-1,self.header.index("close")]
         print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
-        return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
+        return ((self.openTradeBid - currentAsk)/self.startClose)
 
 
         
