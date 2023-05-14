@@ -319,11 +319,11 @@ if __name__ == "__main__":
                     torch.save(net.state_dict(), modelCurrentPath)
                 
                 
-                '''
-                if frame_idx % 100000 == 0:
+                
+                if frame_idx % 1000000 == 0:
                     
                     testIdx = 0
-                    while testIdx < 213:
+                    while testIdx < 100:
                         testState = envTest.reset()
                         testState = np.array(testState,dtype=np.float32)
                         testIdx+=1
@@ -363,7 +363,7 @@ if __name__ == "__main__":
 
                     
                     valIndx = 0
-                    while valIndx < 213:
+                    while valIndx < 100:
                         valState = envVal.reset()
                     
                         valState = np.array(valState,dtype=np.float32)
@@ -401,7 +401,7 @@ if __name__ == "__main__":
                     valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
                     torch.save(net.state_dict(), valPeriodPath)
             
-                '''
+                
 
             except Exception as err:
                 print("exception happen : ")
