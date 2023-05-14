@@ -1,7 +1,7 @@
 *.ex4
 *.DS_Store
 *.pyc
-data/Forex*
+data/
 logs/
 Forex-v4-best.dat
 trainedSteps.txt
