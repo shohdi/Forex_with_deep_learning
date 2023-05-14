@@ -120,7 +120,7 @@ class ForexEnv(gym.Env):
         
         if self.startTradeStep is None:
             if self.stepIndex > 200 and self.punishAgent:
-                reward = -0.01
+                reward = -0.02
                 done = True
         return state , reward , done ,None
 
@@ -142,7 +142,7 @@ class ForexEnv(gym.Env):
         
         
         state = np.concatenate((state,actions),axis=1)
-        state = (state/self.startClose)/1.5
+        state = (state/self.startClose) - 1.0
         state[:,-2] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
@@ -171,13 +171,13 @@ class ForexEnv(gym.Env):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
         currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
-        return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
+        return ((currentBid - self.openTradeAsk)/self.startClose)
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
+        return ((self.openTradeBid - currentAsk)/self.startClose)
 
     def analysisUpTrade(self):
         startStep = self.startIndex + self.stepIndex

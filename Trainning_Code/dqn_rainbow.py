@@ -34,8 +34,8 @@ BETA_START = 0.4
 BETA_FRAMES = 100000
 
 # C51
-Vmax = 0.02
-Vmin = -0.02
+Vmax = 0.03
+Vmin = -0.03
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 

@@ -5,3 +5,7 @@ data/
 logs/
 Forex-v4-best.dat
 trainedSteps.txt
+docker/metatrader/src/minutes15_100/data
+docker/metatrader/src/data
+.gitignore
+.gitignore
