@@ -18,7 +18,7 @@
 
 
 
-int myPeriod = PERIOD_M15;
+int myPeriod = PERIOD_M1;
 
 int filehandle;
 

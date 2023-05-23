@@ -10,7 +10,7 @@
 
 #define MAGICMA  182183
 
-int myPeriod = PERIOD_M5;
+int myPeriod = PERIOD_M1;
 
 int tradeDir = 0;
 
@@ -145,6 +145,22 @@ void openUp(double lots)
       double ask = close + (Ask-Bid);
       double bid = close;
       tradeDir = 0;
+      int hoursAdded = 0;
+      switch(myPeriod)
+      {
+         case PERIOD_M1:
+            hoursAdded = i/60;
+            break;
+         case PERIOD_M5 :
+            hoursAdded = i/12;
+            break;
+         case PERIOD_M15 :
+            hoursAdded = i/4;
+            break;
+      }
+      double day = iClose(Symbol(),PERIOD_H1,(1 * 24)+ hoursAdded);
+      double week = iClose(Symbol(),PERIOD_H1,(1 * 24 * 5)+ hoursAdded);
+      double month = iClose(Symbol(),PERIOD_H1,(1 * 24 * 5 * 4)+ hoursAdded);
       if (!history)
       {  
          ask = Ask;
@@ -157,10 +173,10 @@ void openUp(double lots)
          if (currentTick < lastTick)
          {
             tradeDir = 1;
-         }
+         }                  
       }
       
-      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d",open,close,high,low,ask,bid,tradeDir);
+      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&day=%d&week=%d&month=%d",open,close,high,low,ask,bid,tradeDir,day,week,month);
       Print("calling url : ",url);
      string ret = createRequest(url);
      
