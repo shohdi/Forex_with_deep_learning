@@ -120,7 +120,7 @@ class ForexEnv(gym.Env):
         
         if self.startTradeStep is None:
             if self.stepIndex > 200 and self.punishAgent:
-                reward = -0.01
+                reward = -0.02
                 done = True
         return state , reward , done ,None
 
@@ -129,7 +129,7 @@ class ForexEnv(gym.Env):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
        
 
-        actions = np.zeros((100,4),dtype=np.float32)
+        actions = np.zeros((100,5),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -142,12 +142,14 @@ class ForexEnv(gym.Env):
         
         
         state = np.concatenate((state,actions),axis=1)
-        state = (state/self.startClose)/1.5
-        state[:,-2] = self.stepIndex/(200.0 * 2.0)
+        state = (state/self.startClose) - 1.0
+        state[:,-1] = -0.987654321
+        state[:,-3] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
-            state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
+            state[:,-2] = (self.stepIndex - self.startTradeStep)/200.0
 
+        state =  np.reshape( state,(-1,))
         return state
 
     def openUpTrade(self):
@@ -171,13 +173,13 @@ class ForexEnv(gym.Env):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
         currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
-        return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
+        return ((currentBid - self.openTradeAsk)/self.startClose)
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
+        return ((self.openTradeBid - currentAsk)/self.startClose)
 
     def analysisUpTrade(self):
         startStep = self.startIndex + self.stepIndex

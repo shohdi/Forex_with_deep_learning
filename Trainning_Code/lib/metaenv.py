@@ -152,14 +152,14 @@ class ForexMetaEnv(gym.Env):
         
         if self.startTradeStep is None:
             if self.stepIndex > 200 and self.punishAgent:
-                reward = -0.01
+                reward = -0.02
                 done = True
         return state , reward , done ,None
 
         
     def getState(self,myState):
         state = myState
-        actions = np.zeros((100,4),dtype=np.float32)
+        actions = np.zeros((100,5),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -172,12 +172,14 @@ class ForexMetaEnv(gym.Env):
         
         
         state = np.concatenate((state,actions),axis=1)
-        state = (state/self.startClose)/1.5
-        state[:,-2] = self.stepIndex/(200.0 * 2.0)
+        state = (state/self.startClose)-1.0
+        state[:,-1] = -0.987654321
+        state[:,-3] = self.stepIndex/(200.0 * 2.0)
         if self.startTradeStep is not None :
             
-            state[:,-1] = (self.stepIndex - self.startTradeStep)/200.0
-
+            state[:,-2] = (self.stepIndex - self.startTradeStep)/200.0
+        
+        state =  np.reshape( state,(-1,))
         return state
 
     def openUpTrade(self,myState):
@@ -204,14 +206,14 @@ class ForexMetaEnv(gym.Env):
             return
         currentBid = myState[-1,self.header.index("bid")]
         print('closing up trade start close : ',self.startClose,' close price ',currentBid)
-        return ((currentBid - self.openTradeAsk)/self.startClose)/1.5
+        return ((currentBid - self.openTradeAsk)/self.startClose)
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = myState[-1,self.header.index("ask")]
         print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
-        return ((self.openTradeBid - currentAsk)/self.startClose)/1.5
+        return ((self.openTradeBid - currentAsk)/self.startClose)
 
 
         
