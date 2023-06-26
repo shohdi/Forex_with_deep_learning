@@ -11,6 +11,7 @@ WORKDIR /usr/share/metatraderai
 RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6  -y
 
+#RUN conda config --set channel_priority strict
 RUN conda env create -f environment.yml
 
 # Make RUN commands use the new environment:
