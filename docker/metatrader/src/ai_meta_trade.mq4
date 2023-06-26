@@ -10,6 +10,7 @@
 
 #define MAGICMA  182182
 
+int myPeriod = PERIOD_M1;
 int tradeDir = 0;
 
 //my functions
@@ -131,13 +132,30 @@ void openUp(double lots)
   
   int OpenRequestGetAction(int i,bool history)
   {
-      double open = iOpen(Symbol(),PERIOD_M15,i);
-      double close = iClose(Symbol(),PERIOD_M15,i);
-      double high = iHigh(Symbol(),PERIOD_M15,i); 
+      double open = iOpen(Symbol(),myPeriod,i);
+      double close = iClose(Symbol(),myPeriod,i);
+      double high = iHigh(Symbol(),myPeriod,i); 
       
-      double low = iLow(Symbol(),PERIOD_M15,i); 
+      double low = iLow(Symbol(),myPeriod,i); 
       double ask = close + (Ask-Bid);
       double bid = close;
+      tradeDir = 0;
+      int hoursAdded = 0;
+      switch(myPeriod)
+      {
+         case PERIOD_M1:
+            hoursAdded = i/60;
+            break;
+         case PERIOD_M5 :
+            hoursAdded = i/12;
+            break;
+         case PERIOD_M15 :
+            hoursAdded = i/4;
+            break;
+      }
+      double day = iClose(Symbol(),PERIOD_H1,(1 * 24)+ hoursAdded);
+      double week = iClose(Symbol(),PERIOD_H1,(1 * 24 * 5)+ hoursAdded);
+      double month = iClose(Symbol(),PERIOD_H1,(1 * 24 * 5 * 4)+ hoursAdded);
       if (!history)
       {  
          ask = Ask;
@@ -145,7 +163,7 @@ void openUp(double lots)
          
       }
       
-      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d",open,close,high,low,ask,bid,tradeDir);
+      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&day=%d&week=%d&month=%d",open,close,high,low,ask,bid,tradeDir,day,week,month);
       Print("calling url : ",url);
      string ret = createRequest(url);
      
@@ -278,8 +296,9 @@ datetime D1;
 void OnTick()
   {
 //---
-    if(D1!=iTime(Symbol(),PERIOD_M15,0)) // new candle on D1
+    if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
      {
+            D1=iTime(Symbol(),myPeriod,0);    // overwrite old with new value
             //new candle
             
            int action =  OpenRequestGetAction(1,false);
@@ -289,7 +308,7 @@ void OnTick()
             
             
          //Do Something...
-      D1=iTime(Symbol(),PERIOD_M15,0);    // overwrite old with new value
+
      }
   }
 //+------------------------------------------------------------------+

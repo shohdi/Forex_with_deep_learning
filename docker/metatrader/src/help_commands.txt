@@ -34,3 +34,5 @@ pip install opencv-python
 docker build . -t shohdi2/metatrader:1.0.9
 #to run docker
 docker run -d -p 80:80 -t shohdi2/metatrader:1.0.9
+#to push
+docker push shohdi2/metatrader:1.0.9 
