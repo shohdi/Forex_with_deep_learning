@@ -110,9 +110,9 @@ class ForexMetaEnv(gym.Env):
     def step(self,action_idx):
         self.wait100()
         #check punish
-        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (200 * 15) and self.stopTrade:
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
             action_idx = 2
-        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (200 * 15) and self.stopTrade:
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
             action_idx = 1
         beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         self.waitForTakeAction(action_idx)
@@ -151,7 +151,7 @@ class ForexMetaEnv(gym.Env):
         
         
         if self.startTradeStep is None:
-            if self.stepIndex > (200 * 15) and self.punishAgent:
+            if self.stepIndex > (200 * 1) and self.punishAgent:
                 reward = -0.02
                 done = True
         return state , reward , done ,None
@@ -174,12 +174,12 @@ class ForexMetaEnv(gym.Env):
         state = np.concatenate((state,actions),axis=1)
         state = (state/self.startClose)-1.0
         state[:,-1] = -0.987654321
-        state[:,-3] = self.stepIndex/((200.0 * 15) * 2.0)
+        state[:,-3] = self.stepIndex/((200.0 * 1) * 2.0)
         if self.startTradeStep is not None :
             
-            state[:,-2] = (self.stepIndex - self.startTradeStep)/(200.0 * 15)
+            state[:,-2] = (self.stepIndex - self.startTradeStep)/(200.0 * 1)
         
-        state =  np.reshape( state,(-1,))
+        #state =  np.reshape( state,(-1,))
         return state
 
     def openUpTrade(self,myState):

@@ -36,7 +36,7 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         state,_,_,_ = env.step(0)
         #assert
-        lastOpen =state[-14]#state[-1,0]
+        lastOpen =state[-1,0]#state[-14]
         lastOpenReal = env.data[(env.stepIndex+env.startIndex+100)-1,0]
         expected = (lastOpenReal/startClose)-1
         if lastOpen != expected:
@@ -82,13 +82,13 @@ def test200StepsReturnMinus0Point01():
         i  =0
         done = False
 
-        while i< (202 * 15) and not done:
+        while i< (202 * 1) and not done:
             state,reward,done,_ = env.step(0)
             i+=1
 
 
         #assert
-        expected = ((200 * 15)+1)
+        expected = ((200 * 1)+1)
         expectedDone = True
         expectedReward = -0.02
         
@@ -112,7 +112,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         done = False
         env.step(1)
         beforeDoneState = None
-        while i< (202*15) and not done:
+        while i< (202*1) and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
@@ -123,10 +123,10 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
 
 
         #assert
-        expected = ((200 * 15)+1)
+        expected = ((200 * 1)+1)
         expectedDone = True
-        bid = beforeDoneState[-9]#[-1,5]
-        openTradeAsk = beforeDoneState[-5]#[-1,9]
+        bid = beforeDoneState[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-1,9]#[-5]
         expectedReward = str(round( bid-openTradeAsk,5))
         reward = str(round(reward,5))
 
@@ -153,7 +153,7 @@ def testStepIsWrittenInState():
         
         beforeDoneState = None
         after5stepsState = None
-        while i< (202*15) and not done:
+        while i< (202*1) and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
@@ -166,12 +166,12 @@ def testStepIsWrittenInState():
 
 
         #assert
-        expected = (200 * 15)/(200 * 15 * 2)
+        expected = (200 * 1)/(200 * 1 * 2)
         
-        value = beforeDoneState[-3]#[-1,8]
+        value = beforeDoneState[-1,11]#[-3]
         
-        expectedAfter5 = 6/(200 * 15 * 2)
-        valueAfter5 = after5stepsState[-3]#[-1,8]
+        expectedAfter5 = 6/(200 * 1 * 2)
+        valueAfter5 = after5stepsState[-1,11]#[-3]
 
 
         
