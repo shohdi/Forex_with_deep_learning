@@ -218,7 +218,7 @@ int OpenRequestGetAction(int i, bool history)
 
    double bid = close;
 
-   tradeDir = 0;
+   
 
    int hoursAdded = 0;
 
