@@ -10,527 +10,399 @@
 
 #property copyright "Shohdy ElSheemy"
 
-#property link      "http://127.0.0.1"
+#property link "http://127.0.0.1"
 
-#property version   "1.00"
+#property version "1.00"
 
 #property strict
 
-
-
-#define MAGICMA  182182
-
-
+#define MAGICMA 182182
 
 int myPeriod = PERIOD_M15;
 
 int tradeDir = 0;
 
-
-
-//my functions
+// my functions
 
 int CalculateCurrentOrders()
 
-  {
+{
 
-   int buys=0,sells=0;
+   int buys = 0, sells = 0;
 
-//---
+   //---
 
-   for(int i=0;i<OrdersTotal();i++)
+   for (int i = 0; i < OrdersTotal(); i++)
 
-     {
+   {
 
-      if(OrderSelect(i,SELECT_BY_POS,MODE_TRADES)==false) break;
+      if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES) == false)
+         break;
 
-      if(OrderSymbol()==Symbol() && OrderMagicNumber()==MAGICMA)
+      if (OrderSymbol() == Symbol() && OrderMagicNumber() == MAGICMA)
 
-        {
+      {
 
-         if(OrderType()==OP_BUY)  buys++;
+         if (OrderType() == OP_BUY)
+            buys++;
 
-         if(OrderType()==OP_SELL) sells++;
+         if (OrderType() == OP_SELL)
+            sells++;
+      }
+   }
 
-        }
+   //--- return orders volume
 
-     }
+   if (buys > 0)
+      return (buys);
 
-//--- return orders volume
-
-   if(buys>0) return(buys);
-
-   else       return(-sells);
-
-  }
-
-  
-
-  
-
-  
+   else
+      return (-sells);
+}
 
 void openUp(double lots)
 
-  {
+{
 
-     if (CalculateCurrentOrders() == 0)
+   if (CalculateCurrentOrders() == 0)
 
-     {
+   {
 
-         Print("Opening Up Order !!");
+      Print("Opening Up Order !!");
 
-        int res=OrderSend(Symbol(),OP_BUY,lots,Ask,5,0,0,"",MAGICMA,0,Green);
+      int res = OrderSend(Symbol(), OP_BUY, lots, Ask, 5, 0, 0, "", MAGICMA, 0, Green);
 
-        if (res == -1)
+      if (res == -1)
 
-        {
+      {
 
          tradeDir = 0;
+      }
 
-        }
+      else
 
-        else
-
-        {
+      {
 
          tradeDir = 1;
+      }
 
-        }
+      return;
+   }
+}
 
-        
+void openDown(double lots)
 
-         return;
+{
 
-     }
+   if (CalculateCurrentOrders() == 0)
 
-     
+   {
 
-  }
+      Print("Opening Down Order !!");
 
+      int res = OrderSend(Symbol(), OP_SELL, lots, Bid, 5, 0, 0, "", MAGICMA, 0, Red);
 
+      if (res == -1)
 
-
-
-
-
-  void openDown(double lots)
-
-  {
-
-     if (CalculateCurrentOrders() == 0)
-
-     {
-
-         Print("Opening Down Order !!");
-
-         int res=OrderSend(Symbol(),OP_SELL,lots,Bid,5,0,0,"",MAGICMA,0,Red);
-
-         if (res == -1)
-
-        {
+      {
 
          tradeDir = 0;
+      }
 
-        }
+      else
 
-        else
-
-        {
+      {
 
          tradeDir = 2;
+      }
 
-        }
+      return;
+   }
+}
 
-         return;
+void closeDown()
 
-     }
+{
 
-     
+   for (int i = 0; i < OrdersTotal(); i++)
 
-  }
+   {
 
-  
+      if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES) == false)
+         break;
 
-  
+      if (OrderSymbol() == Symbol() && OrderMagicNumber() == MAGICMA)
 
-  
+      {
 
-  void closeDown()
+         // if(OrderType()==OP_BUY)  buys++;
 
-  {
+         if (OrderType() == OP_SELL)
+         {
 
-   
+            Print("Closing down order ", OrderTicket());
 
-   for(int i=0;i<OrdersTotal();i++)
-
-     {
-
-      if(OrderSelect(i,SELECT_BY_POS,MODE_TRADES)==false) break;
-
-      if(OrderSymbol()==Symbol() && OrderMagicNumber()==MAGICMA)
-
-        {
-
-         //if(OrderType()==OP_BUY)  buys++;
-
-         if(OrderType()==OP_SELL) {
-
-            Print("Closing down order ",OrderTicket());
-
-            bool isClosed = OrderClose(OrderTicket(),OrderLots(),Ask,5,Red);
+            bool isClosed = OrderClose(OrderTicket(), OrderLots(), Ask, 5, Red);
 
             if (!isClosed)
 
             {
 
-               //ExpertRemove();
+               // ExpertRemove();
 
-               //MessageBox("Error Closing Order!");
+               // MessageBox("Error Closing Order!");
 
-               isClosed = OrderClose(OrderTicket(),OrderLots(),Ask,5,Red);
-
+               isClosed = OrderClose(OrderTicket(), OrderLots(), Ask, 5, Red);
             }
 
             tradeDir = 0;
-
          }
+      }
+   }
+}
 
-        }
+void closeUp()
 
-     }
+{
 
+   for (int i = 0; i < OrdersTotal(); i++)
 
+   {
 
-  }
+      if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES) == false)
+         break;
 
-  
-
-  
-
-  
-
-  void closeUp()
-
-  {
-
-   
-
-   for(int i=0;i<OrdersTotal();i++)
-
-     {
-
-      if(OrderSelect(i,SELECT_BY_POS,MODE_TRADES)==false) break;
-
-      if(OrderSymbol()==Symbol() && OrderMagicNumber()==MAGICMA)
-
-        {
-
-         //if(OrderType()==OP_BUY)  buys++;
-
-         if(OrderType()==OP_BUY) {
-
-            Print("Closing up order ",OrderTicket());
-
-            bool isClosed = OrderClose(OrderTicket(),OrderLots(),Bid,5,Red);
-
-             if (!isClosed)
-
-            {
-
-               //ExpertRemove();
-
-               //MessageBox("Error Closing Order!");
-
-               isClosed = OrderClose(OrderTicket(),OrderLots(),Bid,5,Red);
-
-            }
-
-            tradeDir = 0;
-
-         }
-
-        }
-
-     }
-
-
-
-  }
-
-  
-
-  
-
-  int OpenRequestGetAction(int i,bool history)
-
-  {
-
-      double open = iOpen(Symbol(),myPeriod,i);
-
-      double close = iClose(Symbol(),myPeriod,i);
-
-      double high = iHigh(Symbol(),myPeriod,i); 
-
-      
-
-      double low = iLow(Symbol(),myPeriod,i); 
-
-      double ask = close + (Ask-Bid);
-
-      double bid = close;
-
-      tradeDir = 0;
-
-      int hoursAdded = 0;
-
-      switch(myPeriod)
+      if (OrderSymbol() == Symbol() && OrderMagicNumber() == MAGICMA)
 
       {
 
-         case PERIOD_M1:
+         // if(OrderType()==OP_BUY)  buys++;
 
-            hoursAdded = i/60;
+         if (OrderType() == OP_BUY)
+         {
 
-            break;
+            Print("Closing up order ", OrderTicket());
 
-         case PERIOD_M5 :
+            bool isClosed = OrderClose(OrderTicket(), OrderLots(), Bid, 5, Red);
 
-            hoursAdded = i/12;
+            if (!isClosed)
 
-            break;
+            {
 
-         case PERIOD_M15 :
+               // ExpertRemove();
 
-            hoursAdded = i/4;
+               // MessageBox("Error Closing Order!");
 
-            break;
+               isClosed = OrderClose(OrderTicket(), OrderLots(), Bid, 5, Red);
+            }
 
+            tradeDir = 0;
+         }
       }
+   }
+}
 
-      double day = iClose(Symbol(),PERIOD_H1,(1 * 24)+ hoursAdded);
+int OpenRequestGetAction(int i, bool history)
 
-      double week = iClose(Symbol(),PERIOD_H1,(1 * 24 * 5)+ hoursAdded);
+{
 
-      double month = iClose(Symbol(),PERIOD_H1,(1 * 24 * 5 * 4)+ hoursAdded);
+   double open = iOpen(Symbol(), myPeriod, i);
 
-      if (!history)
+   double close = iClose(Symbol(), myPeriod, i);
 
-      {  
+   double high = iHigh(Symbol(), myPeriod, i);
 
-         ask = Ask;
+   double low = iLow(Symbol(), myPeriod, i);
 
-         bid = Bid;
+   double ask = close + (Ask - Bid);
 
-         
+   double bid = close;
 
-      }
+   tradeDir = 0;
 
-      
+   int hoursAdded = 0;
 
-      string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&day=%f&week=%f&month=%f",open,close,high,low,ask,bid,tradeDir,day,week,month);
+   switch (myPeriod)
 
-      Print("calling url : ",url);
+   {
 
-     string ret = createRequest(url);
+   case PERIOD_M1:
 
-     
+      hoursAdded = i / 60;
 
-     int action = StrToInteger(ret);
+      break;
 
-     return action;
+   case PERIOD_M5:
 
-      
+      hoursAdded = i / 12;
 
-  }
+      break;
 
-  
+   case PERIOD_M15:
 
-  
+      hoursAdded = i / 4;
 
-  string createRequest(string url)
+      break;
+   }
 
-  {
+   double day = iClose(Symbol(), PERIOD_H1, (1 * 24) + hoursAdded);
 
-      string cookie=NULL,headers;
+   double week = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5) + hoursAdded);
 
-   char post[],result[];
+   double month = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5 * 4) + hoursAdded);
+
+   if (!history)
+
+   {
+
+      ask = Ask;
+
+      bid = Bid;
+   }
+
+   string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&day=%f&week=%f&month=%f", open, close, high, low, ask, bid, tradeDir, day, week, month);
+
+   Print("calling url : ", url);
+
+   string ret = createRequest(url);
+
+   int action = StrToInteger(ret);
+
+   return action;
+}
+
+string createRequest(string url)
+
+{
+
+   string cookie = NULL, headers;
+
+   char post[], result[];
 
    int res;
 
-
-
-
-
    ResetLastError();
 
+   int timeout = 0; //--- Timeout below 1000 (1 sec.) is not enough for slow Internet connection
 
+   res = WebRequest("GET", url, cookie, NULL, timeout, post, 0, result, headers);
 
-   int timeout=0; //--- Timeout below 1000 (1 sec.) is not enough for slow Internet connection
+   //--- Checking errors
 
-   res=WebRequest("GET",url,cookie,NULL,timeout,post,0,result,headers);
+   if (res == -1)
 
-//--- Checking errors
+   {
 
-   if(res==-1)
-
-     {
-
-      Print("Error in WebRequest. Error code  =",GetLastError());
+      Print("Error in WebRequest. Error code  =", GetLastError());
 
       //--- Perhaps the URL is not listed, display a message about the necessity to add the address
 
-      //MessageBox("Add the address '"+url+"' in the list of allowed URLs on tab 'Expert Advisors'","Error",MB_ICONINFORMATION);
+      // MessageBox("Add the address '"+url+"' in the list of allowed URLs on tab 'Expert Advisors'","Error",MB_ICONINFORMATION);
 
-      //ExpertRemove();
+      // ExpertRemove();
 
-      //MessageBox("can't find server 127.0.0.1:80");
-
-      
+      // MessageBox("can't find server 127.0.0.1:80");
 
       return "";
-
-     }
+   }
 
    else
 
-     {
+   {
 
-          //--- Load successfully
+      //--- Load successfully
 
-         //PrintFormat("The file has been successfully loaded, File size =%d bytes.",ArraySize(result));
+      // PrintFormat("The file has been successfully loaded, File size =%d bytes.",ArraySize(result));
 
-         string ret = "";
+      string ret = "";
 
-         ret = CharArrayToString(result);
+      ret = CharArrayToString(result);
 
-         if (StringFind(ret,"12") >= 0)
+      if (StringFind(ret, "12") >= 0)
 
-         {
+      {
 
-            ret = StringSubstr(ret,1,2);
+         ret = StringSubstr(ret, 1, 2);
+      }
 
-         }
+      else
 
-         else
+      {
 
-         {
+         ret = StringSubstr(ret, 1, 1);
+      }
 
-         
-
-            ret = StringSubstr(ret,1,1);
-
-         }
-
-         
-
-         return ret;
-
-     }
-
-  }
-
-  
-
-
+      return ret;
+   }
+}
 
 void handleAction(int action)
 
 {
 
-      double modeMinLot = MarketInfo(Symbol(), MODE_MINLOT) ;
+   double modeMinLot = MarketInfo(Symbol(), MODE_MINLOT);
 
-      double lots = modeMinLot;
+   double lots = modeMinLot;
 
-      double balance = AccountBalance();
+   double balance = AccountBalance();
 
-      
+   long factor = (long)(balance / 100.0);
 
-      
+   long twoMultiply = 1;
 
-      
+   while (twoMultiply <= factor)
 
-      
+   {
 
-      
+      twoMultiply *= 2;
+   }
 
-      long factor = (long)(balance / 100.0);
+   twoMultiply /= 2;
 
-      long twoMultiply = 1;
+   factor = twoMultiply;
 
-      while (twoMultiply <= factor)
+   if (factor < 1)
 
-      {
+   {
 
-         twoMultiply *= 2;
+      factor = 1;
+   }
 
-      }
+   lots = lots * factor;
 
-      twoMultiply /= 2;
+   if (action == 1)
 
-      
+   {
 
-      factor = twoMultiply;
+      // open buy
 
-      
+      openUp(lots);
 
-      
+      closeDown();
+   }
 
-      if (factor < 1)
+   else if (action == 2)
 
-      {
+   {
 
-         factor = 1;
+      // open down
 
-      }
+      openDown(lots);
 
-      
+      closeUp();
+   }
 
-      
+   else if (action == 12)
 
-      lots = lots * factor;
+   {
 
-         
+      Print("reset env");
 
-      if (action == 1)
+      closeUp();
 
-      {
-
-         //open buy
-
-         openUp(lots);
-
-         closeDown();
-
-      }
-
-      else if (action == 2)
-
-      {
-
-         //open down
-
-         openDown(lots);
-
-         closeUp();
-
-      }
-
-      else if (action == 12)
-
-      {
-
-         Print("reset env");
-
-         closeUp();
-
-         closeDown();
-
-      }
-
+      closeDown();
+   }
 }
-
-
 
 //+------------------------------------------------------------------+
 
@@ -540,27 +412,25 @@ void handleAction(int action)
 
 int OnInit()
 
-  {
+{
 
-//---
+   //---
 
-   for (int i = 99;i>= 1;i--)
+   for (int i = 99; i >= 1; i--)
 
    {
 
-      int action = OpenRequestGetAction(i,true);
+      int action = OpenRequestGetAction(i, true);
 
-      Print("action taken : ",action);
+      Print("action taken : ", action);
 
       handleAction(action);
-
    }
 
-//---
+   //---
 
-   return(INIT_SUCCEEDED);
-
-  }
+   return (INIT_SUCCEEDED);
+}
 
 //+------------------------------------------------------------------+
 
@@ -570,13 +440,10 @@ int OnInit()
 
 void OnDeinit(const int reason)
 
-  {
+{
 
-//---
-
-   
-
-  }
+   //---
+}
 
 //+------------------------------------------------------------------+
 
@@ -584,45 +451,30 @@ void OnDeinit(const int reason)
 
 //+------------------------------------------------------------------+
 
-
-
 datetime D1;
 
 void OnTick()
 
-  {
+{
 
-//---
+   //---
 
-    if(D1!=iTime(Symbol(),myPeriod,0)) // new candle on D1
+   if (D1 != iTime(Symbol(), myPeriod, 0)) // new candle on D1
 
-     {
+   {
 
-            D1=iTime(Symbol(),myPeriod,0);    // overwrite old with new value
+      D1 = iTime(Symbol(), myPeriod, 0); // overwrite old with new value
 
-            //new candle
+      // new candle
 
-            
+      int action = OpenRequestGetAction(1, false);
 
-           int action =  OpenRequestGetAction(1,false);
+      Print("action taken : ", action);
 
-           Print("action taken : ",action);
+      handleAction(action);
 
-           handleAction(action);
-
-            
-
-            
-
-            
-
-         //Do Something...
-
-
-
-     }
-
-  }
+      // Do Something...
+   }
+}
 
 //+------------------------------------------------------------------+
-
