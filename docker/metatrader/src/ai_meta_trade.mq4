@@ -22,7 +22,7 @@
 
 
 
-int myPeriod = PERIOD_M1;
+int myPeriod = PERIOD_M15;
 
 int tradeDir = 0;
 
