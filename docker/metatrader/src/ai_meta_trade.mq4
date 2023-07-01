@@ -280,7 +280,7 @@ void openUp(double lots)
 
       double bid = close;
 
-      tradeDir = 0;
+      
 
       int hoursAdded = 0;
 
