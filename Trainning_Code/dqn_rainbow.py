@@ -341,7 +341,7 @@ if __name__ == "__main__":
                 if frame_idx % 100000 == 0:
                     
                     testIdx = 0
-                    while testIdx < 100:
+                    while testIdx < 213:
                         testState = envTest.reset()
                         testState = np.array(testState,dtype=np.float32)
                         testIdx+=1
@@ -381,7 +381,7 @@ if __name__ == "__main__":
 
                     
                     valIndx = 0
-                    while valIndx < 100:
+                    while valIndx < 213:
                         valState = envVal.reset()
                     
                         valState = np.array(valState,dtype=np.float32)
