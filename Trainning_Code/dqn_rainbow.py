@@ -289,7 +289,7 @@ if __name__ == "__main__":
                     if reward_tracker.reward(new_rewards[0], frame_idx,epsilonTracker.epsilon_greedy_selector.epsilon):
                         torch.save(net.state_dict(), modelCurrentPath)
                         break
-                    if len(reward_tracker.total_rewards) >= 100 and reward_tracker.last_mean > mean_reward:
+                    if len(reward_tracker.total_rewards) >= 213 and reward_tracker.last_mean > mean_reward:
                         print('better mean reward  old %.5f new %.5f'%(mean_reward,reward_tracker.last_mean))
                         mean_reward = reward_tracker.last_mean
                         currentFilePath = '%s_%d_%.5f.dat'%(modelCurrentPath,frame_idx,mean_reward)
