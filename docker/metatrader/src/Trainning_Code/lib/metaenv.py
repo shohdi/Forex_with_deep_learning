@@ -179,7 +179,7 @@ class ForexMetaEnv(gym.Env):
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(200.0 * 1)
         
-        #state =  np.reshape( state,(-1,))
+        state =  np.reshape( state,(-1,))
         return state
 
     def openUpTrade(self,myState):
