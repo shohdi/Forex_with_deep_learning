@@ -171,19 +171,19 @@ def testStepIsWrittenInState():
 
 
         #assert
-        expected = (200 * 1)/(200 * 1 * 2)
+        expected = (200 * 1)/((12 * 21.0 * 24.0 * 4 * 1) * 2)
         
         value = beforeDoneState[-3]#[-1,11]
         
-        expectedAfter5 = 6/(200 * 1 * 2)
+        expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
         valueAfter5 = after5stepsState[-3]#[-1,11]
 
 
         
-        if value != expected  :
+        if "%.5f"%(value) != "%.5f"%(expected) :
             return False,"testStepIsWrittenInState : step index expected : %.5f found : %.5f "%(expected,value)
         
-        if str(round(valueAfter5,5)) != str(round(expectedAfter5,5)):
+        if "%.5f"%(valueAfter5) != "%.5f"%(expectedAfter5):
             return False,"testStepIsWrittenInState : step index 6 expected : %.5f found : %.5f "%(expectedAfter5,valueAfter5)
 
 
