@@ -29,6 +29,7 @@ class ForexEnv(gym.Env):
         self.openTradeBid = None
         self.startIndex = None
         self.stepIndex = 0
+        self.stopLoss = None
         
         with open(self.filePath, 'r') as f:
             reader = csv.reader(f, delimiter=';')
@@ -67,14 +68,49 @@ class ForexEnv(gym.Env):
         self.startBid = self.data[self.startIndex+ self.stepIndex,self.header.index("bid")]
         self.openTradeAsk = None
         self.openTradeBid = None
+        self.stopLoss = None
         return self.getState()
-
+    
+    def calculateStopLoss(self,price,direction):
+        forex_name = "EURUSD"
+        price_to_usd = 1.0
+        if(price < 0):
+            forex_name = "USDEUR"
+            price_to_usd = price
+        amount_to_loss = 10.0
+        lot_size = 100000
+        volume = 0.01
+        entry_point = price
+        price_in_usd = entry_point * price_to_usd
+        volume_lot = volume * lot_size
+        volume_lot_price = volume_lot * price_in_usd
+        loss_amount = (amount_to_loss * price_in_usd)/volume_lot_price
+        loss_amount = loss_amount/price_to_usd
+        #print(win_amount)
+        #print(loss_amount)
+        #buy
+        stoploss = entry_point - loss_amount
+        
+        if direction == 2:
+            #sell
+            stoploss = entry_point + loss_amount
+            
+        
+        return stoploss
 
     def step(self,action_idx):
         #check punish
+        '''
         if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
             action_idx = 2
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
+            action_idx = 1
+        '''
+
+        raw_state = self.getRawState()
+        if self.openTradeDir == 1 and raw_state[-1,3] <= self.stopLoss and self.stopTrade:
+            action_idx = 2
+        elif self.openTradeDir == 2 and raw_state[-1,2] >= self.stopLoss and self.stopTrade:
             action_idx = 1
 
         #end of punish action
@@ -124,9 +160,12 @@ class ForexEnv(gym.Env):
                 done = True
         return state , reward , done ,None
 
-        
-    def getState(self):
+    def getRawState(self):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
+        return state
+
+    def getState(self):
+        state = self.getRawState()
        
 
         actions = np.zeros((100,5),dtype=np.float32)
@@ -159,6 +198,7 @@ class ForexEnv(gym.Env):
         self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
         self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
+        self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
 
     def openDownTrade(self):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
@@ -167,7 +207,7 @@ class ForexEnv(gym.Env):
         self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
         self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
-
+        self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
 
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:

@@ -31,7 +31,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stepIndex = 0
-   
+        self.stopLoss = None
         
         
         
@@ -103,21 +103,58 @@ class ForexMetaEnv(gym.Env):
         self.startBid = myState[0,self.header.index("bid")]
         self.openTradeAsk = None
         self.openTradeBid = None
-
+        self.stopLoss = None
         return self.getState(myState)
 
-
+    def calculateStopLoss(self,price,direction):
+        forex_name = "EURUSD"
+        price_to_usd = 1.0
+        if(price < 0):
+            forex_name = "USDEUR"
+            price_to_usd = price
+        amount_to_loss = 10.0
+        lot_size = 100000
+        volume = 0.01
+        entry_point = price
+        price_in_usd = entry_point * price_to_usd
+        volume_lot = volume * lot_size
+        volume_lot_price = volume_lot * price_in_usd
+        loss_amount = (amount_to_loss * price_in_usd)/volume_lot_price
+        loss_amount = loss_amount/price_to_usd
+        #print(win_amount)
+        #print(loss_amount)
+        #buy
+        stoploss = entry_point - loss_amount
+        
+        if direction == 2:
+            #sell
+            stoploss = entry_point + loss_amount
+            
+        
+        return stoploss
+    
     def step(self,action_idx):
         self.wait100()
         #check punish
+        '''
         if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
             action_idx = 2
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
             action_idx = 1
+        '''
+        raw_state = np.array(self.states,dtype=np.float32,copy=True)
+        if self.openTradeDir == 1 and raw_state[-1,3] <= self.stopLoss and self.stopTrade:
+            action_idx = 2
+        elif self.openTradeDir == 2 and raw_state[-1,2] >= self.stopLoss and self.stopTrade:
+            action_idx = 1
+
+        
+        
         beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         self.waitForTakeAction(action_idx)
         
         myState = self.waitForNewState()
+
         reward = 0
         done = False
         if action_idx == 0:
@@ -189,6 +226,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
+        self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
         print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
 
     def openDownTrade(self,myState):
@@ -198,6 +236,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
+        self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
         print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
 
