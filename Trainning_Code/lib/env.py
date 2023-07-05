@@ -119,7 +119,7 @@ class ForexEnv(gym.Env):
         
         
         if self.startTradeStep is None:
-            if self.stepIndex > (200 * 1) and self.punishAgent:
+            if self.stepIndex > (21.0 * 24.0 * 4 * 1) and self.punishAgent:
                 reward = -0.02
                 done = True
         return state , reward , done ,None
