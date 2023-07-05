@@ -31,8 +31,8 @@ conda install -c anaconda requests
 pip install opencv-python
 
 #to build docker
-docker build . -t shohdi2/metatrader:1.2.3
+docker build . -t shohdi2/metatrader:1.2.4
 #to run docker
-docker run -d -p 80:80 -t shohdi2/metatrader:1.2.3
+docker run -d -p 80:80 -t shohdi2/metatrader:1.2.4
 #to push
-docker push shohdi2/metatrader:1.2.3 
+docker push shohdi2/metatrader:1.2.4 
