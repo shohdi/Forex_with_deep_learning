@@ -101,11 +101,13 @@ def test200StepsReturnMinus0Point01():
 
 
 def calculateStopLoss(price,direction):
+    loss_amount = 0.0085 * price
+    '''
     forex_name = "EURUSD"
     price_to_usd = 1.0
-    if(price < 0):
+    if(price < 1.0):
         forex_name = "USDEUR"
-        price_to_usd = price
+        price_to_usd = 1.0/price
     amount_to_loss = 10.0
     lot_size = 100000
     volume = 0.01
@@ -118,6 +120,8 @@ def calculateStopLoss(price,direction):
     #print(win_amount)
     #print(loss_amount)
     #buy
+    '''
+    entry_point = price
     stoploss = entry_point - loss_amount
     
     if direction == 2:
@@ -144,6 +148,7 @@ def testStopLossWillStopTradeAndReturnNegativeValidReward():
             state = denormalizeState(state,env.startClose)
             if (done == True and state[-11] > stopLoss):#[-1,3]
                 return False,"testStopLossWillStopTradeAndReturnNegativeValidReward :   done expected %s found %s "%(False,done)
+        
         state,_,done,_ = env.step(0)
         state = denormalizeState(state,env.startClose)
         expectedDone = True
