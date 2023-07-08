@@ -104,44 +104,70 @@ def test200StepsReturnMinus0Point01():
     except Exception as ex:
         return False,"test200StepsReturnMinus0Point01 : %s"%(str(ex))
 
+def denormalizeState(state,startClose):
+    state = state + 1
+    state = state * startClose
+    return state
 
-def test200StepsAfterTradeIsOkAndReturnRealReward():
+def calculateStopLoss(price,direction):
+    loss_amount = 0.0085 * price
+    '''
+    forex_name = "EURUSD"
+    price_to_usd = 1.0
+    if(price < 1.0):
+        forex_name = "USDEUR"
+        price_to_usd = 1.0/price
+    amount_to_loss = 10.0
+    lot_size = 100000
+    volume = 0.01
+    entry_point = price
+    price_in_usd = entry_point * price_to_usd
+    volume_lot = volume * lot_size
+    volume_lot_price = volume_lot * price_in_usd
+    loss_amount = (amount_to_loss * price_in_usd)/volume_lot_price
+    loss_amount = loss_amount/price_to_usd
+    #print(win_amount)
+    #print(loss_amount)
+    #buy
+    '''
+    entry_point = price
+    stoploss = entry_point - loss_amount
+    
+    if direction == 2:
+        #sell
+        stoploss = entry_point + loss_amount
+        
+    
+    return stoploss
+
+def testStopLossWillStopTradeAndReturnNegativeValidReward():
     try:
         #assign
         #global
-        env.reset()
+        state = env.reset()
+        state = denormalizeState(state,env.startClose)
         
         
-        #action
-        i  =0
-        done = False
-        env.step(1)
-        beforeDoneState = None
-        while i< (((21.0 * 24.0 * 4)+2)*1) and not done:
-            state,reward,done,_ = env.step(0)
-            if not done:
-                beforeDoneState = state
-            
-
-
-            i+=1
-
-
-        #assert
-        expected = ((200 * 1)+1)
+        state,_,done,_ = env.step(1)
+        stopLoss = calculateStopLoss(env.openTradeAsk,1)#[-1,1])
+        state = denormalizeState(state,env.startClose)
+        while state[-11] > stopLoss :#[-1,3]
+            state,_,done,_ = env.step(0)
+            state = denormalizeState(state,env.startClose)
+            if (done == True and state[-11] > stopLoss):#[-1,3]
+                return False,"testStopLossWillStopTradeAndReturnNegativeValidReward :   done expected %s found %s "%(False,done)
+        state,_,done,_ = env.step(0)
+        state = denormalizeState(state,env.startClose)
         expectedDone = True
-        bid = beforeDoneState[-9]#[-1,5]
-        openTradeAsk = beforeDoneState[-5]#[-1,9]
-        expectedReward = str(round( bid-openTradeAsk,5))
-        reward = str(round(reward,5))
+        if expectedDone != done:
+            return False,"testStopLossWillStopTradeAndReturnNegativeValidReward :   done expected %s found %s "%(expectedDone,done)
+
 
         
-        if i != expected or done != expectedDone or reward != expectedReward:
-            return False,"test200StepsAfterTradeIsOkAndReturnRealReward : i expected : %.5f found : %.5f , done expected %s found %s , reward expected %s , found %s"%(expected,i,expectedDone,done,expectedReward,reward)
-        else:
-            return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
+        
+        return True,"testStopLossWillStopTradeAndReturnNegativeValidReward : Success"
     except Exception as ex:
-        return False,"test200StepsAfterTradeIsOkAndReturnRealReward : %s"%(str(ex))
+        return False,"testStopLossWillStopTradeAndReturnNegativeValidReward : %s"%(str(ex))
 
 
 
@@ -214,7 +240,7 @@ def runTests():
         ret,msg = test200StepsReturnMinus0Point01()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
+        ret,msg = testStopLossWillStopTradeAndReturnNegativeValidReward()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testStepIsWrittenInState()
