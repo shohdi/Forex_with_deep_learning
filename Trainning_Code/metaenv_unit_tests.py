@@ -128,7 +128,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
 
 
         #assert
-        expected = (((21.0 * 24.0 * 4) * 1)+1)
+        expected = ((200 * 1)+1)
         expectedDone = True
         bid = beforeDoneState[-9]#[-1,5]
         openTradeAsk = beforeDoneState[-5]#[-1,9]
