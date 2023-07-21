@@ -43,8 +43,8 @@ def testNormalizeIsOk():
         #assert
         lastOpen =state[-1,0]#[-14]
         lastOpenReal = env.states[-1][0]
-        expected = (lastOpenReal/startClose)-1
-        if lastOpen != expected:
+        expected = (lastOpenReal/(startClose*2))
+        if "%.5f"%lastOpen != "%.5f"%expected:
             return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)
         else:
             return True,"testNormalizeIsOk : Success"
@@ -132,7 +132,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         expectedDone = True
         bid = beforeDoneState[-1,5]#[-9]
         openTradeAsk = beforeDoneState[-1,9]#[-5]
-        expectedReward = str(round( bid-openTradeAsk,5))
+        expectedReward = str(round( (bid*2)-(openTradeAsk*2),5))
         reward = str(round(reward,5))
 
         
