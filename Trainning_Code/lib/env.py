@@ -186,7 +186,7 @@ class ForexEnv(gym.Env):
         
         state = np.concatenate((state,actions),axis=1)
         state = (state/(self.startClose*2))
-        state[:,-1] = -0.987654321
+        state[:,-1] = 0
         state[:,-3] = self.stepIndex/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         if self.startTradeStep is not None :
             
