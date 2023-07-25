@@ -105,9 +105,9 @@ class ForexEnv(gym.Env):
     def step(self,action_idx):
         #check punish
         
-        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 2
-        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 1
         '''
 
@@ -159,7 +159,7 @@ class ForexEnv(gym.Env):
         
         
         if self.startTradeStep is None:
-            if self.stepIndex > (21.0 * 24.0 * 4 * 1) and self.punishAgent:
+            if self.stepIndex > (100 * 1) and self.punishAgent:
                 reward = -0.02
                 done = True
         return state , reward , done ,None

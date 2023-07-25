@@ -87,13 +87,13 @@ def test200StepsReturnMinus0Point01():
         i  =0
         done = False
 
-        while i< (((21.0 * 24.0 * 4)+2) * 1) and not done:
+        while i< (((100)+2) * 1) and not done:
             state,reward,done,_ = env.step(0)
             i+=1
 
 
         #assert
-        expected = (((21.0 * 24.0 * 4) * 1)+1)
+        expected = (((100) * 1)+1)
         expectedDone = True
         expectedReward = -0.02
         
@@ -117,7 +117,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         done = False
         env.step(1)
         beforeDoneState = None
-        while i< (((21.0 * 24.0 * 4)+2)*1) and not done:
+        while i< (((100)+2)*1) and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
@@ -128,7 +128,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
 
 
         #assert
-        expected = ((200 * 1)+1)
+        expected = ((100 * 1)+1)
         expectedDone = True
         bid = beforeDoneState[-1,5]#[-9]
         openTradeAsk = beforeDoneState[-1,9]#[-5]
@@ -158,7 +158,7 @@ def testStepIsWrittenInState():
         
         beforeDoneState = None
         after5stepsState = None
-        while i< (((21.0 * 24.0 * 4)+2)*1) and not done:
+        while i< (((100)+2)*1) and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
@@ -171,7 +171,7 @@ def testStepIsWrittenInState():
 
 
         #assert
-        expected = ((21.0 * 24.0 * 4) * 1)/((12 * 21.0 * 24.0 * 4 * 1) * 2)
+        expected = ((100) * 1)/((12 * 21.0 * 24.0 * 4 * 1) * 2)
         
         value = beforeDoneState[-1,11]#[-3]
         
