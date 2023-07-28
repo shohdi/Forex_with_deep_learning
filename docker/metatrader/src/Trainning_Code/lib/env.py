@@ -104,10 +104,10 @@ class ForexEnv(gym.Env):
 
     def step(self,action_idx):
         #check punish
-        '''
-        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
+        
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 2
-        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (200 * 1) and self.stopTrade:
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 1
         '''
 
@@ -116,7 +116,7 @@ class ForexEnv(gym.Env):
             action_idx = 2
         elif self.openTradeDir == 2 and raw_state[-1,2] >= self.stopLoss and self.stopTrade:
             action_idx = 1
-
+        '''
         #end of punish action
 
         reward = 0
@@ -159,7 +159,7 @@ class ForexEnv(gym.Env):
         
         
         if self.startTradeStep is None:
-            if self.stepIndex > (21.0 * 24.0 * 4 * 1) and self.punishAgent:
+            if self.stepIndex > (100 * 1) and self.punishAgent:
                 reward = -0.02
                 done = True
         return state , reward , done ,None
@@ -185,14 +185,14 @@ class ForexEnv(gym.Env):
         
         
         state = np.concatenate((state,actions),axis=1)
-        state = (state/self.startClose) - 1.0
-        state[:,-1] = -0.987654321
+        state = (state/(self.startClose*2))
+        state[:,-1] = 0
         state[:,-3] = self.stepIndex/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         if self.startTradeStep is not None :
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
 
-        state =  np.reshape( state,(-1,))
+        #state =  np.reshape( state,(-1,))
         return state
 
     def openUpTrade(self):

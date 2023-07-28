@@ -103,11 +103,11 @@ class LSTM_Forex (nn.Module):
         self.input_shape = input_shape
         self.actions = actions
         self.selected_device = selDevice
-        #self.inSize = self.input_shape[1]
-        self.hiddenSize = 200
-        self.numLayers = 2
+        self.inSize = self.input_shape[1]
+        self.hiddenSize = 400
+        self.numLayers = 1
         self.outSize = 512
-        #self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
+        self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
         """ self.size = np.prod(self.input_shape)
         self.network = nn.Sequential(
             nn.Linear(self.size, self.hiddenSize),
@@ -116,9 +116,10 @@ class LSTM_Forex (nn.Module):
             nn.ReLU()
         ) """
         
-        self.lin = nn.Sequential(nn.Linear(self.input_shape[0],self.input_shape[0],True)
-                                 ,nn.ReLU())
+        #self.lin = nn.Sequential(nn.Linear(self.input_shape[0],self.input_shape[0],True)
+        #                         ,nn.ReLU())
         
+        '''
         self.fc_val = nn.Sequential(
             dqn_model.NoisyLinear(self.input_shape[0], 512),
             nn.ReLU(),
@@ -132,6 +133,8 @@ class LSTM_Forex (nn.Module):
         )
 
         '''
+        self.lin = nn.Sequential(nn.Linear(self.hiddenSize,self.hiddenSize)
+                                 ,nn.ReLU())
         self.fc_val = nn.Sequential(
             dqn_model.NoisyLinear(self.hiddenSize, 512),
             nn.ReLU(),
@@ -143,25 +146,26 @@ class LSTM_Forex (nn.Module):
             nn.ReLU(),
             dqn_model.NoisyLinear(512, self.actions * N_ATOMS)
         )
-        '''
+        
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z-(DELTA_Z/1000.0), DELTA_Z))
         self.softmax = nn.Softmax(dim=1)
     
     def forward(self,x):
         batch_size = x.size()[0]
-        #h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
-        #c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
-        #out,(hn,cn) = self.lstm(x,(h0,c0))
+        h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
+        c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
+        out,(hn,cn) = self.lstm(x,(h0,c0))
+        out = self.lin(out[:,-1,:])
         #out = x.view(batch_size,-1)
         #out = self.network(out)
-        firstLayerOut = self.lin(x)
-        val_out = self.fc_val(firstLayerOut).view(batch_size, 1, N_ATOMS)
-        adv_out = self.fc_adv(firstLayerOut).view(batch_size, -1, N_ATOMS)
+        #firstLayerOut = self.lin(x)
+        #val_out = self.fc_val(firstLayerOut).view(batch_size, 1, N_ATOMS)
+        #adv_out = self.fc_adv(firstLayerOut).view(batch_size, -1, N_ATOMS)
         #val_out = self.fc_val(out).view(batch_size, 1, N_ATOMS)
         #adv_out = self.fc_adv(out).view(batch_size, -1, N_ATOMS)
-        #val_out = self.fc_val(out[:,-1,:]).view(batch_size, 1, N_ATOMS)
-        #adv_out = self.fc_adv(out[:,-1,:]).view(batch_size, -1, N_ATOMS)
+        val_out = self.fc_val(out).view(batch_size, 1, N_ATOMS)
+        adv_out = self.fc_adv(out).view(batch_size, -1, N_ATOMS)
         adv_mean = adv_out.mean(dim=1, keepdim=True)
         return val_out + (adv_out - adv_mean)
     
@@ -189,7 +193,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     states_v = torch.tensor(states).to(device)
     actions_v = torch.tensor(actions).to(device)
     next_states_v = torch.tensor(next_states).to(device)
-    batch_weights_v = torch.tensor(batch_weights).to(device)
+    #batch_weights_v = torch.tensor(batch_weights).to(device)
 
     # next state distribution
     # dueling arch -- actions from main net, distr from tgt_net
@@ -216,17 +220,18 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     proj_distr_v = torch.tensor(proj_distr).to(device)
 
     loss_v = -state_log_sm_v * proj_distr_v
-    loss_v = batch_weights_v * loss_v.sum(dim=1)
+    #loss_v = batch_weights_v * loss_v.sum(dim=1)
+    loss_v =  loss_v.sum(dim=1)
     return loss_v.mean(), loss_v + 1e-5
 
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     startTime = time.time()
-    testRewards = collections.deque(maxlen=213)
+    testRewards = []#collections.deque(maxlen=213)
     
     testRewardsMean = 0
-    valRewards = collections.deque(maxlen=213)
+    valRewards = []#collections.deque(maxlen=213)
     valRewardsMean = 0
     params = common.HYPERPARAMS['Forex']
     params['epsilon_frames'] *= 2
@@ -267,7 +272,7 @@ if __name__ == "__main__":
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), epsilonTracker.epsilon_greedy_selector , device=device)
     
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
-    buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
+    buffer = ptan.experience.ExperienceReplayBuffer(exp_source, params['replay_size'])#, PRIO_REPLAY_ALPHA)
     optimizer = optim.Adam(net.parameters(), lr=params['learning_rate'])
 
     frame_idx = int(args.frame)
@@ -311,12 +316,14 @@ if __name__ == "__main__":
                 #if isCuda:
                 #    time.sleep((1/20))
                 optimizer.zero_grad()
-                batch, batch_indices, batch_weights = buffer.sample(params['batch_size'], beta)
+                ''', batch_indices, batch_weights'''
+                batch_weights=[]
+                batch = buffer.sample(params['batch_size'])#, beta)
                 loss_v, sample_prios_v = calc_loss(batch, batch_weights, net, tgt_net.target_model,
                                                 params['gamma'] ** REWARD_STEPS, device=device)
                 loss_v.backward()
                 optimizer.step()
-                buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
+                #buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
                 
                 currentTime = time.time()
@@ -341,6 +348,7 @@ if __name__ == "__main__":
                 if frame_idx % 100000 == 0:
                     
                     testIdx = 0
+                    testRewards=[]
                     while testIdx < 213:
                         testState = envTest.reset()
                         testState = np.array(testState,dtype=np.float32)
@@ -381,6 +389,7 @@ if __name__ == "__main__":
 
                     
                     valIndx = 0
+                    valRewards=[]
                     while valIndx < 213:
                         valState = envVal.reset()
                     
