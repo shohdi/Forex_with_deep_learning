@@ -105,7 +105,7 @@ class LSTM_Forex (nn.Module):
         self.selected_device = selDevice
         self.inSize = self.input_shape[1]
         self.hiddenSize = 400
-        self.numLayers = 1
+        self.numLayers = 2
         self.outSize = 512
         self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
         """ self.size = np.prod(self.input_shape)
@@ -193,7 +193,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     states_v = torch.tensor(states).to(device)
     actions_v = torch.tensor(actions).to(device)
     next_states_v = torch.tensor(next_states).to(device)
-    #batch_weights_v = torch.tensor(batch_weights).to(device)
+    batch_weights_v = torch.tensor(batch_weights).to(device)
 
     # next state distribution
     # dueling arch -- actions from main net, distr from tgt_net
@@ -220,8 +220,8 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     proj_distr_v = torch.tensor(proj_distr).to(device)
 
     loss_v = -state_log_sm_v * proj_distr_v
-    #loss_v = batch_weights_v * loss_v.sum(dim=1)
-    loss_v =  loss_v.sum(dim=1)
+    loss_v = batch_weights_v * loss_v.sum(dim=1)
+    #loss_v =  loss_v.sum(dim=1)
     return loss_v.mean(), loss_v + 1e-5
 
 
@@ -272,7 +272,8 @@ if __name__ == "__main__":
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), epsilonTracker.epsilon_greedy_selector , device=device)
     
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
-    buffer = ptan.experience.ExperienceReplayBuffer(exp_source, params['replay_size'])#, PRIO_REPLAY_ALPHA)
+    buffer = ptan.experience.PrioritizedReplayBuffer (exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
+    #buffer = ptan.experience.ExperienceReplayBuffer(exp_source, params['replay_size'])#, PRIO_REPLAY_ALPHA)
     optimizer = optim.Adam(net.parameters(), lr=params['learning_rate'])
 
     frame_idx = int(args.frame)
@@ -316,14 +317,16 @@ if __name__ == "__main__":
                 #if isCuda:
                 #    time.sleep((1/20))
                 optimizer.zero_grad()
-                ''', batch_indices, batch_weights'''
-                batch_weights=[]
-                batch = buffer.sample(params['batch_size'])#, beta)
+                
+                
+                batch,batch_indices, batch_weights = buffer.sample(params['batch_size'], beta)
+                #batch_weights=[]
+                #batch = buffer.sample(params['batch_size'])#, beta)
                 loss_v, sample_prios_v = calc_loss(batch, batch_weights, net, tgt_net.target_model,
                                                 params['gamma'] ** REWARD_STEPS, device=device)
                 loss_v.backward()
                 optimizer.step()
-                #buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
+                buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
                 
                 currentTime = time.time()
