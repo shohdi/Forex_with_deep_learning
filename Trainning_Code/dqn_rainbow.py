@@ -304,6 +304,18 @@ if __name__ == "__main__":
 
                 if isCuda:
                     torch.cuda.empty_cache()
+
+                
+                currentTime = time.time()
+                if (currentTime-startTime) > (5*60):
+                    
+                    print('sleeping 5 minutes on ' + str(datetime.now()))
+                    sys.stdout.flush()
+                    #if isCuda:
+                    time.sleep(5*60)
+                    print('resuming on ' + str(datetime.now()))
+                    sys.stdout.flush()
+                    startTime = time.time()
                     
                 if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:
                     #if isCuda:
@@ -329,15 +341,7 @@ if __name__ == "__main__":
                 buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
                 
-                currentTime = time.time()
-                if (currentTime-startTime) > 3600:
-                    startTime = time.time()
-                    print('sleeping 1 minutes on ' + str(datetime.now()))
-                    sys.stdout.flush()
-                    if isCuda:
-                        time.sleep(1*60)
-                    print('resuming on ' + str(datetime.now()))
-                    sys.stdout.flush()
+                
                 
                 if frame_idx % params['target_net_sync'] == 0:
                     tgt_net.sync()
