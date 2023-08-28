@@ -125,6 +125,17 @@ class ForexEnv(gym.Env):
         '''
         #end of punish action
 
+        #punish no action
+        if self.startTradeStep is None:
+            if self.stepIndex >= (100 * 10) and self.punishAgent:
+                close = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
+                close = close/(self.startClose*2.0)
+                if close > 0.5:
+                    action_idx = 2
+                else:
+                    action_idx = 1
+        #end of punish no action
+
         reward = 0
         done = False
         if action_idx == 0:
@@ -173,10 +184,6 @@ class ForexEnv(gym.Env):
         state = self.getState()
         
         
-        if self.startTradeStep is None:
-            if self.stepIndex > (100 * 1) and self.punishAgent:
-                reward = -0.02
-                done = True
         return state , reward , done ,None
 
     def getRawState(self):

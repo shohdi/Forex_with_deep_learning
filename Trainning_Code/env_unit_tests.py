@@ -82,18 +82,20 @@ def test200StepsReturnMinus0Point01():
         i  =0
         done = False
 
-        while i< (((100)+2) * 1) and not done:
+        while i< ((100 * 10)+1) and not done:
             state,reward,done,_ = env.step(0)
             i+=1
 
-
-        #assert
-        expected = (((100) * 1)+1)
-        expectedDone = True
-        expectedReward = -0.02
+        expected = 1
+        if(state[-1,1] > 0.5):
+            expected = 2
         
-        if i != expected or done != expectedDone or reward != expectedReward:
-            return False,"test200StepsReturnMinus0Point01 : i expected : %.5f found : %.5f , done expected %s found %s , reward expected %.5f , found %.5f"%(expected,i,expectedDone,done,expectedReward,reward)
+        found = env.openTradeDir
+        #assert
+        
+        
+        if  expected != found:
+            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f"%(expected,found)
         else:
             return True,"test200StepsReturnMinus0Point01 : Success"
     except Exception as ex:
@@ -183,7 +185,7 @@ def testStepIsWrittenInState():
         
         beforeDoneState = None
         after5stepsState = None
-        while i< (((100)+2)*1) and not done:
+        while i< (((100))*10) and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
@@ -196,7 +198,7 @@ def testStepIsWrittenInState():
 
 
         #assert
-        expected = ((100) * 1)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
+        expected = ((100) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
         value = beforeDoneState[-1,11]#[-3]
         
