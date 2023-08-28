@@ -132,7 +132,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         expectedDone = True
         bid = beforeDoneState[-1,5]#[-9]
         openTradeAsk = beforeDoneState[-1,9]#[-5]
-        expectedReward = str(round( (bid*2)-(openTradeAsk*2),5))
+        expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,5))
         reward = str(round(reward,5))
 
         

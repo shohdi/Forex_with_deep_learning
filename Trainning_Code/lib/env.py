@@ -217,13 +217,13 @@ class ForexEnv(gym.Env):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
         currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
-        return ((currentBid - self.openTradeAsk)/self.startClose)
+        return ((currentBid - self.openTradeAsk)/self.startClose)/2.0
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        return ((self.openTradeBid - currentAsk)/self.startClose)
+        return ((self.openTradeBid - currentAsk)/self.startClose)/2.0
 
     def analysisUpTrade(self):
         startStep = self.startIndex + self.stepIndex

@@ -249,14 +249,14 @@ class ForexMetaEnv(gym.Env):
             return
         currentBid = myState[-1,self.header.index("bid")]
         print('closing up trade start close : ',self.startClose,' close price ',currentBid)
-        return ((currentBid - self.openTradeAsk)/self.startClose)
+        return ((currentBid - self.openTradeAsk)/self.startClose)/2.0
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = myState[-1,self.header.index("ask")]
         print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
-        return ((self.openTradeBid - currentAsk)/self.startClose)
+        return ((self.openTradeBid - currentAsk)/self.startClose)/2.0
 
 
         
