@@ -20,6 +20,9 @@ class ForexEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
+        self.reward_queue = collections.deque(maxlen=100)
+        while len(self.reward_queue) < 100:
+            self.reward_queue.append(0.0)
         self.header = None
         self.data_arr = []
         self.data = None
@@ -69,6 +72,9 @@ class ForexEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
+        self.reward_queue = collections.deque(maxlen=100)
+        while len(self.reward_queue) < 100:
+            self.reward_queue.append(0.0)
         return self.getState()
     
     def calculateStopLoss(self,price,direction):
@@ -151,10 +157,19 @@ class ForexEnv(gym.Env):
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade()
             else:
-                reward = 0
+                reward = 0.0
             done = True
         
         self.stepIndex+=1
+        #add current reward :
+        if(self.openTradeDir == 1):
+            self.reward_queue.append(self.closeUpTrade())
+        elif (self.openTradeDir == 2):
+            self.reward_queue.append(self.closeDownTrade())
+        else:
+            self.reward_queue.append(0.0)
+
+        #enf of current reward :
         state = self.getState()
         
         
@@ -172,7 +187,7 @@ class ForexEnv(gym.Env):
         state = self.getRawState()
        
 
-        actions = np.zeros((100,5),dtype=np.float32)
+        actions = np.zeros((100,6),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -186,11 +201,12 @@ class ForexEnv(gym.Env):
         
         state = np.concatenate((state,actions),axis=1)
         state = (state/(self.startClose*2))
-        state[:,-1] = 0
-        state[:,-3] = self.stepIndex/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
+        state[:,-1] = np.array(self.reward_queue,dtype=np.float32,copy=True)
+        state[:,-2] = 0
+        state[:,-4] = self.stepIndex/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         if self.startTradeStep is not None :
             
-            state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
+            state[:,-3] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
 
         #state =  np.reshape( state,(-1,))
         return state
