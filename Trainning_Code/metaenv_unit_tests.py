@@ -143,7 +143,37 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
     except Exception as ex:
         return False,"test200StepsAfterTradeIsOkAndReturnRealReward : %s"%(str(ex))
 
+def testRewardIsWrittenWithEachStep():
+    try:
+        #assign
+        #global
+        env.reset()
+        
+        
+        #action
+        i  =0
+        done = False
+        state,reward,_,_ = env.step(1)
+        state,reward,_,_ = env.step(1)
+        state,reward,_,_ = env.step(0)
+        state,reward,_,_ = env.step(0)
+        
+        state,reward,_,_ = env.step(0)
+        beforeDoneState = state
+        
+        bid = beforeDoneState[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-1,9]#[-5]
+        expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
+        reward = str(round( state[-1,-1],6))
 
+        previousReward = str(round( state[-2,-1],6))
+        
+        if  reward != expectedReward or reward == previousReward:
+            return False,"testRewardIsWrittenWithEachStep :  reward expected %s , found %s , previousReward : %s"%(expectedReward,reward,previousReward)
+        else:
+            return True,"testRewardIsWrittenWithEachStep : Success"
+    except Exception as ex:
+        return False,"testRewardIsWrittenWithEachStep : %s"%(str(ex))
 
 def testStepIsWrittenInState():
     try:
@@ -215,6 +245,9 @@ def runTests():
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testRewardIsWrittenWithEachStep()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testStepIsWrittenInState()
