@@ -225,8 +225,8 @@ class ForexMetaEnv(gym.Env):
 
         
     def getState(self,myState):
-        state = myState
-        actions = np.zeros((100,6),dtype=np.float32)
+        state = myState[:,:6]
+        actions = np.zeros((100,5),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -241,11 +241,11 @@ class ForexMetaEnv(gym.Env):
         state = np.concatenate((state,actions),axis=1)
         state = (state/(self.startClose*2))
         state[:,-1] = np.array(self.reward_queue,dtype=np.float32,copy=True)
-        state[:,-2] = 0
-        state[:,-4] = self.stepIndex/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
+        #state[:,-2] = 0
+        state[:,-3] = self.stepIndex/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         if self.startTradeStep is not None :
             
-            state[:,-3] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
+            state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
         
         #state =  np.reshape( state,(-1,))
         return state
