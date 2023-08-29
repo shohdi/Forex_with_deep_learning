@@ -147,7 +147,7 @@ def testRewardIsWrittenWithEachStep():
         beforeDoneState = state
         
         bid = beforeDoneState[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-1,9]#[-5]
+        openTradeAsk = beforeDoneState[-1,6]#[-5]
         expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
         reward = str(round( state[-1,-1],6))
 
@@ -188,10 +188,10 @@ def testStepIsWrittenInState():
         #assert
         expected = ((100) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
-        value = beforeDoneState[-1,11]#[-3]
+        value = beforeDoneState[-1,8]#[-3]
         
         expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
-        valueAfter5 = after5stepsState[-1,11]#[-3]
+        valueAfter5 = after5stepsState[-1,8]#[-3]
 
 
         
