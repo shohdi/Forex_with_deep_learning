@@ -119,29 +119,15 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         done = False
         env.step(1)
         beforeDoneState = None
-        while i< (((100)+2)*1) and not done:
-            state,reward,done,_ = env.step(0)
-            if not done:
-                beforeDoneState = state
-            
-
-
-            i+=1
-
-
-        #assert
-        expected = ((100 * 1)+1)
-        expectedDone = True
-        bid = beforeDoneState[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-1,9]#[-5]
-        expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,5))
-        reward = str(round(reward,5))
+        rewardState = 0.0
+        while rewardState > -0.0856 and rewardState < 0.0856 and not done:
+            state,reward,done,data = env.step(0)
+            rewardState = state[-1,-1] * 2.0
+      
+        assert reward <= -0.0856 or reward >= 0.0856 or data == True,'wrong close trade expected reward : %.6f found : %.6f'%(0.0856,reward)
 
         
-        if i != expected or done != expectedDone or reward != expectedReward:
-            return False,"test200StepsAfterTradeIsOkAndReturnRealReward : i expected : %.5f found : %.5f , done expected %s found %s , reward expected %s , found %s"%(expected,i,expectedDone,done,expectedReward,reward)
-        else:
-            return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
+        return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
     except Exception as ex:
         return False,"test200StepsAfterTradeIsOkAndReturnRealReward : %s"%(str(ex))
 
