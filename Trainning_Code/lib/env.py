@@ -110,19 +110,24 @@ class ForexEnv(gym.Env):
 
     def step(self,action_idx):
         #check punish
-        
+        '''
         if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 2
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 1
         '''
 
-        raw_state = self.getRawState()
-        if self.openTradeDir == 1 and raw_state[-1,3] <= self.stopLoss and self.stopTrade:
-            action_idx = 2
-        elif self.openTradeDir == 2 and raw_state[-1,2] >= self.stopLoss and self.stopTrade:
-            action_idx = 1
-        '''
+        
+
+        if self.openTradeDir == 1  :
+            reward = self.closeUpTrade() * 2.0
+            if reward > 0.0856 or reward < -0.0856:
+                action_idx = 2
+        elif self.openTradeDir == 2 :
+            reward = self.closeDownTrade() * 2.0
+            if reward > 0.0856 or reward < -0.0856:
+                action_idx = 1
+        
         #end of punish action
 
         #punish no action
@@ -162,6 +167,7 @@ class ForexEnv(gym.Env):
                 #close trade
                 reward = self.closeUpTrade()
                 done = True
+        data=None
         if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
@@ -170,6 +176,7 @@ class ForexEnv(gym.Env):
             else:
                 reward = 0.0
             done = True
+            data = True
         
         self.stepIndex+=1
         #add current reward :
@@ -184,7 +191,7 @@ class ForexEnv(gym.Env):
         state = self.getState()
         
         
-        return state , reward , done ,None
+        return state , reward , done ,data
 
     def getRawState(self):
         state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
