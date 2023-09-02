@@ -118,15 +118,17 @@ class ForexEnv(gym.Env):
         '''
 
         
-
-        if self.openTradeDir == 1  :
-            reward = self.closeUpTrade() * 2.0
-            if reward > 0.0856 or reward < -0.0856:
-                action_idx = 2
-        elif self.openTradeDir == 2 :
-            reward = self.closeDownTrade() * 2.0
-            if reward > 0.0856 or reward < -0.0856:
-                action_idx = 1
+        if self.stopTrade:
+            if self.openTradeDir == 1  :
+                reward = self.closeUpTrade() * 2.0
+                if reward > 0.0856 or reward < -0.0856:
+                    action_idx = 2
+                    print('stop trade!')
+            elif self.openTradeDir == 2 :
+                reward = self.closeDownTrade() * 2.0
+                if reward > 0.0856 or reward < -0.0856:
+                    action_idx = 1
+                    print('stop trade!')
         
         #end of punish action
 
@@ -137,8 +139,10 @@ class ForexEnv(gym.Env):
                 close = close/(self.startClose*2.0)
                 if close > 0.5:
                     action_idx = 2
+                    print('open opposite trade as punish!')
                 else:
                     action_idx = 1
+                    print('open opposite trade as punish!')
         #end of punish no action
 
         reward = 0
@@ -171,8 +175,10 @@ class ForexEnv(gym.Env):
         if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
+                print('end of data!')
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade()
+                print('end of data!')
             else:
                 reward = 0.0
             done = True

@@ -153,15 +153,15 @@ class ForexMetaEnv(gym.Env):
             action_idx = 1
         '''
         
-
-        if self.openTradeDir == 1  :
-            reward = self.closeUpTrade() * 2.0
-            if reward > 0.0856 or reward < -0.0856:
-                action_idx = 2
-        elif self.openTradeDir == 2 :
-            reward = self.closeDownTrade() * 2.0
-            if reward > 0.0856 or reward < -0.0856:
-                action_idx = 1
+        if self.stopTrade:
+            if self.openTradeDir == 1  :
+                reward = self.closeUpTrade() * 2.0
+                if reward > 0.0856 or reward < -0.0856:
+                    action_idx = 2
+            elif self.openTradeDir == 2 :
+                reward = self.closeDownTrade() * 2.0
+                if reward > 0.0856 or reward < -0.0856:
+                    action_idx = 1
         
         #end of punish action
         
