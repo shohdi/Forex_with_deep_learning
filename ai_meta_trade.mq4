@@ -137,7 +137,7 @@ int OpenRequestGetAction(int i, bool history)
       hoursAdded = i / 4;
       break;
    }
-   double day=0.0,week=0.0,month = 0.0;
+   double day=0.1,week=0.1,month = 0.1;
    //double day = iClose(Symbol(), PERIOD_H1, (1 * 24) + hoursAdded);
    //double week = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5) + hoursAdded);
    //double month = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5 * 4) + hoursAdded);
