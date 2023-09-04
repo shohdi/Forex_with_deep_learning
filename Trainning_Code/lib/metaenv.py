@@ -152,20 +152,20 @@ class ForexMetaEnv(gym.Env):
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 1
         '''
-        
+        beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         if self.stopTrade:
             if self.openTradeDir == 1  :
-                reward = self.closeUpTrade() * 2.0
+                reward = self.closeUpTrade(beforeActionState) * 2.0
                 if reward > 0.0856 or reward < -0.0856:
                     action_idx = 2
             elif self.openTradeDir == 2 :
-                reward = self.closeDownTrade() * 2.0
+                reward = self.closeDownTrade(beforeActionState) * 2.0
                 if reward > 0.0856 or reward < -0.0856:
                     action_idx = 1
         
         #end of punish action
         
-        beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
+        
         #punish no action
         if self.startTradeStep is None:
             if self.stepIndex >= (100 * 10) and self.punishAgent:
@@ -211,9 +211,9 @@ class ForexMetaEnv(gym.Env):
         self.stepIndex+=1
         #add current reward :
         if(self.openTradeDir == 1):
-            self.reward_queue.append(self.closeUpTrade())
+            self.reward_queue.append(self.closeUpTrade(beforeActionState))
         elif (self.openTradeDir == 2):
-            self.reward_queue.append(self.closeDownTrade())
+            self.reward_queue.append(self.closeDownTrade(beforeActionState))
         else:
             self.reward_queue.append(0.0)
 
