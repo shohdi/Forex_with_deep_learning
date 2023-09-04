@@ -87,18 +87,20 @@ def test200StepsReturnMinus0Point01():
         i  =0
         done = False
 
-        while i< (((100)+2) * 1) and not done:
+        while i< ((100 * 10)+1) and not done:
             state,reward,done,_ = env.step(0)
             i+=1
 
-
-        #assert
-        expected = (((100) * 1)+1)
-        expectedDone = True
-        expectedReward = -0.02
+        expected = 1
+        if(state[-1,1] > 0.5):
+            expected = 2
         
-        if i != expected or done != expectedDone or reward != expectedReward:
-            return False,"test200StepsReturnMinus0Point01 : i expected : %.5f found : %.5f , done expected %s found %s , reward expected %.5f , found %.5f"%(expected,i,expectedDone,done,expectedReward,reward)
+        found = env.openTradeDir
+        #assert
+        
+        
+        if  expected != found:
+            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f"%(expected,found)
         else:
             return True,"test200StepsReturnMinus0Point01 : Success"
     except Exception as ex:
@@ -115,35 +117,53 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         #action
         i  =0
         done = False
-        env.step(1)
+        env.step(2)
         beforeDoneState = None
-        while i< (((100)+2)*1) and not done:
-            state,reward,done,_ = env.step(0)
-            if not done:
-                beforeDoneState = state
-            
-
-
-            i+=1
-
-
-        #assert
-        expected = ((100 * 1)+1)
-        expectedDone = True
-        bid = beforeDoneState[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-1,9]#[-5]
-        expectedReward = str(round( (bid*2)-(openTradeAsk*2),5))
-        reward = str(round(reward,5))
-
+        rewardState = 0.0
+        while rewardState > -0.0856 and rewardState < 0.0856 and not done:
+            state,reward,done,data = env.step(0)
+            rewardState = state[-1,-1] * 2.0
+        state,reward,done,data = env.step(0)
+        reward = reward * 2.0      
+        assert reward <= -0.0856 or reward >= 0.0856 or data == True,'wrong close trade expected reward : %.6f found : %.6f'%(0.0856,reward)
+        if data == True:
+            print('environment data come to end')
         
-        if i != expected or done != expectedDone or reward != expectedReward:
-            return False,"test200StepsAfterTradeIsOkAndReturnRealReward : i expected : %.5f found : %.5f , done expected %s found %s , reward expected %s , found %s"%(expected,i,expectedDone,done,expectedReward,reward)
-        else:
-            return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
+        return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
     except Exception as ex:
         return False,"test200StepsAfterTradeIsOkAndReturnRealReward : %s"%(str(ex))
 
+def testRewardIsWrittenWithEachStep():
+    try:
+        #assign
+        #global
+        env.reset()
+        
+        
+        #action
+        i  =0
+        done = False
+        state,reward,_,_ = env.step(1)
+        state,reward,_,_ = env.step(1)
+        state,reward,_,_ = env.step(0)
+        state,reward,_,_ = env.step(0)
+        
+        state,reward,_,_ = env.step(0)
+        beforeDoneState = state
+        
+        bid = beforeDoneState[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-1,6]#[-5]
+        expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
+        reward = str(round( state[-1,-1],6))
 
+        previousReward = str(round( state[-2,-1],6))
+        
+        if  reward != expectedReward or reward == previousReward:
+            return False,"testRewardIsWrittenWithEachStep :  reward expected %s , found %s , previousReward : %s"%(expectedReward,reward,previousReward)
+        else:
+            return True,"testRewardIsWrittenWithEachStep : Success"
+    except Exception as ex:
+        return False,"testRewardIsWrittenWithEachStep : %s"%(str(ex))
 
 def testStepIsWrittenInState():
     try:
@@ -158,7 +178,7 @@ def testStepIsWrittenInState():
         
         beforeDoneState = None
         after5stepsState = None
-        while i< (((100)+2)*1) and not done:
+        while i< (((100))*10) and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
@@ -171,12 +191,12 @@ def testStepIsWrittenInState():
 
 
         #assert
-        expected = ((100) * 1)/((12 * 21.0 * 24.0 * 4 * 1) * 2)
+        expected = ((100) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
-        value = beforeDoneState[-1,11]#[-3]
+        value = beforeDoneState[-1,8]#[-3]
         
         expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
-        valueAfter5 = after5stepsState[-1,11]#[-3]
+        valueAfter5 = after5stepsState[-1,8]#[-3]
 
 
         
@@ -215,6 +235,9 @@ def runTests():
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testRewardIsWrittenWithEachStep()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testStepIsWrittenInState()

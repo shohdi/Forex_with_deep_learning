@@ -24,6 +24,9 @@ class ForexMetaEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
+        self.reward_queue = collections.deque(maxlen=100)
+        while len(self.reward_queue) < 100:
+            self.reward_queue.append(0.0)
         self.header = ("open","close","high","low","ask","bid")
         self.data = None
         self.startAsk = None
@@ -104,6 +107,9 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
+        self.reward_queue = collections.deque(maxlen=100)
+        while len(self.reward_queue) < 100:
+            self.reward_queue.append(0.0)
         return self.getState(myState)
 
     def calculateStopLoss(self,price,direction):
@@ -140,21 +146,36 @@ class ForexMetaEnv(gym.Env):
     def step(self,action_idx):
         self.wait100()
         #check punish
-        
+        '''
         if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 2
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
             action_idx = 1
         '''
-        raw_state = np.array(self.states,dtype=np.float32,copy=True)
-        if self.openTradeDir == 1 and raw_state[-1,3] <= self.stopLoss and self.stopTrade:
-            action_idx = 2
-        elif self.openTradeDir == 2 and raw_state[-1,2] >= self.stopLoss and self.stopTrade:
-            action_idx = 1
-
-        '''
-        
         beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
+        if self.stopTrade:
+            if self.openTradeDir == 1  :
+                reward = self.closeUpTrade(beforeActionState) * 2.0
+                if reward > 0.0856 or reward < -0.0856:
+                    action_idx = 2
+            elif self.openTradeDir == 2 :
+                reward = self.closeDownTrade(beforeActionState) * 2.0
+                if reward > 0.0856 or reward < -0.0856:
+                    action_idx = 1
+        
+        #end of punish action
+        
+        
+        #punish no action
+        if self.startTradeStep is None:
+            if self.stepIndex >= (100 * 10) and self.punishAgent:
+                close = beforeActionState[-1,self.header.index("close")]
+                close = close/(self.startClose*2.0)
+                if close > 0.5:
+                    action_idx = 2
+                else:
+                    action_idx = 1
+        #end of punish no action
         self.waitForTakeAction(action_idx)
         
         myState = self.waitForNewState()
@@ -186,20 +207,25 @@ class ForexMetaEnv(gym.Env):
                 reward = self.closeUpTrade(beforeActionState)
                 done = True
 
-        
+        data=None
         self.stepIndex+=1
+        #add current reward :
+        if(self.openTradeDir == 1):
+            self.reward_queue.append(self.closeUpTrade(myState))
+        elif (self.openTradeDir == 2):
+            self.reward_queue.append(self.closeDownTrade(myState))
+        else:
+            self.reward_queue.append(0.0)
+
+        #enf of current reward :
         state = self.getState(myState)
         
         
-        if self.startTradeStep is None:
-            if self.stepIndex > (100 * 1) and self.punishAgent:
-                reward = -0.02
-                done = True
-        return state , reward , done ,None
+        return state , reward , done ,data
 
         
     def getState(self,myState):
-        state = myState
+        state = myState[:,:6]
         actions = np.zeros((100,5),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
@@ -214,7 +240,8 @@ class ForexMetaEnv(gym.Env):
         
         state = np.concatenate((state,actions),axis=1)
         state = (state/(self.startClose*2))
-        state[:,-1] = 0
+        state[:,-1] = np.array(self.reward_queue,dtype=np.float32,copy=True)
+        #state[:,-2] = 0
         state[:,-3] = self.stepIndex/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         if self.startTradeStep is not None :
             
@@ -248,15 +275,15 @@ class ForexMetaEnv(gym.Env):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
         currentBid = myState[-1,self.header.index("bid")]
-        print('closing up trade start close : ',self.startClose,' close price ',currentBid)
-        return ((currentBid - self.openTradeAsk)/self.startClose)
+        #print('closing up trade start close : ',self.startClose,' close price ',currentBid)
+        return ((currentBid - self.openTradeAsk)/self.startClose)/2.0
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
         currentAsk = myState[-1,self.header.index("ask")]
-        print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
-        return ((self.openTradeBid - currentAsk)/self.startClose)
+        #print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
+        return ((self.openTradeBid - currentAsk)/self.startClose)/2.0
 
 
         
