@@ -244,12 +244,12 @@ int OpenRequestGetAction(int i, bool history)
 
       break;
    }
+   double day=0.0,week=0.0,month = 0.0;
+   //double day = iClose(Symbol(), PERIOD_H1, (1 * 24) + hoursAdded);
 
-   double day = iClose(Symbol(), PERIOD_H1, (1 * 24) + hoursAdded);
+   //double week = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5) + hoursAdded);
 
-   double week = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5) + hoursAdded);
-
-   double month = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5 * 4) + hoursAdded);
+   //double month = iClose(Symbol(), PERIOD_H1, (1 * 24 * 5 * 4) + hoursAdded);
 
    if (!history)
 
