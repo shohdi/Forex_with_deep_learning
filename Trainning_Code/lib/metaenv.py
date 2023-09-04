@@ -211,9 +211,9 @@ class ForexMetaEnv(gym.Env):
         self.stepIndex+=1
         #add current reward :
         if(self.openTradeDir == 1):
-            self.reward_queue.append(self.closeUpTrade(beforeActionState))
+            self.reward_queue.append(self.closeUpTrade(myState))
         elif (self.openTradeDir == 2):
-            self.reward_queue.append(self.closeDownTrade(beforeActionState))
+            self.reward_queue.append(self.closeDownTrade(myState))
         else:
             self.reward_queue.append(0.0)
 
