@@ -10,6 +10,7 @@
 #define MAGICMA 182182
 int myPeriod = PERIOD_M15;
 int tradeDir = 0;
+input long factorInput = 1;
 // my functions
 int CalculateCurrentOrders()
 {
@@ -203,6 +204,11 @@ void handleAction(int action)
    if (factor < 1)
    {
       factor = 1;
+   }
+   
+   if (factorInput > 0)
+   {
+      factor = factorInput;
    }
    lots = lots * factor;
    if (action == 1)
