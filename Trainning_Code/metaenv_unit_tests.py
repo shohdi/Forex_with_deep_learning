@@ -92,8 +92,8 @@ def test200StepsReturnMinus0Point01():
             i+=1
 
         expected = 1
-        if(state[-1,1] > 0.5):
-            expected = 2
+        #if(state[-1,1] > 0.5):
+        #    expected = 2
         
         found = env.openTradeDir
         #assert
@@ -117,7 +117,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         #action
         i  =0
         done = False
-        env.step(2)
+        env.step(1)
         beforeDoneState = None
         rewardState = 0.0
         while rewardState > -0.0856 and rewardState < 0.0856 and not done:

@@ -171,11 +171,17 @@ class ForexMetaEnv(gym.Env):
             if self.stepIndex >= (100 * 10) and self.punishAgent:
                 close = beforeActionState[-1,self.header.index("close")]
                 close = close/(self.startClose*2.0)
-                if close > 0.5:
-                    action_idx = 2
-                else:
-                    action_idx = 1
+                action_idx = 1
+                
+                #if close > 0.5:
+                #    action_idx = 2
+                #else:
+                #    action_idx = 1
         #end of punish no action
+        if  self.startTradeStep is None:
+            if action_idx == 2:
+                action_idx = 0
+
         self.waitForTakeAction(action_idx)
         
         myState = self.waitForNewState()
@@ -199,7 +205,8 @@ class ForexMetaEnv(gym.Env):
             
             #check open trade
             if  self.openTradeDir == 0 :
-                self.openDownTrade(beforeActionState)
+                #self.openDownTrade(beforeActionState)
+                None
             elif self.openTradeDir == 2:
                 None
             else : # 1
