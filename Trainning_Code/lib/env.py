@@ -155,6 +155,7 @@ class ForexEnv(gym.Env):
             #check open trade
             if self.openTradeDir == 0 :
                 self.openUpTrade()
+                print('open up trade!')
             elif self.openTradeDir == 1:
                 None
             else :
@@ -244,6 +245,7 @@ class ForexEnv(gym.Env):
         self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
 
     def openDownTrade(self):
+        print('open down trade!')
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
