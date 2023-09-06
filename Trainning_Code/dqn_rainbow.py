@@ -231,6 +231,7 @@ if __name__ == "__main__":
     testRewards = collections.deque(maxlen=213)
     
     testRewardsMean = 0
+    newTestRewardsMean = 0
     valRewards = collections.deque(maxlen=213)
     valRewardsMean = 0
     params = common.HYPERPARAMS['Forex']
@@ -367,8 +368,8 @@ if __name__ == "__main__":
                         testSteps = 0
                         isDone = False
                         while not isDone:
-                            if isCuda:
-                                time.sleep((1/250))
+                            #if isCuda:
+                            #    time.sleep((1/250))
                             test_idx +=1
                             testSteps += 1
                             #play step
@@ -390,7 +391,7 @@ if __name__ == "__main__":
                         sys.stdout.flush()
                         if isCuda:
                             torch.cuda.empty_cache()
-                    if newTestRewardsMean > testRewardsMean:
+                    if newTestRewardsMean > testRewardsMean and len(testRewards) >= 212 :
                         print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
                         testRewardsMean = newTestRewardsMean
                         testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
