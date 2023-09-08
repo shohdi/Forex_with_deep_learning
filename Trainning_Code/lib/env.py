@@ -123,12 +123,12 @@ class ForexEnv(gym.Env):
                 reward = self.closeUpTrade() * 2.0
                 if reward > 0.0856 or reward < -0.0856:
                     action_idx = 2
-                    print('stop trade!')
+                    #print('stop trade!')
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade() * 2.0
                 if reward > 0.0856 or reward < -0.0856:
                     action_idx = 1
-                    print('stop trade!')
+                    #print('stop trade!')
         
         #end of punish action
 
@@ -138,7 +138,7 @@ class ForexEnv(gym.Env):
                 close = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
                 close = close/(self.startClose*2.0)
                 action_idx = 1
-                print('open opposite trade as punish!')
+                #print('open opposite trade as punish!')
                 #if close > 0.5:
                 #    action_idx = 2
                 #    print('open opposite trade as punish!')
@@ -155,7 +155,7 @@ class ForexEnv(gym.Env):
             #check open trade
             if self.openTradeDir == 0 :
                 self.openUpTrade()
-                print('open up trade!')
+                #print('open up trade!')
             elif self.openTradeDir == 1:
                 None
             else :
@@ -179,10 +179,10 @@ class ForexEnv(gym.Env):
         if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
-                print('end of data!')
+                #print('end of data!')
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade()
-                print('end of data!')
+                #print('end of data!')
             else:
                 reward = 0.0
             done = True
@@ -245,7 +245,7 @@ class ForexEnv(gym.Env):
         self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
 
     def openDownTrade(self):
-        print('open down trade!')
+        #print('open down trade!')
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
