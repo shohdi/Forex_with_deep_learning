@@ -136,7 +136,7 @@ class RewardTracker:
         mean_reward = np.mean(self.total_rewards[-213:])
         self.last_mean = mean_reward
         epsilon_str = "" if epsilon is None else ", eps %.2f" % epsilon
-        print("%d: done %d steps , %d games , game reward %.5f, mean reward %.5f, speed %.2f f/s%s" % (
+        print("%d: done %6d steps , %d games , game reward %.5f, mean reward %.5f, speed %.2f f/s%s" % (
             frame,steps, len(self.total_rewards),reward, mean_reward, speed, epsilon_str
         ))
         sys.stdout.flush()
