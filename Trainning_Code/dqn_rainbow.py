@@ -318,8 +318,8 @@ if __name__ == "__main__":
                     sys.stdout.flush()
                     startTime = time.time()
                 
-                #if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:    
-                if frame_idx > 100000 and len(buffer) < 100000 :
+                if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:    
+                #if frame_idx > 100000 and len(buffer) < 100000 :
                     #if isCuda:
                     #    time.sleep((1/250))
                     continue
