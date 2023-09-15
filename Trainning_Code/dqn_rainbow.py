@@ -354,11 +354,11 @@ if __name__ == "__main__":
                 
                 
 
-                if frame_idx % 10000 == 0:
+                if frame_idx % 200000 == 0:
                     
                     testIdx = 0
                     #testRewards=[]
-                    while testIdx < 1:
+                    while testIdx < 100:
                         testState = envTest.reset()
                         testState = np.array(testState,dtype=np.float32)
                         testIdx+=1
@@ -391,17 +391,17 @@ if __name__ == "__main__":
                         sys.stdout.flush()
                         if isCuda:
                             torch.cuda.empty_cache()
-                    if newTestRewardsMean > testRewardsMean and len(testRewards) >= 212 :
-                        print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
-                        testRewardsMean = newTestRewardsMean
-                        testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
-                        torch.save(net.state_dict(), testPeriodPath)
+                    #if newTestRewardsMean > testRewardsMean and len(testRewards) >= 100 :
+                    #    print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
+                    testRewardsMean = newTestRewardsMean
+                    testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
+                    torch.save(net.state_dict(), testPeriodPath)
                 
 
-                    '''
+                    
                     valIndx = 0
                     valRewards=[]
-                    while valIndx < 213:
+                    while valIndx < 100:
                         valState = envVal.reset()
                     
                         valState = np.array(valState,dtype=np.float32)
@@ -438,7 +438,7 @@ if __name__ == "__main__":
                         
                     valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
                     torch.save(net.state_dict(), valPeriodPath)
-                    '''
+                    
             
         
 
