@@ -228,11 +228,11 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     startTime = time.time()
-    testRewards = collections.deque(maxlen=213)
+    testRewards = []#collections.deque(maxlen=100)
     
     testRewardsMean = 0
     newTestRewardsMean = 0
-    valRewards = collections.deque(maxlen=213)
+    valRewards = []#collections.deque(maxlen=100)
     valRewardsMean = 0
     params = common.HYPERPARAMS['Forex']
     params['epsilon_frames'] *= 2
@@ -357,7 +357,7 @@ if __name__ == "__main__":
                 if frame_idx % 200000 == 0:
                     
                     testIdx = 0
-                    #testRewards=[]
+                    testRewards=[]
                     while testIdx < 100:
                         testState = envTest.reset()
                         testState = np.array(testState,dtype=np.float32)
