@@ -130,13 +130,14 @@ class RewardTracker:
     def reward(self, reward, frame, epsilon=None):
         self.total_rewards.append(reward)
         speed = (frame - self.ts_frame) / (time.time() - self.ts)
+        steps = frame - self.ts_frame
         self.ts_frame = frame
         self.ts = time.time()
         mean_reward = np.mean(self.total_rewards[-213:])
         self.last_mean = mean_reward
         epsilon_str = "" if epsilon is None else ", eps %.2f" % epsilon
-        print("%d: done %d games , game reward %.5f, mean reward %.5f, speed %.2f f/s%s" % (
-            frame, len(self.total_rewards),reward, mean_reward, speed, epsilon_str
+        print("%d: done %6d steps , %d games , game reward %.5f, mean reward %.5f, speed %.2f f/s%s" % (
+            frame,steps, len(self.total_rewards),reward, mean_reward, speed, epsilon_str
         ))
         sys.stdout.flush()
         if epsilon is not None:

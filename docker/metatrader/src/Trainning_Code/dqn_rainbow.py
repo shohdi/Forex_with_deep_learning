@@ -228,10 +228,11 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     startTime = time.time()
-    testRewards = []#collections.deque(maxlen=213)
+    testRewards = collections.deque(maxlen=213)
     
     testRewardsMean = 0
-    valRewards = []#collections.deque(maxlen=213)
+    newTestRewardsMean = 0
+    valRewards = collections.deque(maxlen=213)
     valRewardsMean = 0
     params = common.HYPERPARAMS['Forex']
     params['epsilon_frames'] *= 2
@@ -353,11 +354,11 @@ if __name__ == "__main__":
                 
                 
 
-                if frame_idx % 100000 == 0:
+                if frame_idx % 10000 == 0:
                     
                     testIdx = 0
-                    testRewards=[]
-                    while testIdx < 213:
+                    #testRewards=[]
+                    while testIdx < 1:
                         testState = envTest.reset()
                         testState = np.array(testState,dtype=np.float32)
                         testIdx+=1
@@ -367,8 +368,8 @@ if __name__ == "__main__":
                         testSteps = 0
                         isDone = False
                         while not isDone:
-                            if isCuda:
-                                time.sleep((1/250))
+                            #if isCuda:
+                            #    time.sleep((1/250))
                             test_idx +=1
                             testSteps += 1
                             #play step
@@ -382,20 +383,22 @@ if __name__ == "__main__":
                             testState = np.array(testState,dtype=np.float32)
                         testRewards.append(rewardTest)
                         testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
-                        testRewardsMean = np.mean(testRewardsnp)
-                        writer.add_scalar("test mean reward",testRewardsMean,test_idx)
+                        newTestRewardsMean = np.mean(testRewardsnp)
+                        writer.add_scalar("test mean reward",newTestRewardsMean,test_idx)
                         writer.add_scalar("test reward",rewardTest,test_idx)
                         writer.add_scalar("test steps",testSteps,test_idx)
-                        print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(testRewardsMean))
+                        print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(newTestRewardsMean))
                         sys.stdout.flush()
                         if isCuda:
                             torch.cuda.empty_cache()
-                        
-                    testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
-                    torch.save(net.state_dict(), testPeriodPath)
+                    if newTestRewardsMean > testRewardsMean and len(testRewards) >= 212 :
+                        print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
+                        testRewardsMean = newTestRewardsMean
+                        testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
+                        torch.save(net.state_dict(), testPeriodPath)
                 
 
-                    
+                    '''
                     valIndx = 0
                     valRewards=[]
                     while valIndx < 213:
@@ -435,6 +438,7 @@ if __name__ == "__main__":
                         
                     valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
                     torch.save(net.state_dict(), valPeriodPath)
+                    '''
             
         
 
