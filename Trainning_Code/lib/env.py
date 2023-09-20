@@ -133,11 +133,17 @@ class ForexEnv(gym.Env):
         #end of punish action
 
         #punish no action
+        reward = 0
+        done = False
         if self.startTradeStep is None:
             if self.stepIndex >= (100 * 10) and self.punishAgent:
-                close = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
-                close = close/(self.startClose*2.0)
-                action_idx = 1
+                loss = -0.00001
+                done=True
+                reward = loss
+                action_idx = 0
+                #close = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
+                #close = close/(self.startClose*2.0)
+                #action_idx = 1
                 #print('open opposite trade as punish!')
                 #if close > 0.5:
                 #    action_idx = 2
@@ -147,8 +153,8 @@ class ForexEnv(gym.Env):
                 #    print('open opposite trade as punish!')
         #end of punish no action
 
-        reward = 0
-        done = False
+        
+        
         if action_idx == 0:
             None
         elif action_idx == 1:
@@ -184,7 +190,7 @@ class ForexEnv(gym.Env):
                 reward = self.closeDownTrade()
                 #print('end of data!')
             else:
-                reward = 0.0
+                reward = reward
             done = True
             data = True
         
@@ -195,7 +201,7 @@ class ForexEnv(gym.Env):
         elif (self.openTradeDir == 2):
             self.reward_queue.append(self.closeDownTrade())
         else:
-            self.reward_queue.append(0.0)
+            self.reward_queue.append(reward)
 
         #enf of current reward :
         state = self.getState()

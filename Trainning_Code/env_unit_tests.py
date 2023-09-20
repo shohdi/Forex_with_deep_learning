@@ -76,7 +76,7 @@ def test200StepsReturnMinus0Point01():
         #assign
         #global
         env.reset()
-        
+        loss = -0.00001
         
         #action
         i  =0
@@ -86,7 +86,8 @@ def test200StepsReturnMinus0Point01():
             state,reward,done,_ = env.step(0)
             i+=1
 
-        expected = 1
+        expected = 0
+        expectedReward = loss
         #if(state[-1,1] > 0.5):
         #    expected = 2
         
@@ -94,8 +95,8 @@ def test200StepsReturnMinus0Point01():
         #assert
         
         
-        if  expected != found:
-            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f"%(expected,found)
+        if  expected != found or reward != expectedReward:
+            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f , expectedReward %.6f reward %.6f "%(expected,found,expectedReward,reward)
         else:
             return True,"test200StepsReturnMinus0Point01 : Success"
     except Exception as ex:
