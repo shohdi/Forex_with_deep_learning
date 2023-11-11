@@ -113,19 +113,27 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         #action
         i  =0
         done = False
-        env.step(1)
-        beforeDoneState = None
-        rewardState = 0.0
-        while rewardState > -0.0856 and rewardState < 0.0856 and not done:
-            state,reward,done,data = env.step(0)
-            rewardState = state[-1,-1] * 2.0
-        state,reward,done,data = env.step(0)
-        reward = reward * 2.0      
-        assert reward <= -0.0856 or reward >= 0.0856 or data == True,'wrong close trade expected reward : %.6f found : %.6f'%(0.0856,reward)
-        if data == True:
-            print('environment data come to end')
+        reward = 0.0
+        state,reward,done,data =env.step(1)
         
+        rewardState = 0.0
+        while i < ((100 * 10)+1) and not done:
+            rewardState = state[-1,-1]
+            state,reward,done,data = env.step(0)
+            
+            i+=1
+        
+        expectedDone = True
+        expectedReward = rewardState
+        assert expectedDone == done , 'wrong done status expected done %s , done %s'%(str(expectedDone),str(done))
+        strExpectedReward  = '%.6f'%(expectedReward)
+        strReward = '%.6f'%(reward)
+        
+        
+        
+        assert ( strExpectedReward == strReward) ,'wrong reward expected reward %s , reward %s'%(strExpectedReward,strReward)
         return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
+        
     except Exception as ex:
         return False,"test200StepsAfterTradeIsOkAndReturnRealReward : %s"%(str(ex))
 
