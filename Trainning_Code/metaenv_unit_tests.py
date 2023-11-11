@@ -10,6 +10,20 @@ from flask_restful import Resource, Api,reqparse
    
 env = None 
 
+def testStateShape():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+
+        #assert
+        assert state.shape[0] == 100 and state.shape[1] == 11 , 'state shape is wrong %s'%(str(state.shape))
+
+        return True,"testStateShape : Success"
+    except Exception as ex:
+        return False,"testStateShape : %s"%(str(ex))
 
 def testStartCloseIsOkAndNotChangesAfterStep():
     try:
@@ -231,7 +245,9 @@ def runTests():
     env = ForexMetaEnv(stateObj,options)
     #run tests
     with open('data/metaenv_unit_tests_result.txt','w') as f:
-        
+        ret,msg = testStateShape()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))

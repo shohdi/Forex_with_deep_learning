@@ -6,6 +6,23 @@ from lib.env import ForexEnv
 env = ForexEnv('minutes15_100/data/test_data.csv',True)
 
 
+def testStateShape():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+
+        #assert
+        assert state.shape[0] == 100 and state.shape[1] == 11 , 'state shape is wrong %s'%(str(state.shape))
+
+        return True,"testStateShape : Success"
+    except Exception as ex:
+        return False,"testStateShape : %s"%(str(ex))
+    
+
+
 def testStartCloseIsOkAndNotChangesAfterStep():
     try:
         #assign
@@ -226,7 +243,9 @@ def testStepIsWrittenInState():
 if __name__ == "__main__":
     #run tests
     with open('data/env_unit_tests_result.txt','w') as f:
-        
+        ret,msg = testStateShape()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
