@@ -19,7 +19,7 @@ def testStateShape():
         state,_,_,_ = env.step(0)
 
         #assert
-        assert state.shape[0] == 3000 and state.shape[1] == 11 , 'state shape is wrong %s'%(str(state.shape))
+        assert state.shape[0] == (3000 * 12)  , 'state shape is wrong %s'%(str(state.shape))
 
         return True,"testStateShape : Success"
     except Exception as ex:
@@ -55,7 +55,7 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         state,_,_,_ = env.step(0)
         #assert
-        lastOpen =state[-1,0]#[-14]
+        lastOpen =state[-12]#[-1,0]#[-14]
         lastOpenReal = env.states[-1][0]
         expected = (lastOpenReal/(startClose*2))
         if "%.5f"%lastOpen != "%.5f"%expected:
@@ -137,7 +137,7 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         
         rewardState = 0.0
         while i < ((100 * 10)+1) and not done:
-            rewardState = state[-1,-1]
+            rewardState = state[-2]#[-1,-1]
             state,reward,done,data = env.step(0)
             
             i+=1
@@ -175,12 +175,12 @@ def testRewardIsWrittenWithEachStep():
         state,reward,_,_ = env.step(0)
         beforeDoneState = state
         
-        bid = beforeDoneState[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-1,6]#[-5]
+        bid = beforeDoneState[-7]#[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-6]#[-1,6]#[-5]
         expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
-        reward = str(round( state[-1,-1],6))
+        reward = str(round( state[-2],6))
 
-        previousReward = str(round( state[-2,-1],6))
+        previousReward = str(round( state[-14],6))
         
         if  reward != expectedReward or reward == previousReward:
             return False,"testRewardIsWrittenWithEachStep :  reward expected %s , found %s , previousReward : %s"%(expectedReward,reward,previousReward)
@@ -217,10 +217,10 @@ def testStepIsWrittenInState():
         #assert
         expected = ((100) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
-        value = beforeDoneState[-1,8]#[-3]
+        value = beforeDoneState[-4]#[-1,8]#[-3]
         
         expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
-        valueAfter5 = after5stepsState[-1,8]#[-3]
+        valueAfter5 = after5stepsState[-4]#[-1,8]#[-3]
 
 
         

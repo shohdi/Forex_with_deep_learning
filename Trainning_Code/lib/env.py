@@ -218,6 +218,7 @@ class ForexEnv(gym.Env):
        
 
         actions = np.zeros((3000,5),dtype=np.float32)
+        sep = np.zeros((3000,1),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -238,7 +239,8 @@ class ForexEnv(gym.Env):
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
 
-        #state =  np.reshape( state,(-1,))
+        state = np.concatenate((state,sep),axis=1)
+        state =  np.reshape( state,(-1,))
         return state
 
     def openUpTrade(self):
