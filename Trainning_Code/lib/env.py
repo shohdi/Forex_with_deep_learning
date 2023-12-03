@@ -20,8 +20,8 @@ class ForexEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=3000)
+        while len(self.reward_queue) < 3000:
             self.reward_queue.append(0.0)
         self.header = None
         self.data_arr = []
@@ -59,7 +59,7 @@ class ForexEnv(gym.Env):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
         self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = np.random.randint(len(self.data)-(500 * 1))
+        self.startIndex = np.random.randint(len(self.data)-(3500 * 1))
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
@@ -72,8 +72,8 @@ class ForexEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=3000)
+        while len(self.reward_queue) < 3000:
             self.reward_queue.append(0.0)
         return self.getState()
     
@@ -182,7 +182,7 @@ class ForexEnv(gym.Env):
                 reward = self.closeUpTrade()
                 done = True
         data=None
-        if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
+        if (self.stepIndex + self.startIndex) >= (len(self.data) - 3002) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
                 #print('end of data!')
@@ -210,14 +210,14 @@ class ForexEnv(gym.Env):
         return state , reward , done ,data
 
     def getRawState(self):
-        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
+        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+3000)]
         return state
 
     def getState(self):
         state = self.getRawState()[:,:6]
        
 
-        actions = np.zeros((100,5),dtype=np.float32)
+        actions = np.zeros((3000,5),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
@@ -263,13 +263,13 @@ class ForexEnv(gym.Env):
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
-        currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        currentBid = self.data[self.startIndex+self.stepIndex+2999,self.header.index("bid")]
         return ((currentBid - self.openTradeAsk)/self.startClose)/2.0
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
-        currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
+        currentAsk = self.data[self.startIndex+self.stepIndex+2999,self.header.index("ask")]
         return ((self.openTradeBid - currentAsk)/self.startClose)/2.0
 
     def analysisUpTrade(self):

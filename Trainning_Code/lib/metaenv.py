@@ -24,8 +24,8 @@ class ForexMetaEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=3000)
+        while len(self.reward_queue) < 3000:
             self.reward_queue.append(0.0)
         self.header = ("open","close","high","low","ask","bid")
         self.data = None
@@ -44,7 +44,7 @@ class ForexMetaEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
     def wait100(self,is_reset = False) :
-        while len(self.states) < 100 :
+        while len(self.states) < 3000 :
             self.options.StateAvailable = False
             while not self.options.StateAvailable:
                 None
@@ -107,8 +107,8 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=3000)
+        while len(self.reward_queue) < 3000:
             self.reward_queue.append(0.0)
         return self.getState(myState)
 
@@ -239,7 +239,7 @@ class ForexMetaEnv(gym.Env):
         
     def getState(self,myState):
         state = myState[:,:6]
-        actions = np.zeros((100,5),dtype=np.float32)
+        actions = np.zeros((3000,5),dtype=np.float32)
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
         if self.openTradeDir == 2:
