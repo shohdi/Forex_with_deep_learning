@@ -245,8 +245,8 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+2999,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+2999,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
 
@@ -255,8 +255,8 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+2999,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+2999,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
 
