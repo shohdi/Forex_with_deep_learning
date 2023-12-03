@@ -32,7 +32,7 @@ class Options:
 options = Options()
 
 
-stateObj = collections.deque(maxlen=100)
+stateObj = collections.deque(maxlen=3000)
 headers = ("open","close","high","low","ask","bid")
 
 class MetaTrade(Resource):

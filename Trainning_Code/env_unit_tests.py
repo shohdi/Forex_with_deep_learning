@@ -54,7 +54,7 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         #assert
         lastOpen =state[-1,0]#[-14]
-        lastOpenReal = env.data[(env.stepIndex+env.startIndex+100)-1,0]
+        lastOpenReal = env.data[(env.stepIndex+env.startIndex+3000)-1,0]
         expected = (lastOpenReal/(startClose*2))
         if "%.5f"%lastOpen != "%.5f"%expected:
             return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)
