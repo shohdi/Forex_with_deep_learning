@@ -104,7 +104,7 @@ class LSTM_Forex (nn.Module):
         self.actions = actions
         self.selected_device = selDevice
         #self.inSize = self.input_shape[1]
-        self.hiddenSize = 3000 * 13
+        self.hiddenSize = 1024
         self.numLayers = 2
         self.outSize = 512
         #self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
@@ -113,7 +113,7 @@ class LSTM_Forex (nn.Module):
         self.network = nn.Sequential(
             nn.Linear(self.input_shape[0], self.hiddenSize),
             nn.ReLU(),
-            nn.Linear(self.hiddenSize, self.outSize * 2),
+            nn.Linear(self.hiddenSize, self.hiddenSize),
             nn.ReLU()
         ) 
         
@@ -137,13 +137,13 @@ class LSTM_Forex (nn.Module):
         #self.lin = nn.Sequential(nn.Linear(self.hiddenSize,self.hiddenSize)
         #                         ,nn.ReLU())
         self.fc_val = nn.Sequential(
-            dqn_model.NoisyLinear(self.outSize * 2, self.outSize),
+            dqn_model.NoisyLinear(self.hiddenSize, self.outSize),
             nn.ReLU(),
             dqn_model.NoisyLinear(self.outSize, N_ATOMS)
         )
 
         self.fc_adv = nn.Sequential(
-            dqn_model.NoisyLinear(self.outSize * 2, self.outSize),
+            dqn_model.NoisyLinear(self.hiddenSize, self.outSize),
             nn.ReLU(),
             dqn_model.NoisyLinear(self.outSize, self.actions * N_ATOMS)
         )
