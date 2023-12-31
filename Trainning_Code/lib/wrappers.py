@@ -2,6 +2,11 @@ import cv2
 import gym
 import gym.spaces
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
 import collections
 
 

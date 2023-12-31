@@ -1,6 +1,11 @@
 import sys
 import time
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
 import torch
 import torch.nn as nn
 
