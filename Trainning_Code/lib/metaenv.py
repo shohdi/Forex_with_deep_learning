@@ -4,6 +4,11 @@ import gym.spaces
 from gym.utils import seeding
 import collections
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
 import time
 
 

@@ -4,6 +4,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
 
 
 class NoisyLinear(nn.Linear):
