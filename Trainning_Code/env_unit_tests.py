@@ -6,6 +6,32 @@ from lib.env import ForexEnv
 env = ForexEnv('minutes15_100/data/test_data.csv',True)
 
 
+def testSlIs07():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+        state,reward,done,data = env.step(1)
+
+        while not done:
+            state,reward,done,data = env.step(1)
+        
+
+
+        #assert
+        expectedDoubleReward = 0.07
+        
+        assert (data == True or abs(reward * 2.0) >=  expectedDoubleReward),'expected reward is greater than %0.6f found %0.6f'%(expectedDoubleReward,reward)
+       
+
+        return True,"testSlIs07 : Success"
+    except Exception as ex:
+        return False,"testSlIs07 : %s"%(str(ex))
+
+
+
 def testStateShape():
     try:
         #assign
@@ -243,6 +269,9 @@ def testStepIsWrittenInState():
 if __name__ == "__main__":
     #run tests
     with open('data/env_unit_tests_result.txt','w') as f:
+        ret,msg = testSlIs07()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = testStateShape()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
