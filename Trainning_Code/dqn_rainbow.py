@@ -109,19 +109,20 @@ class LSTM_Forex (nn.Module):
         self.input_shape = input_shape
         self.actions = actions
         self.selected_device = selDevice
-        #self.inSize = self.input_shape[1]
-        self.hiddenSize = 1024
+        self.inSize = self.input_shape[1]
+        self.hiddenSize = 100
         self.numLayers = 2
         self.outSize = 512
-        #self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
+        self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
         """ self.size = np.prod(self.input_shape)
-        """
+        
         self.network = nn.Sequential(
             nn.Linear(self.input_shape[0], self.hiddenSize),
             nn.ReLU(),
             nn.Linear(self.hiddenSize, self.hiddenSize),
             nn.ReLU()
-        ) 
+        )
+        """ 
         
         #self.lin = nn.Sequential(nn.Linear(self.input_shape[0],self.input_shape[0],True)
         #                         ,nn.ReLU())
@@ -160,10 +161,10 @@ class LSTM_Forex (nn.Module):
     
     def forward(self,x):
         batch_size = x.size()[0]
-        #h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
-        #c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
-        #out,(hn,cn) = self.lstm(x,(h0,c0))
-        out = self.network(x)
+        h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
+        c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
+        out,(hn,cn) = self.lstm(x,(h0,c0))
+        #out = self.network(x)
         #out = self.lin(out[:,-1,:])
         #out = x.view(batch_size,-1)
         #out = self.network(out)
@@ -172,8 +173,8 @@ class LSTM_Forex (nn.Module):
         #adv_out = self.fc_adv(firstLayerOut).view(batch_size, -1, N_ATOMS)
         #val_out = self.fc_val(out).view(batch_size, 1, N_ATOMS)
         #adv_out = self.fc_adv(out).view(batch_size, -1, N_ATOMS)
-        val_out = self.fc_val(out).view(batch_size, 1, N_ATOMS)
-        adv_out = self.fc_adv(out).view(batch_size, -1, N_ATOMS)
+        val_out = self.fc_val(out[:,-1,:]).view(batch_size, 1, N_ATOMS)
+        adv_out = self.fc_adv(out[:,-1,:]).view(batch_size, -1, N_ATOMS)
         adv_mean = adv_out.mean(dim=1, keepdim=True)
         return val_out + (adv_out - adv_mean)
     

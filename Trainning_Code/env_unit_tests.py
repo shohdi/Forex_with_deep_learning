@@ -43,11 +43,33 @@ def testStateShape():
         state,_,_,_ = env.step(0)
 
         #assert
-        assert state.shape[0] == (3000 * 12)  , 'state shape is wrong %s'%(str(state.shape))
+        assert state.shape == (16 , 13)  , 'state shape is wrong %s'%(str(state.shape))
 
         return True,"testStateShape : Success"
     except Exception as ex:
         return False,"testStateShape : %s"%(str(ex))
+    
+
+def testSlIsIncluded():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+        state,_,_,_ = env.step(1)
+        state,_,_,_ = env.step(1)
+        #assert
+        expectedDoubleReward = 0.01
+        tk = (env.openTradeAsk + (env.startClose * expectedDoubleReward))/2.0
+        sl = (env.openTradeAsk - (env.startClose * expectedDoubleReward))/2.0
+        
+
+        assert str(round(state[-1,-2],6)) == str(round(tk,6)) and str(round(state[-1,-1],6)) == str(round(sl,6))  , 'expected tk : %0.6f , sl : %0.6f get tk : %0.6f , sl : %0.6f'%(tk,sl,state[-1,-2],state[-1,-1])
+
+        return True,"testSlIsIncluded : Success"
+    except Exception as ex:
+        return False,"testSlIsIncluded : %s"%(str(ex))
     
 
 
@@ -81,8 +103,8 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         state,_,_,_ = env.step(0)
         #assert
-        lastOpen =state[-12]#[-1,0]#[-14]
-        lastOpenReal = env.data[(env.stepIndex+env.startIndex+3000)-1,0]
+        lastOpen =state[-1,0]#[-12]#[-1,0]#[-14]
+        lastOpenReal = env.data[(env.stepIndex+env.startIndex+16)-1,0]
         expected = (lastOpenReal/(startClose*2))
         if "%.5f"%lastOpen != "%.5f"%expected:
             return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)
@@ -200,12 +222,12 @@ def testRewardIsWrittenWithEachStep():
         state,reward,_,_ = env.step(0)
         beforeDoneState = state
         
-        bid = beforeDoneState[-7]#[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-6]#[-1,6]#[-5]
+        bid = beforeDoneState[-1,-8]#[-7]#[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-1,-7]#[-6]#[-1,6]#[-5]
         expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
-        reward = str(round( state[-2],6))
+        reward = str(round( state[-1,-3],6))
 
-        previousReward = str(round( state[-14],6))
+        previousReward = str(round( state[-2,-3],6))
         
         if  reward != expectedReward or reward == previousReward:
             return False,"testRewardIsWrittenWithEachStep :  reward expected %s , found %s , previousReward : %s"%(expectedReward,reward,previousReward)
@@ -242,10 +264,10 @@ def testStepIsWrittenInState():
         #assert
         expected = ((100) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
-        value = beforeDoneState[-4]#[-1,8]#[-3]
+        value = beforeDoneState[-1,-5]#[-4]#[-1,8]#[-3]
         
         expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
-        valueAfter5 = after5stepsState[-4]#[-1,8]#[-3]
+        valueAfter5 = after5stepsState[-1,-5]#[-4]#[-1,8]#[-3]
 
 
         
@@ -271,10 +293,13 @@ def testStepIsWrittenInState():
 if __name__ == "__main__":
     #run tests
     with open('data/env_unit_tests_result.txt','w') as f:
+        ret,msg = testStateShape()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlIs07()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = testStateShape()
+        ret,msg = testSlIsIncluded()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
