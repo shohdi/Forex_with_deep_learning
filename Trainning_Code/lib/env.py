@@ -122,7 +122,7 @@ class ForexEnv(gym.Env):
             action_idx = 1
         '''
 
-        stopLossPerc = 0.07
+        stopLossPerc = 0.01
         if self.stopTrade:
             if self.openTradeDir == 1  :
                 reward = self.closeUpTrade()
