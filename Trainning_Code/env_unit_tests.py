@@ -21,9 +21,11 @@ def testSlIs07():
 
 
         #assert
-        expectedDoubleReward = 0.07
+        expectedDoubleReward = 0.01
         
-        assert (data == True or abs(reward * 2.0) >=  expectedDoubleReward),'expected reward is greater than %0.6f found %0.6f'%(expectedDoubleReward,reward)
+        assert (data == True 
+                or (abs(reward * 2.0) >=  expectedDoubleReward 
+                    and abs(reward * 2.0) <  (expectedDoubleReward+0.01))),'expected reward is greater than %0.6f found %0.6f'%(expectedDoubleReward,reward)
        
 
         return True,"testSlIs07 : Success"
