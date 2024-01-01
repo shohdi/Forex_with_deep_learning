@@ -236,7 +236,7 @@ void handleAction(int action)
 int OnInit()
 {
    //---
-   for (int i = 2999; i >= 1; i--)
+   for (int i = 15; i >= 1; i--)
    {
       int action = OpenRequestGetAction(i, true);
       Print("action taken : ", action);

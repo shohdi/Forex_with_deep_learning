@@ -29,8 +29,8 @@ class ForexMetaEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
-        self.reward_queue = collections.deque(maxlen=3000)
-        while len(self.reward_queue) < 3000:
+        self.reward_queue = collections.deque(maxlen=16)
+        while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
         self.header = ("open","close","high","low","ask","bid")
         self.data = None
@@ -49,7 +49,7 @@ class ForexMetaEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
     def wait100(self,is_reset = False) :
-        while len(self.states) < 3000 :
+        while len(self.states) < 16 :
             self.options.StateAvailable = False
             while not self.options.StateAvailable:
                 None
@@ -112,8 +112,8 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
-        self.reward_queue = collections.deque(maxlen=3000)
-        while len(self.reward_queue) < 3000:
+        self.reward_queue = collections.deque(maxlen=16)
+        while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
         return self.getState(myState)
 
@@ -247,12 +247,22 @@ class ForexMetaEnv(gym.Env):
         
     def getState(self,myState):
         state = myState[:,:6]
-        actions = np.zeros((3000,5),dtype=np.float32)
-        sep = np.zeros((3000,1),dtype=np.float32)
+        actions = np.zeros((16,5),dtype=np.float32)
+        #sep = np.zeros((16,1),dtype=np.float32)
+        expectedDoubleReward = 0.01
+        sltk = np.zeros((16,2),dtype=np.float32)
+        sl=0
+        tk=0
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
+            tk = (self.openTradeAsk + (self.startClose * expectedDoubleReward))/2.0
+            sl = (self.openTradeAsk - (self.startClose * expectedDoubleReward))/2.0
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
+            tk = (self.openTradeBid - (self.startClose * expectedDoubleReward))/2.0
+            sl = (self.openTradeBid + (self.startClose * expectedDoubleReward))/2.0
+        sltk[:,-2] = tk
+        sltk[:,-1] = sl
         
         
 
@@ -269,8 +279,9 @@ class ForexMetaEnv(gym.Env):
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
         
-        state = np.concatenate((state,sep),axis=1)
-        state =  np.reshape( state,(-1,))
+        state = np.concatenate((state,sltk),axis=1)
+        #state = np.concatenate((state,sep),axis=1)
+        #state =  np.reshape( state,(-1,))
         return state
 
     def openUpTrade(self,myState):
