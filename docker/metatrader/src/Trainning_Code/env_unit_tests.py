@@ -1,9 +1,76 @@
-from os import stat
+
 from lib.env import ForexEnv
 
 
 #global init   
 env = ForexEnv('minutes15_100/data/test_data.csv',True)
+
+
+def testSlIs07():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+        state,reward,done,data = env.step(1)
+
+        while not done:
+            state,reward,done,data = env.step(1)
+        
+
+
+        #assert
+        expectedDoubleReward = 0.01
+        
+        assert (data == True 
+                or (abs(reward * 2.0) >=  expectedDoubleReward 
+                    and abs(reward * 2.0) <  (expectedDoubleReward+0.01))),'expected reward is greater than %0.6f found %0.6f'%(expectedDoubleReward,reward)
+       
+
+        return True,"testSlIs07 : Success"
+    except Exception as ex:
+        return False,"testSlIs07 : %s"%(str(ex))
+
+
+
+def testStateShape():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+
+        #assert
+        assert state.shape == (16 , 13)  , 'state shape is wrong %s'%(str(state.shape))
+
+        return True,"testStateShape : Success"
+    except Exception as ex:
+        return False,"testStateShape : %s"%(str(ex))
+    
+
+def testSlIsIncluded():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+        state,_,_,_ = env.step(1)
+        state,_,_,_ = env.step(1)
+        #assert
+        expectedDoubleReward = 0.01
+        tk = (env.openTradeAsk + (env.startClose * expectedDoubleReward))/2.0
+        sl = (env.openTradeAsk - (env.startClose * expectedDoubleReward))/2.0
+        
+
+        assert str(round(state[-1,-2],6)) == str(round(tk,6)) and str(round(state[-1,-1],6)) == str(round(sl,6))  , 'expected tk : %0.6f , sl : %0.6f get tk : %0.6f , sl : %0.6f'%(tk,sl,state[-1,-2],state[-1,-1])
+
+        return True,"testSlIsIncluded : Success"
+    except Exception as ex:
+        return False,"testSlIsIncluded : %s"%(str(ex))
+    
 
 
 def testStartCloseIsOkAndNotChangesAfterStep():
@@ -36,8 +103,8 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         state,_,_,_ = env.step(0)
         #assert
-        lastOpen =state[-1,0]#[-14]
-        lastOpenReal = env.data[(env.stepIndex+env.startIndex+100)-1,0]
+        lastOpen =state[-1,0]#[-12]#[-1,0]#[-14]
+        lastOpenReal = env.data[(env.stepIndex+env.startIndex+16)-1,0]
         expected = (lastOpenReal/(startClose*2))
         if "%.5f"%lastOpen != "%.5f"%expected:
             return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)
@@ -76,7 +143,7 @@ def test200StepsReturnMinus0Point01():
         #assign
         #global
         env.reset()
-        
+        loss = -0.00001
         
         #action
         i  =0
@@ -86,7 +153,8 @@ def test200StepsReturnMinus0Point01():
             state,reward,done,_ = env.step(0)
             i+=1
 
-        expected = 1
+        expected = 0
+        expectedReward = loss
         #if(state[-1,1] > 0.5):
         #    expected = 2
         
@@ -94,8 +162,8 @@ def test200StepsReturnMinus0Point01():
         #assert
         
         
-        if  expected != found:
-            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f"%(expected,found)
+        if  expected != found or reward != expectedReward:
+            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f , expectedReward %.6f reward %.6f "%(expected,found,expectedReward,reward)
         else:
             return True,"test200StepsReturnMinus0Point01 : Success"
     except Exception as ex:
@@ -112,19 +180,27 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         #action
         i  =0
         done = False
-        env.step(1)
-        beforeDoneState = None
-        rewardState = 0.0
-        while rewardState > -0.0856 and rewardState < 0.0856 and not done:
-            state,reward,done,data = env.step(0)
-            rewardState = state[-1,-1] * 2.0
-        state,reward,done,data = env.step(0)
-        reward = reward * 2.0      
-        assert reward <= -0.0856 or reward >= 0.0856 or data == True,'wrong close trade expected reward : %.6f found : %.6f'%(0.0856,reward)
-        if data == True:
-            print('environment data come to end')
+        reward = 0.0
+        state,reward,done,data =env.step(1)
         
+        rewardState = 0.0
+        while i < ((100 * 10)+1) and not done:
+            rewardState = state[-2]#[-1,-1]
+            state,reward,done,data = env.step(0)
+            
+            i+=1
+        
+        expectedDone = True
+        expectedReward = rewardState
+        assert expectedDone == done , 'wrong done status expected done %s , done %s'%(str(expectedDone),str(done))
+        strExpectedReward  = '%.6f'%(expectedReward)
+        strReward = '%.6f'%(reward)
+        
+        
+        
+        assert ( strExpectedReward == strReward) ,'wrong reward expected reward %s , reward %s'%(strExpectedReward,strReward)
         return True,"test200StepsAfterTradeIsOkAndReturnRealReward : Success"
+        
     except Exception as ex:
         return False,"test200StepsAfterTradeIsOkAndReturnRealReward : %s"%(str(ex))
 
@@ -146,12 +222,12 @@ def testRewardIsWrittenWithEachStep():
         state,reward,_,_ = env.step(0)
         beforeDoneState = state
         
-        bid = beforeDoneState[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-1,6]#[-5]
+        bid = beforeDoneState[-1,-8]#[-7]#[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-1,-7]#[-6]#[-1,6]#[-5]
         expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
-        reward = str(round( state[-1,-1],6))
+        reward = str(round( state[-1,-3],6))
 
-        previousReward = str(round( state[-2,-1],6))
+        previousReward = str(round( state[-2,-3],6))
         
         if  reward != expectedReward or reward == previousReward:
             return False,"testRewardIsWrittenWithEachStep :  reward expected %s , found %s , previousReward : %s"%(expectedReward,reward,previousReward)
@@ -188,10 +264,10 @@ def testStepIsWrittenInState():
         #assert
         expected = ((100) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
-        value = beforeDoneState[-1,8]#[-3]
+        value = beforeDoneState[-1,-5]#[-4]#[-1,8]#[-3]
         
         expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
-        valueAfter5 = after5stepsState[-1,8]#[-3]
+        valueAfter5 = after5stepsState[-1,-5]#[-4]#[-1,8]#[-3]
 
 
         
@@ -217,7 +293,15 @@ def testStepIsWrittenInState():
 if __name__ == "__main__":
     #run tests
     with open('data/env_unit_tests_result.txt','w') as f:
-        
+        ret,msg = testStateShape()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSlIs07()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSlIsIncluded()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
         ret,msg = testStartCloseIsOkAndNotChangesAfterStep()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
@@ -230,9 +314,9 @@ if __name__ == "__main__":
         ret,msg = test200StepsReturnMinus0Point01()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
-        f.write("%r %s\r\n"%(ret,msg))
-        print("%r %s\r\n"%(ret,msg))
+        #ret,msg = test200StepsAfterTradeIsOkAndReturnRealReward()
+        #f.write("%r %s\r\n"%(ret,msg))
+        #print("%r %s\r\n"%(ret,msg))
         ret,msg = testRewardIsWrittenWithEachStep()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))

@@ -4,6 +4,11 @@ import gym.spaces
 from gym.utils import seeding
 import collections
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
 import time
 
 
@@ -24,8 +29,8 @@ class ForexMetaEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=16)
+        while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
         self.header = ("open","close","high","low","ask","bid")
         self.data = None
@@ -44,7 +49,7 @@ class ForexMetaEnv(gym.Env):
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
     def wait100(self,is_reset = False) :
-        while len(self.states) < 100 :
+        while len(self.states) < 16 :
             self.options.StateAvailable = False
             while not self.options.StateAvailable:
                 None
@@ -107,8 +112,8 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=16)
+        while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
         return self.getState(myState)
 
@@ -146,32 +151,42 @@ class ForexMetaEnv(gym.Env):
     def step(self,action_idx):
         self.wait100()
         #check punish
-        '''
-        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
-            action_idx = 2
-        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
-            action_idx = 1
-        '''
         beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
+        '''
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 10) and self.stopTrade:
+            action_idx = 2
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 10) and self.stopTrade:
+            action_idx = 1
+        
+        '''
+        
+        stopLossPerc = 0.01
         if self.stopTrade:
             if self.openTradeDir == 1  :
-                reward = self.closeUpTrade(beforeActionState) * 2.0
-                if reward > 0.0856 or reward < -0.0856:
+                reward = self.closeUpTrade(beforeActionState)
+                if abs(reward * 2.0) >= stopLossPerc:
                     action_idx = 2
+                    #print('stop trade!')
             elif self.openTradeDir == 2 :
-                reward = self.closeDownTrade(beforeActionState) * 2.0
-                if reward > 0.0856 or reward < -0.0856:
+                reward = self.closeDownTrade(beforeActionState)
+                if abs(reward * 2.0) >= stopLossPerc:
                     action_idx = 1
-        
+                    #print('stop trade!')
+                    
         #end of punish action
         
-        
+        reward = 0
+        done = False
         #punish no action
         if self.startTradeStep is None:
             if self.stepIndex >= (100 * 10) and self.punishAgent:
-                close = beforeActionState[-1,self.header.index("close")]
-                close = close/(self.startClose*2.0)
-                action_idx = 1
+                loss = -0.00001
+                done=True
+                reward = loss
+                action_idx = 0
+                #close = beforeActionState[-1,self.header.index("close")]
+                #close = close/(self.startClose*2.0)
+                #action_idx = 1
                 
                 #if close > 0.5:
                 #    action_idx = 2
@@ -186,8 +201,7 @@ class ForexMetaEnv(gym.Env):
         
         myState = self.waitForNewState()
 
-        reward = 0
-        done = False
+       
         if action_idx == 0:
             None
         elif action_idx == 1:
@@ -222,7 +236,7 @@ class ForexMetaEnv(gym.Env):
         elif (self.openTradeDir == 2):
             self.reward_queue.append(self.closeDownTrade(myState))
         else:
-            self.reward_queue.append(0.0)
+            self.reward_queue.append(reward)
 
         #enf of current reward :
         state = self.getState(myState)
@@ -233,11 +247,22 @@ class ForexMetaEnv(gym.Env):
         
     def getState(self,myState):
         state = myState[:,:6]
-        actions = np.zeros((100,5),dtype=np.float32)
+        actions = np.zeros((16,5),dtype=np.float32)
+        #sep = np.zeros((16,1),dtype=np.float32)
+        expectedDoubleReward = 0.01
+        sltk = np.zeros((16,2),dtype=np.float32)
+        sl=0
+        tk=0
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
+            tk = (self.openTradeAsk + (self.startClose * expectedDoubleReward))/2.0
+            sl = (self.openTradeAsk - (self.startClose * expectedDoubleReward))/2.0
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
+            tk = (self.openTradeBid - (self.startClose * expectedDoubleReward))/2.0
+            sl = (self.openTradeBid + (self.startClose * expectedDoubleReward))/2.0
+        sltk[:,-2] = tk
+        sltk[:,-1] = sl
         
         
 
@@ -254,6 +279,8 @@ class ForexMetaEnv(gym.Env):
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
         
+        state = np.concatenate((state,sltk),axis=1)
+        #state = np.concatenate((state,sep),axis=1)
         #state =  np.reshape( state,(-1,))
         return state
 
