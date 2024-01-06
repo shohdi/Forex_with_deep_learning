@@ -236,12 +236,14 @@ void handleAction(int action)
 int OnInit()
 {
    //---
+   /*
    for (int i = 15; i >= 1; i--)
    {
       int action = OpenRequestGetAction(i, true);
       Print("action taken : ", action);
       handleAction(action);
    }
+   */
    //---
    return (INIT_SUCCEEDED);
 }
