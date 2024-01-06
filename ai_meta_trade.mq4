@@ -10,7 +10,7 @@
 #define MAGICMA 182182
 int myPeriod = PERIOD_M15;
 int tradeDir = 0;
-input long factorInput = 1;
+input long factorInput = 0;
 // my functions
 int CalculateCurrentOrders()
 {
@@ -19,7 +19,7 @@ int CalculateCurrentOrders()
    for (int i = 0; i < OrdersTotal(); i++)
    {
       if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES) == false)
-         break;
+         continue;
       if (OrderSymbol() == Symbol() && OrderMagicNumber() == MAGICMA)
       {
          if (OrderType() == OP_BUY)
@@ -73,7 +73,7 @@ void closeDown()
    for (int i = 0; i < OrdersTotal(); i++)
    {
       if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES) == false)
-         break;
+         continue;
       if (OrderSymbol() == Symbol() && OrderMagicNumber() == MAGICMA)
       {
          // if(OrderType()==OP_BUY)  buys++;
@@ -97,7 +97,7 @@ void closeUp()
    for (int i = 0; i < OrdersTotal(); i++)
    {
       if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES) == false)
-         break;
+         continue;
       if (OrderSymbol() == Symbol() && OrderMagicNumber() == MAGICMA)
       {
          // if(OrderType()==OP_BUY)  buys++;

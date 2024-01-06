@@ -4,6 +4,11 @@ import gym.spaces
 from gym.utils import seeding
 import collections
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
 import csv
 import time
 
@@ -20,8 +25,8 @@ class ForexEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=16)
+        while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
         self.header = None
         self.data_arr = []
@@ -59,7 +64,7 @@ class ForexEnv(gym.Env):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
         self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = np.random.randint(len(self.data)-(500 * 1))
+        self.startIndex = np.random.randint(len(self.data)-(3500 * 1))
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
@@ -72,8 +77,8 @@ class ForexEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
-        self.reward_queue = collections.deque(maxlen=100)
-        while len(self.reward_queue) < 100:
+        self.reward_queue = collections.deque(maxlen=16)
+        while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
         return self.getState()
     
@@ -111,33 +116,39 @@ class ForexEnv(gym.Env):
     def step(self,action_idx):
         #check punish
         '''
-        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
+        if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 10) and self.stopTrade:
             action_idx = 2
-        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 1) and self.stopTrade:
+        elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 10) and self.stopTrade:
             action_idx = 1
         '''
 
-        
+        stopLossPerc = 0.01
         if self.stopTrade:
             if self.openTradeDir == 1  :
-                reward = self.closeUpTrade() * 2.0
-                if reward > 0.0856 or reward < -0.0856:
+                reward = self.closeUpTrade()
+                if abs(reward * 2.0) >= stopLossPerc:
                     action_idx = 2
                     #print('stop trade!')
             elif self.openTradeDir == 2 :
-                reward = self.closeDownTrade() * 2.0
-                if reward > 0.0856 or reward < -0.0856:
+                reward = self.closeDownTrade()
+                if abs(reward * 2.0) >= stopLossPerc:
                     action_idx = 1
                     #print('stop trade!')
         
         #end of punish action
 
         #punish no action
+        reward = 0
+        done = False
         if self.startTradeStep is None:
             if self.stepIndex >= (100 * 10) and self.punishAgent:
-                close = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
-                close = close/(self.startClose*2.0)
-                action_idx = 1
+                loss = -0.00001
+                done=True
+                reward = loss
+                action_idx = 0
+                #close = self.data[self.startIndex+self.stepIndex+99,self.header.index("close")]
+                #close = close/(self.startClose*2.0)
+                #action_idx = 1
                 #print('open opposite trade as punish!')
                 #if close > 0.5:
                 #    action_idx = 2
@@ -147,8 +158,8 @@ class ForexEnv(gym.Env):
                 #    print('open opposite trade as punish!')
         #end of punish no action
 
-        reward = 0
-        done = False
+        
+        
         if action_idx == 0:
             None
         elif action_idx == 1:
@@ -176,7 +187,7 @@ class ForexEnv(gym.Env):
                 reward = self.closeUpTrade()
                 done = True
         data=None
-        if (self.stepIndex + self.startIndex) >= (len(self.data) - 400) and not done:
+        if (self.stepIndex + self.startIndex) >= (len(self.data) - 3002) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
                 #print('end of data!')
@@ -184,7 +195,7 @@ class ForexEnv(gym.Env):
                 reward = self.closeDownTrade()
                 #print('end of data!')
             else:
-                reward = 0.0
+                reward = reward
             done = True
             data = True
         
@@ -195,7 +206,7 @@ class ForexEnv(gym.Env):
         elif (self.openTradeDir == 2):
             self.reward_queue.append(self.closeDownTrade())
         else:
-            self.reward_queue.append(0.0)
+            self.reward_queue.append(reward)
 
         #enf of current reward :
         state = self.getState()
@@ -204,18 +215,29 @@ class ForexEnv(gym.Env):
         return state , reward , done ,data
 
     def getRawState(self):
-        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+100)]
+        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+16)]
         return state
 
     def getState(self):
         state = self.getRawState()[:,:6]
        
 
-        actions = np.zeros((100,5),dtype=np.float32)
+        actions = np.zeros((16,5),dtype=np.float32)
+        #sep = np.zeros((16,1),dtype=np.float32)
+        expectedDoubleReward = 0.01
+        sltk = np.zeros((16,2),dtype=np.float32)
+        sl=0
+        tk=0
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
+            tk = (self.openTradeAsk + (self.startClose * expectedDoubleReward))/2.0
+            sl = (self.openTradeAsk - (self.startClose * expectedDoubleReward))/2.0
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
+            tk = (self.openTradeBid - (self.startClose * expectedDoubleReward))/2.0
+            sl = (self.openTradeBid + (self.startClose * expectedDoubleReward))/2.0
+        sltk[:,-2] = tk
+        sltk[:,-1] = sl
         
         
 
@@ -231,7 +253,8 @@ class ForexEnv(gym.Env):
         if self.startTradeStep is not None :
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
-
+        state = np.concatenate((state,sltk),axis=1)
+        #state = np.concatenate((state,sep),axis=1)
         #state =  np.reshape( state,(-1,))
         return state
 
@@ -239,8 +262,8 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
 
@@ -249,21 +272,21 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
 
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return
-        currentBid = self.data[self.startIndex+self.stepIndex+99,self.header.index("bid")]
+        currentBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
         return ((currentBid - self.openTradeAsk)/self.startClose)/2.0
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return
-        currentAsk = self.data[self.startIndex+self.stepIndex+99,self.header.index("ask")]
+        currentAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
         return ((self.openTradeBid - currentAsk)/self.startClose)/2.0
 
     def analysisUpTrade(self):

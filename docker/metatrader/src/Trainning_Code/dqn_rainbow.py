@@ -7,6 +7,12 @@ from lib.common import EpsilonTracker
 from ptan import ptan
 import argparse
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
+    
 
 import torch
 import torch.nn as nn
@@ -104,17 +110,19 @@ class LSTM_Forex (nn.Module):
         self.actions = actions
         self.selected_device = selDevice
         self.inSize = self.input_shape[1]
-        self.hiddenSize = 200
+        self.hiddenSize = 100
         self.numLayers = 2
         self.outSize = 512
         self.lstm = nn.LSTM(self.inSize,self.hiddenSize,self.numLayers,batch_first=True)
         """ self.size = np.prod(self.input_shape)
+        
         self.network = nn.Sequential(
-            nn.Linear(self.size, self.hiddenSize),
+            nn.Linear(self.input_shape[0], self.hiddenSize),
             nn.ReLU(),
             nn.Linear(self.hiddenSize, self.hiddenSize),
             nn.ReLU()
-        ) """
+        )
+        """ 
         
         #self.lin = nn.Sequential(nn.Linear(self.input_shape[0],self.input_shape[0],True)
         #                         ,nn.ReLU())
@@ -136,15 +144,15 @@ class LSTM_Forex (nn.Module):
         #self.lin = nn.Sequential(nn.Linear(self.hiddenSize,self.hiddenSize)
         #                         ,nn.ReLU())
         self.fc_val = nn.Sequential(
-            dqn_model.NoisyLinear(self.hiddenSize, 512),
+            dqn_model.NoisyLinear(self.hiddenSize, self.outSize),
             nn.ReLU(),
-            dqn_model.NoisyLinear(512, N_ATOMS)
+            dqn_model.NoisyLinear(self.outSize, N_ATOMS)
         )
 
         self.fc_adv = nn.Sequential(
-            dqn_model.NoisyLinear(self.hiddenSize, 512),
+            dqn_model.NoisyLinear(self.hiddenSize, self.outSize),
             nn.ReLU(),
-            dqn_model.NoisyLinear(512, self.actions * N_ATOMS)
+            dqn_model.NoisyLinear(self.outSize, self.actions * N_ATOMS)
         )
         
 
@@ -156,6 +164,7 @@ class LSTM_Forex (nn.Module):
         h0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
         c0 = torch.zeros(self.numLayers,x.size(0),self.hiddenSize,device=self.selected_device)
         out,(hn,cn) = self.lstm(x,(h0,c0))
+        #out = self.network(x)
         #out = self.lin(out[:,-1,:])
         #out = x.view(batch_size,-1)
         #out = self.network(out)
@@ -228,11 +237,11 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     startTime = time.time()
-    testRewards = collections.deque(maxlen=213)
+    testRewards = []#collections.deque(maxlen=100)
     
     testRewardsMean = 0
     newTestRewardsMean = 0
-    valRewards = collections.deque(maxlen=213)
+    valRewards = []#collections.deque(maxlen=100)
     valRewardsMean = 0
     params = common.HYPERPARAMS['Forex']
     params['epsilon_frames'] *= 2
@@ -318,8 +327,8 @@ if __name__ == "__main__":
                     sys.stdout.flush()
                     startTime = time.time()
                 
-                #if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:    
-                if frame_idx > 100000 and len(buffer) < 100000 :
+                if frame_idx > params['replay_size'] and len(buffer) < params['replay_size']:    
+                #if frame_idx > 100000 and len(buffer) < 100000 :
                     #if isCuda:
                     #    time.sleep((1/250))
                     continue
@@ -354,11 +363,20 @@ if __name__ == "__main__":
                 
                 
 
-                if frame_idx % 10000 == 0:
+                if frame_idx % 200000 == 0:
                     
                     testIdx = 0
-                    #testRewards=[]
-                    while testIdx < 1:
+                    testRewards=[]
+                    while testIdx < 100:
+                        currentTime = time.time()
+                        if (currentTime-startTime) > (5*60):
+                            print('sleeping 5 minutes on ' + str(datetime.now()))
+                            sys.stdout.flush()
+                            #if isCuda:
+                            time.sleep(5*60)
+                            print('resuming on ' + str(datetime.now()))
+                            sys.stdout.flush()
+                            startTime = time.time()
                         testState = envTest.reset()
                         testState = np.array(testState,dtype=np.float32)
                         testIdx+=1
@@ -391,17 +409,26 @@ if __name__ == "__main__":
                         sys.stdout.flush()
                         if isCuda:
                             torch.cuda.empty_cache()
-                    if newTestRewardsMean > testRewardsMean and len(testRewards) >= 212 :
-                        print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
-                        testRewardsMean = newTestRewardsMean
-                        testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
-                        torch.save(net.state_dict(), testPeriodPath)
+                    #if newTestRewardsMean > testRewardsMean and len(testRewards) >= 100 :
+                    #    print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
+                    testRewardsMean = newTestRewardsMean
+                    testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
+                    torch.save(net.state_dict(), testPeriodPath)
                 
 
-                    '''
+                    
                     valIndx = 0
                     valRewards=[]
-                    while valIndx < 213:
+                    while valIndx < 100:
+                        currentTime = time.time()
+                        if (currentTime-startTime) > (5*60):
+                            print('sleeping 5 minutes on ' + str(datetime.now()))
+                            sys.stdout.flush()
+                            #if isCuda:
+                            time.sleep(5*60)
+                            print('resuming on ' + str(datetime.now()))
+                            sys.stdout.flush()
+                            startTime = time.time()
                         valState = envVal.reset()
                     
                         valState = np.array(valState,dtype=np.float32)
@@ -438,7 +465,7 @@ if __name__ == "__main__":
                         
                     valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
                     torch.save(net.state_dict(), valPeriodPath)
-                    '''
+                    
             
         
 

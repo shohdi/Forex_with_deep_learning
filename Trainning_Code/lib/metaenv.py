@@ -151,24 +151,24 @@ class ForexMetaEnv(gym.Env):
     def step(self,action_idx):
         self.wait100()
         #check punish
+        beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         '''
         if self.openTradeDir == 1 and (self.stepIndex - self.startTradeStep) > (100 * 10) and self.stopTrade:
             action_idx = 2
         elif self.openTradeDir == 2 and (self.stepIndex - self.startTradeStep) > (100 * 10) and self.stopTrade:
             action_idx = 1
         
-        beforeActionState = np.array(self.states,dtype=np.float32,copy=True)
         '''
         
         stopLossPerc = 0.01
         if self.stopTrade:
             if self.openTradeDir == 1  :
-                reward = self.closeUpTrade()
+                reward = self.closeUpTrade(beforeActionState)
                 if abs(reward * 2.0) >= stopLossPerc:
                     action_idx = 2
                     #print('stop trade!')
             elif self.openTradeDir == 2 :
-                reward = self.closeDownTrade()
+                reward = self.closeDownTrade(beforeActionState)
                 if abs(reward * 2.0) >= stopLossPerc:
                     action_idx = 1
                     #print('stop trade!')

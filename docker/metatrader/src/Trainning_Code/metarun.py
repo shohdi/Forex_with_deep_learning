@@ -5,6 +5,11 @@ import gym.spaces
 from gym.utils import seeding
 import collections
 import numpy as np
+try:
+    testVar = np.zeros((3,3),dtype=np.bool)
+except :
+    np.bool = bool
+    testVar = np.zeros((3,3),dtype=np.bool)
 import csv
 import torch
 import os
@@ -32,7 +37,7 @@ class Options:
 options = Options()
 
 
-stateObj = collections.deque(maxlen=100)
+stateObj = collections.deque(maxlen=16)
 headers = ("open","close","high","low","ask","bid")
 
 class MetaTrade(Resource):
