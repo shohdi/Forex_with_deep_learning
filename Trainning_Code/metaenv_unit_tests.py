@@ -47,7 +47,7 @@ def testStateShape():
         state,_,_,_ = env.step(0)
 
         #assert
-        assert state.shape[0] == (16 , 13)  , 'state shape is wrong %s'%(str(state.shape))
+        assert state.shape == (16 , 13)  , 'state shape is wrong %s'%(str(state.shape))
 
         return True,"testStateShape : Success"
     except Exception as ex:
