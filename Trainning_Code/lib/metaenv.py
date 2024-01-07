@@ -160,7 +160,7 @@ class ForexMetaEnv(gym.Env):
         
         '''
         
-        stopLossPerc = 0.01
+        stopLossPerc = 0.1
         if self.stopTrade:
             if self.openTradeDir == 1  :
                 reward = self.closeUpTrade(beforeActionState)
@@ -249,7 +249,7 @@ class ForexMetaEnv(gym.Env):
         state = myState[:,:6]
         actions = np.zeros((16,5),dtype=np.float32)
         #sep = np.zeros((16,1),dtype=np.float32)
-        expectedDoubleReward = 0.01
+        expectedDoubleReward = 0.1
         sltk = np.zeros((16,2),dtype=np.float32)
         sl=0
         tk=0
