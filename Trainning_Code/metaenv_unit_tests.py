@@ -25,11 +25,11 @@ def testSlIs07():
 
 
         #assert
-        expectedDoubleReward = 0.01
+        expectedDoubleReward = 0.1
         
         assert (data == True 
                 or (abs(reward * 2.0) >=  expectedDoubleReward 
-                    and abs(reward * 2.0) <  (expectedDoubleReward+0.01))),'expected reward is greater than %0.6f found %0.6f'%(expectedDoubleReward,reward)
+                    and abs(reward * 2.0) <  (expectedDoubleReward+0.01))),'expected reward is greater than %0.6f found %0.6f'%(expectedDoubleReward,reward*2.0)
        
 
         return True,"testSlIs07 : Success"
@@ -64,7 +64,7 @@ def testSlIsIncluded():
         state,_,_,_ = env.step(1)
         state,_,_,_ = env.step(1)
         #assert
-        expectedDoubleReward = 0.01
+        expectedDoubleReward = 0.1
         tk = (env.openTradeAsk + (env.startClose * expectedDoubleReward))/2.0
         sl = (env.openTradeAsk - (env.startClose * expectedDoubleReward))/2.0
         
