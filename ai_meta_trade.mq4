@@ -8,7 +8,7 @@
 #property version "1.00"
 #property strict
 #define MAGICMA 182182
-int myPeriod = PERIOD_M15;
+int myPeriod = PERIOD_D1;
 int tradeDir = 0;
 input long factorInput = 0;
 // my functions
