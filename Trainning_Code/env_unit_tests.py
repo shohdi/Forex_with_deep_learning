@@ -149,7 +149,7 @@ def test200StepsReturnMinus0Point01():
         i  =0
         done = False
 
-        while i< ((100 * 10)+1) and not done:
+        while i< ((1 * 20)+1) and not done:
             state,reward,done,_ = env.step(0)
             i+=1
 
@@ -249,7 +249,7 @@ def testStepIsWrittenInState():
         
         beforeDoneState = None
         after5stepsState = None
-        while i< (((100))*10) and not done:
+        while i< (((1))*10) and not done:
             state,reward,done,_ = env.step(0)
             if not done:
                 beforeDoneState = state
@@ -262,7 +262,7 @@ def testStepIsWrittenInState():
 
 
         #assert
-        expected = ((100) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
+        expected = ((1) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
         value = beforeDoneState[-1,-5]#[-4]#[-1,8]#[-3]
         

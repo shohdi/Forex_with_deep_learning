@@ -64,7 +64,7 @@ class ForexEnv(gym.Env):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
         self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = np.random.randint(len(self.data)-(3500 * 1))
+        self.startIndex = np.random.randint(len(self.data)-(16 * 2))
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
@@ -141,7 +141,7 @@ class ForexEnv(gym.Env):
         reward = 0
         done = False
         if self.startTradeStep is None:
-            if self.stepIndex >= (100 * 10) and self.punishAgent:
+            if self.stepIndex >= (1 * 20) and self.punishAgent:
                 loss = -0.00001
                 done=True
                 reward = loss
@@ -187,7 +187,7 @@ class ForexEnv(gym.Env):
                 reward = self.closeUpTrade()
                 done = True
         data=None
-        if (self.stepIndex + self.startIndex) >= (len(self.data) - 3002) and not done:
+        if (self.stepIndex + self.startIndex + 16) >= (len(self.data) - 5) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
                 #print('end of data!')
