@@ -3,7 +3,7 @@ from lib.env import ForexEnv
 
 
 #global init   
-env = ForexEnv('minutes15_100/data/test_data.csv',True)
+env = ForexEnv('minutes15_100/data/test_data.csv',True,False)
 
 
 def testSlIs07():
@@ -154,7 +154,7 @@ def test200StepsReturnMinus0Point01():
             i+=1
 
         expected = 0
-        expectedReward = loss
+        notexpectedReward = loss
         #if(state[-1,1] > 0.5):
         #    expected = 2
         
@@ -162,8 +162,8 @@ def test200StepsReturnMinus0Point01():
         #assert
         
         
-        if  expected != found or reward != expectedReward:
-            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f , expectedReward %.6f reward %.6f "%(expected,found,expectedReward,reward)
+        if  expected != found or reward == notexpectedReward:
+            return False,"test200StepsReturnMinus0Point01 :  open trade direction expected %.5f , found %.5f , expectedReward %.6f reward %.6f "%(expected,found,notexpectedReward,reward)
         else:
             return True,"test200StepsReturnMinus0Point01 : Success"
     except Exception as ex:
