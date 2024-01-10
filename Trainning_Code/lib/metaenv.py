@@ -12,7 +12,8 @@ except :
 import time
 
 
-
+slval = 0.04
+tkval = 0.01
 
 class ForexMetaEnv(gym.Env):
 
@@ -249,18 +250,18 @@ class ForexMetaEnv(gym.Env):
         state = myState[:,:6]
         actions = np.zeros((16,5),dtype=np.float32)
         #sep = np.zeros((16,1),dtype=np.float32)
-        expectedDoubleReward = 0.1
+        
         sltk = np.zeros((16,2),dtype=np.float32)
         sl=0
         tk=0
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
-            tk = (self.openTradeAsk + (self.startClose * expectedDoubleReward))/2.0
-            sl = (self.openTradeAsk - (self.startClose * expectedDoubleReward))/2.0
+            tk = (self.openTradeAsk + (self.startClose * tkval))/2.0
+            sl = (self.openTradeAsk - (self.startClose * slval))/2.0
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
-            tk = (self.openTradeBid - (self.startClose * expectedDoubleReward))/2.0
-            sl = (self.openTradeBid + (self.startClose * expectedDoubleReward))/2.0
+            tk = (self.openTradeBid - (self.startClose * tkval))/2.0
+            sl = (self.openTradeBid + (self.startClose * slval))/2.0
         sltk[:,-2] = tk
         sltk[:,-1] = sl
         
