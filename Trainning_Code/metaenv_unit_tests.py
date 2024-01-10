@@ -36,6 +36,33 @@ def testSlIs07():
     except Exception as ex:
         return False,"testSlIs07 : %s"%(str(ex))
 
+    
+
+def SellIsWorking():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        state,_,_,_ = env.step(0)
+        state,reward,done,data = env.step(2)
+
+        
+        
+
+
+        #assert
+        expectedTradeDir = 2
+        foundTradeDir = env.openTradeDir
+        
+        assert (expectedTradeDir == foundTradeDir ),'expected dir is %d found %d'%(expectedTradeDir,foundTradeDir)
+       
+
+        return True,"SellIsWorking : Success"
+    except Exception as ex:
+        return False,"SellIsWorking : %s"%(str(ex))
+
+
 
 
 def testStateShape():
@@ -298,6 +325,9 @@ def runTests():
     #run tests
     with open('data/metaenv_unit_tests_result.txt','w') as f:
         ret,msg = testStateShape()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = SellIsWorking()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlIs07()
