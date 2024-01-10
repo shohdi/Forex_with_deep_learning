@@ -161,18 +161,7 @@ class ForexMetaEnv(gym.Env):
         
         '''
         
-        stopLossPerc = 0.1
-        if self.stopTrade:
-            if self.openTradeDir == 1  :
-                reward = self.closeUpTrade(beforeActionState)
-                if abs(reward * 2.0) >= stopLossPerc:
-                    action_idx = 2
-                    #print('stop trade!')
-            elif self.openTradeDir == 2 :
-                reward = self.closeDownTrade(beforeActionState)
-                if abs(reward * 2.0) >= stopLossPerc:
-                    action_idx = 1
-                    #print('stop trade!')
+
                     
         #end of punish action
         
@@ -231,6 +220,31 @@ class ForexMetaEnv(gym.Env):
 
         data=None
         self.stepIndex+=1
+                
+        if self.stopTrade and not done:
+            if self.openTradeDir == 1  :
+                reward = self.closeUpTrade(myState)
+
+                if reward > 0 and abs(reward * 2.0) >= tkval:
+                    done = True
+                    
+                    #print('stop trade!')
+                if reward < 0 and abs(reward * 2.0) >= slval:
+                    done = True
+                   
+                    #print('stop trade!')
+            elif self.openTradeDir == 2 :
+                reward = self.closeDownTrade(myState)
+                if reward > 0 and abs(reward * 2.0) >= tkval:
+                    done = True
+                    
+                    #print('stop trade!')
+                if reward < 0 and abs(reward * 2.0) >= slval:
+                    done = True
+            if not done:
+                reward = 0
+                    
+                    #print('stop trade!')
         #add current reward :
         if(self.openTradeDir == 1):
             self.reward_queue.append(self.closeUpTrade(myState))
@@ -308,18 +322,57 @@ class ForexMetaEnv(gym.Env):
 
     def closeUpTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
-            return
+            return 0.0
         currentBid = myState[-1,self.header.index("bid")]
         #print('closing up trade start close : ',self.startClose,' close price ',currentBid)
-        return ((currentBid - self.openTradeAsk)/self.startClose)/2.0
+        reward = ((currentBid - self.openTradeAsk)/self.startClose)/2.0
+        if self.stopTrade:
+            currentAsk = myState[-1,self.header.index("ask")]
+            currentHigh = myState[-1,self.header.index("high")]
+            currentLow = myState[-1,self.header.index("low")]
+            spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
+            high = currentHigh / self.startClose
+            low = currentLow /self.startClose
+            tradeAsk = (self.openTradeAsk / self.startClose)
+            sl = tradeAsk - slval
+            tk = tradeAsk + tkval
+            if  (low - spread) <= sl:
+                
+                reward = -1 * slval    
+            if (high + spread) >= tk:
+                
+                reward = tkval
+        
+        
+        
+        return reward
+    
 
     def closeDownTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
-            return
+            return 0.0
         currentAsk = myState[-1,self.header.index("ask")]
         #print('closing down trade start close : ',self.startClose,' close price ',currentAsk)
-        return ((self.openTradeBid - currentAsk)/self.startClose)/2.0
+        reward =  ((self.openTradeBid - currentAsk)/self.startClose)/2.0
+        if self.stopTrade:
+            currentBid = myState[-1,self.header.index("bid")]
+            currentHigh = myState[-1,self.header.index("high")]
+            currentLow = myState[-1,self.header.index("low")]
+            spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
+            high = currentHigh / self.startClose
+            low = currentLow /self.startClose
+            tradeBid = (self.openTradeBid / self.startClose)
+            sl = tradeBid + slval
+            tk = tradeBid - tkval
+            if (high - spread) >= sl:
+                
+                reward = -1 * slval
+            if  (low + spread) <= tk:
+                
+                reward = tkval 
 
+
+        return reward
 
         
 

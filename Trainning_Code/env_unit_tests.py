@@ -225,9 +225,9 @@ def testReturnRewardWithoutDoneIs0():
         #action
         state,reward,_,_ = env.step(1)
         state,reward,_,_ = env.step(0)
-        state,reward,_,_ = env.step(0)
-        state,reward,_,_ = env.step(0)
-        state,reward,_,_ = env.step(0)
+        #state,reward,_,_ = env.step(0)
+        #state,reward,_,_ = env.step(0)
+        #state,reward,_,_ = env.step(0)
         #assert
         expected = 0
         
@@ -318,9 +318,9 @@ def testRewardIsWrittenWithEachStep():
         state,reward,_,_ = env.step(1)
         state,reward,_,_ = env.step(1)
         state,reward,_,_ = env.step(0)
-        state,reward,_,_ = env.step(0)
+        #state,reward,_,_ = env.step(0)
         
-        state,reward,_,_ = env.step(0)
+        #state,reward,_,_ = env.step(0)
         beforeDoneState = state
         
         bid = beforeDoneState[-1,-8]#[-7]#[-1,5]#[-9]
