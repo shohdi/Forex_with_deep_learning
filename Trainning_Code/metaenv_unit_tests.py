@@ -397,7 +397,7 @@ def testStepIsWrittenInState():
 
 def runTests():
     global env 
-    env = ForexMetaEnv(stateObj,options,False)
+    env = ForexMetaEnv(stateObj,options,True)
     #run tests
     with open('data/metaenv_unit_tests_result.txt','w') as f:
         ret,msg = testStateShape()
