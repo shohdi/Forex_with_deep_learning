@@ -6,31 +6,106 @@ from lib.env import ForexEnv
 env = ForexEnv('minutes15_100/data/test_data.csv',True,False)
 
 
-def testSlIs07():
+def testSlTkForBuyIsOk():
     try:
         #assign
         env.reset()
 
         #action
+        expectedDone = False
         state,_,_,_ = env.step(0)
         state,reward,done,data = env.step(1)
+        expectedDone,expectedReward = getTkSlExDone(state)
+        
 
-        while not done:
+        
+
+        while not expectedDone:
             state,reward,done,data = env.step(1)
+            expectedDone,expectedReward = getTkSlExDone(state)
         
 
 
         #assert
-        expectedDoubleReward = 0.1
         
-        assert (data == True 
-                or (abs(reward * 2.0) >=  expectedDoubleReward 
-                    and abs(reward * 2.0) <  (expectedDoubleReward+0.01))),'expected reward is greater than %0.6f found %0.6f'%(expectedDoubleReward,reward*2.0)
+        
+        assert (expectedDone == done and reward == expectedReward),'touched tk or sl but not done , done : %s , expectedDone : %s , expectedReward : %0.6f , reward : %0.6f'%(str(done),str(expectedDone),expectedReward,reward)
        
 
-        return True,"testSlIs07 : Success"
+        return True,"testSlTkForBuyIsOk : Success"
     except Exception as ex:
-        return False,"testSlIs07 : %s"%(str(ex))
+        return False,"testSlTkForBuyIsOk : %s"%(str(ex))
+    
+def testSlTkForSellIsOk():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        expectedDone = False
+        state,_,_,_ = env.step(0)
+        state,reward,done,data = env.step(2)
+        expectedDone,expectedReward = getTkSlExDoneForSell(state)
+        
+
+        
+
+        while not expectedDone:
+            state,reward,done,data = env.step(2)
+            expectedDone,expectedReward = getTkSlExDoneForSell(state)
+        
+
+
+        #assert
+        
+        
+        assert (expectedDone == done and reward == expectedReward),'touched tk or sl but not done , done : %s , expectedDone : %s , expectedReward : %0.6f , reward : %0.6f'%(str(done),str(expectedDone),expectedReward,reward)
+       
+
+        return True,"testSlTkForSellIsOk : Success"
+    except Exception as ex:
+        return False,"testSlTkForSellIsOk : %s"%(str(ex))
+
+def getTkSlExDone(state):
+    expectedDone = False
+    expectedReward = 0
+    high = state[-1,2] * 2.0
+    low = state[-1,3] * 2.0
+    ask = state[-1,4] * 2.0
+    bid = state[-1,5] * 2.0
+    spread = ask-bid
+        
+    tradeAsk = (env.openTradeAsk / env.startClose)
+    sl = tradeAsk - 0.04
+    tk = tradeAsk + 0.01
+    if  (low - spread) <= sl:
+        expectedDone = True
+        expectedReward = -0.04    
+    if (high + spread) >= tk:
+        expectedDone = True
+        expectedReward = 0.01
+    
+    return expectedDone,expectedReward
+
+def getTkSlExDoneForSell(state):
+    expectedDone = False
+    expectedReward = 0
+    high = state[-1,2] * 2.0
+    low = state[-1,3] * 2.0
+    ask = state[-1,4] * 2.0
+    bid = state[-1,5] * 2.0
+    spread = ask-bid
+    tradeBid = (env.openTradeBid / env.startClose)
+    
+    sl = tradeBid + 0.04
+    tk = tradeBid - 0.01
+    if (high - spread) >= sl:
+        expectedDone = True
+        expectedReward = -0.04
+    if  (low + spread) <= tk:
+        expectedDone = True
+        expectedReward = 0.01 
+    return expectedDone,expectedReward
     
 
 def SellIsWorking():
@@ -324,7 +399,10 @@ if __name__ == "__main__":
         ret,msg = SellIsWorking()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = testSlIs07()
+        ret,msg = testSlTkForBuyIsOk()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSlTkForSellIsOk()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlIsIncluded()
