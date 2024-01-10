@@ -256,7 +256,7 @@ def test200StepsReturnMinus0Point01():
         i  =0
         done = False
 
-        while i< ((1 * 20)+1) and not done:
+        while i< ((1 * 10)+1) and not done:
             state,reward,done,_ = env.step(0)
             i+=1
 

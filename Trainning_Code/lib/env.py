@@ -141,7 +141,7 @@ class ForexEnv(gym.Env):
         reward = 0
         done = False
         if self.startTradeStep is None:
-            if self.stepIndex >= (1 * 20) and self.punishAgent:
+            if self.stepIndex >= (1 * 10) and self.punishAgent:
                 loss = -0.00001
                 done=True
                 reward = loss
