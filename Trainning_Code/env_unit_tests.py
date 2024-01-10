@@ -5,7 +5,8 @@ from lib.env import ForexEnv
 #global init   
 env = ForexEnv('minutes15_100/data/test_data.csv',True,False)
 
-
+slval = 0.04
+tkval = 0.01
 def testSlTkForBuyIsOk():
     try:
         #assign
@@ -76,14 +77,14 @@ def getTkSlExDone(state):
     spread = ask-bid
         
     tradeAsk = (env.openTradeAsk / env.startClose)
-    sl = tradeAsk - 0.04
-    tk = tradeAsk + 0.01
+    sl = tradeAsk - slval
+    tk = tradeAsk + tkval
     if  (low - spread) <= sl:
         expectedDone = True
-        expectedReward = -0.04    
+        expectedReward = -1 * slval    
     if (high + spread) >= tk:
         expectedDone = True
-        expectedReward = 0.01
+        expectedReward = tkval
     
     return expectedDone,expectedReward
 
@@ -97,14 +98,14 @@ def getTkSlExDoneForSell(state):
     spread = ask-bid
     tradeBid = (env.openTradeBid / env.startClose)
     
-    sl = tradeBid + 0.04
-    tk = tradeBid - 0.01
+    sl = tradeBid + slval
+    tk = tradeBid - tkval
     if (high - spread) >= sl:
         expectedDone = True
-        expectedReward = -0.04
+        expectedReward = -1 * slval
     if  (low + spread) <= tk:
         expectedDone = True
-        expectedReward = 0.01 
+        expectedReward = tkval 
     return expectedDone,expectedReward
     
 
