@@ -12,6 +12,9 @@ except :
 import csv
 import time
 
+slval = 0.04
+tkval = 0.01
+
 class ForexEnv(gym.Env):
     def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True):
         self.haveOppsiteData = haveOppsiteData
@@ -122,18 +125,8 @@ class ForexEnv(gym.Env):
             action_idx = 1
         '''
 
-        stopLossPerc = 0.1
-        if self.stopTrade:
-            if self.openTradeDir == 1  :
-                reward = self.closeUpTrade()
-                if abs(reward * 2.0) >= stopLossPerc:
-                    action_idx = 2
-                    #print('stop trade!')
-            elif self.openTradeDir == 2 :
-                reward = self.closeDownTrade()
-                if abs(reward * 2.0) >= stopLossPerc:
-                    action_idx = 1
-                    #print('stop trade!')
+        
+
         
         #end of punish action
 
@@ -141,7 +134,7 @@ class ForexEnv(gym.Env):
         reward = 0
         done = False
         if self.startTradeStep is None:
-            if self.stepIndex >= (1 * 20) and self.punishAgent:
+            if self.stepIndex >= (1 * 10) and self.punishAgent:
                 loss = -0.00001
                 done=True
                 reward = loss
@@ -178,8 +171,8 @@ class ForexEnv(gym.Env):
             
             #check open trade
             if  self.openTradeDir == 0 :
-                #self.openDownTrade()
-                None
+                self.openDownTrade()
+                
             elif self.openTradeDir == 2:
                 None
             else : # 1
@@ -200,6 +193,31 @@ class ForexEnv(gym.Env):
             data = True
         
         self.stepIndex+=1
+        
+        if self.stopTrade and not done:
+            if self.openTradeDir == 1  :
+                reward = self.closeUpTrade()
+
+                if reward > 0 and abs(reward * 2.0) >= tkval:
+                    done = True
+                    
+                    #print('stop trade!')
+                if reward < 0 and abs(reward * 2.0) >= slval:
+                    done = True
+                   
+                    #print('stop trade!')
+            elif self.openTradeDir == 2 :
+                reward = self.closeDownTrade()
+                if reward > 0 and abs(reward * 2.0) >= tkval:
+                    done = True
+                    
+                    #print('stop trade!')
+                if reward < 0 and abs(reward * 2.0) >= slval:
+                    done = True
+            if not done:
+                reward = 0
+                    
+                    #print('stop trade!')
         #add current reward :
         if(self.openTradeDir == 1):
             self.reward_queue.append(self.closeUpTrade())
@@ -224,18 +242,18 @@ class ForexEnv(gym.Env):
 
         actions = np.zeros((16,5),dtype=np.float32)
         #sep = np.zeros((16,1),dtype=np.float32)
-        expectedDoubleReward = 0.1
+        
         sltk = np.zeros((16,2),dtype=np.float32)
         sl=0
         tk=0
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
-            tk = (self.openTradeAsk + (self.startClose * expectedDoubleReward))/2.0
-            sl = (self.openTradeAsk - (self.startClose * expectedDoubleReward))/2.0
+            tk = (self.openTradeAsk + (self.startClose * tkval))/2.0
+            sl = (self.openTradeAsk - (self.startClose * slval))/2.0
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
-            tk = (self.openTradeBid - (self.startClose * expectedDoubleReward))/2.0
-            sl = (self.openTradeBid + (self.startClose * expectedDoubleReward))/2.0
+            tk = (self.openTradeBid - (self.startClose * tkval))/2.0
+            sl = (self.openTradeBid + (self.startClose * slval))/2.0
         sltk[:,-2] = tk
         sltk[:,-1] = sl
         
@@ -279,15 +297,51 @@ class ForexEnv(gym.Env):
 
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
-            return
+            return 0.0
         currentBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
-        return ((currentBid - self.openTradeAsk)/self.startClose)/2.0
+        reward =  ((currentBid - self.openTradeAsk)/self.startClose)/2.0
+
+        if self.stopTrade:
+            currentAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
+            currentHigh = self.data[self.startIndex+self.stepIndex+15,self.header.index("high")]
+            currentLow = self.data[self.startIndex+self.stepIndex+15,self.header.index("low")]
+            spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
+            high = currentHigh / self.startClose
+            low = currentLow /self.startClose
+            tradeAsk = (self.openTradeAsk / self.startClose)
+            sl = tradeAsk - slval
+            tk = tradeAsk + tkval
+            if  (low - spread) <= sl:
+                
+                reward = -1 * slval    
+            if (high + spread) >= tk:
+                
+                reward = tkval
+        return reward
 
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
-            return
+            return 0.0
         currentAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
-        return ((self.openTradeBid - currentAsk)/self.startClose)/2.0
+        reward =  ((self.openTradeBid - currentAsk)/self.startClose)/2.0
+        if self.stopTrade:
+            currentBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
+            currentHigh = self.data[self.startIndex+self.stepIndex+15,self.header.index("high")]
+            currentLow = self.data[self.startIndex+self.stepIndex+15,self.header.index("low")]
+            spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
+            high = currentHigh / self.startClose
+            low = currentLow /self.startClose
+            tradeBid = (self.openTradeBid / self.startClose)
+            sl = tradeBid + slval
+            tk = tradeBid - tkval
+            if (high - spread) >= sl:
+                
+                reward = -1 * slval
+            if  (low + spread) <= tk:
+                
+                reward = tkval 
+
+        return reward
 
     def analysisUpTrade(self):
         startStep = self.startIndex + self.stepIndex
