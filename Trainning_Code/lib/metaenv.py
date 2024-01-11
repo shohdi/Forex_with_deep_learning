@@ -338,12 +338,15 @@ class ForexMetaEnv(gym.Env):
             tk = tradeAsk + tkval
             if  (low - spread) <= sl:
                 
-                reward = -1 * slval    
-            if (high + spread) >= tk:
+                reward = (-1 * slval)/2.0    
+            elif (high + spread) >= tk:
                 
-                reward = tkval
+                reward = tkval/2.0
         
-        
+            if(reward > (tkval/2.0)):
+                reward = tkval/2.0
+            elif (reward < ((-1 * slval)/2.0)):
+                reward = (-1 * slval)/2.0
         
         return reward
     
@@ -366,11 +369,15 @@ class ForexMetaEnv(gym.Env):
             tk = tradeBid - tkval
             if (high - spread) >= sl:
                 
-                reward = -1 * slval
-            if  (low + spread) <= tk:
+                reward = (-1 * slval)/2.0
+            elif  (low + spread) <= tk:
                 
-                reward = tkval 
+                reward = tkval /2.0 
 
+            if(reward > (tkval/2.0)):
+                reward = tkval/2.0
+            elif (reward < ((-1 * slval)/2.0)):
+                reward = (-1 * slval)/2.0
 
         return reward
 
