@@ -162,8 +162,8 @@ def testSlIsIncluded():
         state,_,_,_ = env.step(1)
         #assert
         
-        tk = (env.openTradeAsk + (env.startClose * tkval))/2.0
-        sl = (env.openTradeAsk - (env.startClose * slval))/2.0
+        tk = (env.openTradeAsk + (env.startClose * tkval))/(2.0 * env.startClose)
+        sl = (env.openTradeAsk - (env.startClose * slval))/(2.0 * env.startClose)
         
 
         assert str(round(state[-1,-2],6)) == str(round(tk,6)) and str(round(state[-1,-1],6)) == str(round(sl,6))  , 'expected tk : %0.6f , sl : %0.6f get tk : %0.6f , sl : %0.6f'%(tk,sl,state[-1,-2],state[-1,-1])

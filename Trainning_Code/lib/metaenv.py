@@ -270,12 +270,12 @@ class ForexMetaEnv(gym.Env):
         tk=0
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
-            tk = (self.openTradeAsk + (self.startClose * tkval))/2.0
-            sl = (self.openTradeAsk - (self.startClose * slval))/2.0
+            tk = (self.openTradeAsk + (self.startClose * tkval))/(2.0 * self.startClose)
+            sl = (self.openTradeAsk - (self.startClose * slval))/(2.0 * self.startClose)
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
-            tk = (self.openTradeBid - (self.startClose * tkval))/2.0
-            sl = (self.openTradeBid + (self.startClose * slval))/2.0
+            tk = (self.openTradeBid - (self.startClose * tkval))/(2.0 * self.startClose)
+            sl = (self.openTradeBid + (self.startClose * slval))/(2.0 * self.startClose)
         sltk[:,-2] = tk
         sltk[:,-1] = sl
         
