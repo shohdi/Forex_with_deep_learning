@@ -81,10 +81,10 @@ def getTkSlExDone(state):
     tk = tradeAsk + tkval
     if  (low - spread) <= sl:
         expectedDone = True
-        expectedReward = -1 * slval    
+        expectedReward = (-1 * slval)/2.0    
     if (high + spread) >= tk:
         expectedDone = True
-        expectedReward = tkval
+        expectedReward = tkval/2.0
     
     return expectedDone,expectedReward
 
@@ -102,10 +102,10 @@ def getTkSlExDoneForSell(state):
     tk = tradeBid - tkval
     if (high - spread) >= sl:
         expectedDone = True
-        expectedReward = -1 * slval
+        expectedReward = (-1 * slval)/2.0
     if  (low + spread) <= tk:
         expectedDone = True
-        expectedReward = tkval 
+        expectedReward = tkval /2.0
     return expectedDone,expectedReward
     
 
