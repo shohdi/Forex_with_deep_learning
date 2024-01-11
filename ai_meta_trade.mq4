@@ -11,6 +11,15 @@
 int myPeriod = PERIOD_D1;
 int tradeDir = 0;
 input long factorInput = 0;
+double slval=0.04;
+double tkval=0.01;
+double startClose = 0;
+double openTradeAsk = 0;
+double openTradeBid =0;
+
+
+
+
 // my functions
 int CalculateCurrentOrders()
 {
@@ -39,7 +48,11 @@ void openUp(double lots)
    if (CalculateCurrentOrders() == 0)
    {
       Print("Opening Up Order !!");
-      int res = OrderSend(Symbol(), OP_BUY, lots, Ask, 5, 0, 0, "", MAGICMA, 0, Green);
+      openTradeAsk = Ask;
+      openTradeBid = Bid;
+      double tk = openTradeAsk + (startClose * tkval);
+      double sl = openTradeAsk - (startClose * slval);
+      int res = OrderSend(Symbol(), OP_BUY, lots, Ask, 5, sl, tk, "", MAGICMA, 0, Green);
       if (res == -1)
       {
          tradeDir = 0;
@@ -56,7 +69,11 @@ void openDown(double lots)
    if (CalculateCurrentOrders() == 0)
    {
       Print("Opening Down Order !!");
-      int res = OrderSend(Symbol(), OP_SELL, lots, Bid, 5, 0, 0, "", MAGICMA, 0, Red);
+      openTradeAsk = Ask;
+      openTradeBid = Bid;
+      double tk = openTradeBid - (startClose * tkval);
+      double sl = openTradeBid + (startClose * slval);
+      int res = OrderSend(Symbol(), OP_SELL, lots, Bid, 5,sl, tk, "", MAGICMA, 0, Red);
       if (res == -1)
       {
          tradeDir = 0;
@@ -124,6 +141,11 @@ int OpenRequestGetAction(int i, bool history)
    double low = iLow(Symbol(), myPeriod, i);
    double ask = close + (Ask - Bid);
    double bid = close;
+
+   if(startClose == 0)
+   {
+      startClose = close;
+   }
    
    int hoursAdded = 0;
    switch (myPeriod)
@@ -228,6 +250,7 @@ void handleAction(int action)
       Print("reset env");
       closeUp();
       closeDown();
+      startClose = 0;
    }
 }
 //+------------------------------------------------------------------+
