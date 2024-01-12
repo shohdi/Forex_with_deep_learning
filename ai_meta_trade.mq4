@@ -135,6 +135,13 @@ void closeUp()
 }
 int OpenRequestGetAction(int i, bool history)
 {
+   if(tradeDir != 0)
+   {
+      if (CalculateCurrentOrders() == 0)
+      {
+         tradeDir = 0;
+      }
+   }
    double open = iOpen(Symbol(), myPeriod, i);
    double close = iClose(Symbol(), myPeriod, i);
    double high = iHigh(Symbol(), myPeriod, i);
