@@ -76,7 +76,7 @@ class MetaTrade(Resource):
         assert day > 0
         assert week > 0
         assert month > 0
-        print("new state ",open,close,high,low,ask,bid,day,week,month)
+        #print("new state ",open,close,high,low,ask,bid,day,week,month)
         stateObj.append(np.array([open,close,high,low,ask,bid,day,week,month],dtype=np.float32))
         options.tradeDir = tradeDir
         options.StateAvailable = True
@@ -104,10 +104,10 @@ def startApp():
     myFilePath = os.path.join(MY_DATA_PATH,DEFAULT_ENV_NAME + "-10000.dat")
     env = ForexMetaEnv(stateObj,options,False,True)
     device = torch.device("cuda" if cudaDefault else "cpu")
-    print("device : ",device)
+    #print("device : ",device)
     net = LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
     if os.path.exists(myFilePath):
-        print('loading model')
+        #print('loading model')
         net.load_state_dict(torch.load(myFilePath, map_location=device))
         state = env.reset()
     net = net.qvals
@@ -129,9 +129,9 @@ def startApp():
         if done:
             printed_reward += total_reward
             gameNumber += 1
-            print ("finish game number " , gameNumber)
-            print ("reward " , total_reward)
-            print ("all reward " ,  printed_reward)
+            #print ("finish game number " , gameNumber)
+            #print ("reward " , total_reward)
+            #print ("all reward " ,  printed_reward)
             writer.add_scalar("reward" , total_reward,frameIdx)
             writer.add_scalar("sum reward" , printed_reward,gameNumber)
             state = env.reset()
