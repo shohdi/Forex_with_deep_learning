@@ -173,7 +173,7 @@ class ForexMetaEnv(gym.Env):
                 loss = -0.00001
                 done=True
                 reward = loss
-                action_idx = 0
+                action_idx = 12
                 #close = beforeActionState[-1,self.header.index("close")]
                 #close = close/(self.startClose*2.0)
                 #action_idx = 1
@@ -307,7 +307,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
-        print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
+        #print('opening up trade start close : ',self.startClose,' open price ',self.openTradeAsk)
 
     def openDownTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
@@ -317,7 +317,7 @@ class ForexMetaEnv(gym.Env):
         self.openTradeBid = myState[-1,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
-        print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
+        #print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
 
     def closeUpTrade(self,myState):

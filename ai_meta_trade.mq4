@@ -181,7 +181,7 @@ string createRequest(string url)
    char post[], result[];
    int res;
    ResetLastError();
-   int timeout = 0; //--- Timeout below 1000 (1 sec.) is not enough for slow Internet connection
+   int timeout = 60000; //--- Timeout below 1000 (1 sec.) is not enough for slow Internet connection
    res = WebRequest("GET", url, cookie, NULL, timeout, post, 0, result, headers);
    //--- Checking errors
    if (res == -1)
@@ -259,7 +259,7 @@ void handleAction(int action)
 int OnInit()
 {
    //---
-   for (int i = 15; i >= 1; i--)
+   for (int i = 16; i >= 1; i--)
    {
       int action = OpenRequestGetAction(i, true);
       Print("action taken : ", action);
