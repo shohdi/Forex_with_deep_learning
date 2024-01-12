@@ -78,27 +78,15 @@ class ForexMetaEnv(gym.Env):
         while not self.options.StateAvailable:
             None
         
-        if self.options.tradeDir == 0 and self.openTradeDir != 0  :
-            #close trade dir
-            self.openTradeDir = 0
-            self.startTradeStep = None
-            self.openTradeAsk = None
-            self.openTradeBid = None
+        
         myState = np.array(self.states,dtype=np.float32,copy=True)
-    
+
             
 
         return myState
-        
-
-    def reset(self):
-        self.options.takenAction = 12
-        self.options.ActionAvailable = True
-        self.wait100()
-
-        myState = self.waitForNewState()
 
 
+    def resetEnv(self,myState):
         self.startTradeStep = None
         self.stepIndex = 0
         
@@ -116,6 +104,17 @@ class ForexMetaEnv(gym.Env):
         self.reward_queue = collections.deque(maxlen=16)
         while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
+
+
+    def reset(self):
+        self.options.takenAction = 12
+        self.options.ActionAvailable = True
+        self.wait100()
+
+        myState = self.waitForNewState()
+
+        self.resetEnv(myState)
+
         return self.getState(myState)
 
     def calculateStopLoss(self,price,direction):
@@ -173,7 +172,7 @@ class ForexMetaEnv(gym.Env):
                 loss = -0.00001
                 done=True
                 reward = loss
-                action_idx = 12
+                action_idx = 0
                 #close = beforeActionState[-1,self.header.index("close")]
                 #close = close/(self.startClose*2.0)
                 #action_idx = 1
@@ -190,6 +189,10 @@ class ForexMetaEnv(gym.Env):
         self.waitForTakeAction(action_idx)
         
         myState = self.waitForNewState()
+        if self.options.tradeDir == 0 and self.openTradeDir != 0  :
+            #close trade dir
+            self.resetEnv(myState)
+            return self.getState(myState)
 
        
         if action_idx == 0:
