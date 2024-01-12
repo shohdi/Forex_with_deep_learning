@@ -192,7 +192,7 @@ class ForexMetaEnv(gym.Env):
         if self.options.tradeDir == 0 and self.openTradeDir != 0  :
             #close trade dir
             self.resetEnv(myState)
-            return self.getState(myState)
+            return self.getState(myState),0,False,None
 
        
         if action_idx == 0:
