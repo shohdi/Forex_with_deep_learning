@@ -183,9 +183,9 @@ class ForexMetaEnv(gym.Env):
                 #else:
                 #    action_idx = 1
         #end of punish no action
-        if  self.startTradeStep is None:
-            if action_idx == 2:
-                action_idx = 0
+        #if  self.startTradeStep is None:
+        #    if action_idx == 2:
+        #        action_idx = 0
 
         self.waitForTakeAction(action_idx)
         
