@@ -215,7 +215,7 @@ void handleAction(int action)
    double modeMinLot = MarketInfo(Symbol(), MODE_MINLOT);
    double lots = modeMinLot;
    double balance = AccountBalance();
-   long factor = (long)(balance / 100.0);
+   long factor = (long)(balance / 400.0);
    long twoMultiply = 1;
    while (twoMultiply <= factor)
    {
