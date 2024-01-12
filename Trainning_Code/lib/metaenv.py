@@ -173,7 +173,7 @@ class ForexMetaEnv(gym.Env):
                 loss = -0.00001
                 done=True
                 reward = loss
-                action_idx = 0
+                action_idx = 12
                 #close = beforeActionState[-1,self.header.index("close")]
                 #close = close/(self.startClose*2.0)
                 #action_idx = 1
