@@ -11,6 +11,8 @@
 int myPeriod = PERIOD_D1;
 int tradeDir = 0;
 input long factorInput = 0;
+input double factorBalance = 400;
+long lastFactor = 1;
 double slval=0.04;
 double tkval=0.01;
 double startClose = 0;
@@ -222,18 +224,40 @@ void handleAction(int action)
    double modeMinLot = MarketInfo(Symbol(), MODE_MINLOT);
    double lots = modeMinLot;
    double balance = AccountBalance();
-   long factor = (long)(balance / 400.0);
+   double factorD = balance/factorBalance;
+   long factor = (long)(factorD);
    long twoMultiply = 1;
    while (twoMultiply <= factor)
    {
       twoMultiply *= 2;
    }
    twoMultiply /= 2;
-   factor = twoMultiply;
+   factor = twoMultiply;  
    if (factor < 1)
    {
       factor = 1;
    }
+   
+   
+   if(factor < lastFactor)
+   {
+      if(factor >= (lastFactor/2.0))
+      {
+         factor = lastFactor;
+      }
+      else
+      {
+         factor = factor * 2;
+      }
+   }
+   
+   if(factorD < 1)
+   {
+      factor = 1;
+   }
+   
+   
+   lastFactor = factor;
    
    if (factorInput > 0)
    {
