@@ -281,6 +281,7 @@ void handleAction(int action)
    
    if(factor < lastFactor)
    {
+      /*
       if(factor >= (lastFactor/2.0))
       {
          factor = lastFactor;
@@ -289,12 +290,16 @@ void handleAction(int action)
       {
          factor = factor * 2;
       }
+      */
+      factor = lastFactor;
    }
    
+   /*
    if(factorD < 1)
    {
       factor = 1;
    }
+   */
    
    
    lastFactor = factor;
