@@ -45,6 +45,46 @@ int CalculateCurrentOrders()
    else
       return (-sells);
 }
+
+void checkSlTk()
+{
+   if (CalculateCurrentOrders() > 0)
+   {
+      double spread = Ask-Bid;
+      if(tradeDir == 1)
+      {
+         double tk = openTradeAsk + (startClose * tkval);
+         double sl = openTradeAsk - (startClose * slval);
+         
+         if((Low[0]-spread) <= sl)
+         {
+            closeUp();
+         }
+         
+         if((High[0]+spread) >= tk )
+         {
+            closeUp();
+         }
+      
+      }
+      else if(tradeDir == 2)
+      {
+         double tk = openTradeBid - (startClose * tkval);
+         double sl = openTradeBid + (startClose * slval);
+         if((High[0]-spread) >= sl)
+         {
+            closeDown();
+         }
+         
+         if((Low[0]+spread) <= tk )
+         {
+            closeDown();
+         }
+         
+      }
+   }
+}
+
 void openUp(double lots)
 {
    if (CalculateCurrentOrders() == 0)
@@ -52,8 +92,8 @@ void openUp(double lots)
       Print("Opening Up Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
-      double tk = openTradeAsk + (startClose * tkval);
-      double sl = openTradeAsk - (startClose * slval);
+      double tk = 0; //openTradeAsk + (startClose * tkval);
+      double sl = 0; //openTradeAsk - (startClose * slval);
       int res = OrderSend(Symbol(), OP_BUY, lots, Ask, 5, sl, tk, "", MAGICMA, 0, Green);
       if (res == -1)
       {
@@ -73,8 +113,8 @@ void openDown(double lots)
       Print("Opening Down Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
-      double tk = openTradeBid - (startClose * tkval);
-      double sl = openTradeBid + (startClose * slval);
+      double tk = 0; // openTradeBid - (startClose * tkval);
+      double sl = 0; // openTradeBid + (startClose * slval);
       int res = OrderSend(Symbol(), OP_SELL, lots, Bid, 5,sl, tk, "", MAGICMA, 0, Red);
       if (res == -1)
       {
@@ -312,6 +352,7 @@ void OnDeinit(const int reason)
 datetime D1;
 void OnTick()
 {
+   checkSlTk();
    //---
    if (D1 != iTime(Symbol(), myPeriod, 0)) // new candle on D1
    {
