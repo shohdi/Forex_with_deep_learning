@@ -147,7 +147,7 @@ def startApp():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p","--port", default=5000, help="port number")
+    parser.add_argument("-p","--port", default=80, help="port number")
     args = parser.parse_args()
     thread = Thread(target=startApp)
     thread.start()
