@@ -333,8 +333,8 @@ int OnInit()
    for (int i = 16; i >= 1; i--)
    {
       int action = OpenRequestGetAction(i, true);
-      Print("action taken : ", action);
-      handleAction(action);
+      //Print("action taken : ", action);
+      //handleAction(action);
    }
    //---
    return (INIT_SUCCEEDED);
