@@ -16,11 +16,12 @@ slval = 0.04
 tkval = 0.01
 
 class ForexEnv(gym.Env):
-    def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True):
+    def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True,startRandom=True):
         self.haveOppsiteData = haveOppsiteData
         self.punishAgent = punishAgent
         self.stopTrade = stopTrade
         self.filePath = filePath
+        self.startRandom=startRandom
         self.action_space = gym.spaces.Discrete(n=3)
         
         
@@ -38,7 +39,7 @@ class ForexEnv(gym.Env):
         self.startBid = None
         self.openTradeAsk = None
         self.openTradeBid = None
-        self.startIndex = None
+        self.startIndex = 0
         self.stepIndex = 0
         self.stopLoss = None
         
@@ -67,7 +68,9 @@ class ForexEnv(gym.Env):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
         self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = np.random.randint(len(self.data)-(16 * 2))
+        self.startIndex = self.stepIndex
+        if self.startRandom:
+            self.startIndex =np.random.randint(len(self.data)-(16 * 2))
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
@@ -135,7 +138,7 @@ class ForexEnv(gym.Env):
         done = False
         if self.startTradeStep is None:
             if self.stepIndex >= (1 * 10) and self.punishAgent:
-                loss = -0.00001
+                loss = 0.0#-0.00001
                 done=True
                 reward = loss
                 action_idx = 0

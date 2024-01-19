@@ -169,7 +169,7 @@ class ForexMetaEnv(gym.Env):
         #punish no action
         if self.startTradeStep is None:
             if self.stepIndex >= (1 * 10) and self.punishAgent:
-                loss = -0.00001
+                loss = 0.0#-0.00001
                 done=True
                 reward = loss
                 action_idx = 0

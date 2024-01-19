@@ -250,7 +250,7 @@ def test200StepsReturnMinus0Point01():
         #assign
         #global
         env.reset()
-        loss = -0.00001
+        loss = 0.0#-0.00001
         
         #action
         i  =0
