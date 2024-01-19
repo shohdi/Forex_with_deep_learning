@@ -52,6 +52,7 @@ class ForexEnv(gym.Env):
                 reader = csv.reader(f, delimiter=';')
                 self.header = next(reader)
                 arrToppend = np.array(list(reader)).astype(np.float32)
+                arrToppend = self.fixSpreadToBeRandom(arrToppend)
                 self.data_arr.append(arrToppend )
                 if self.haveOppsiteData:
                     arrToppend = np.array(self.data_arr[0],copy=True)
@@ -74,6 +75,26 @@ class ForexEnv(gym.Env):
         arrRet = glob.glob(filePath + os.sep +  r"*.csv")
         
         return arrRet
+    
+    def fixSpreadToBeRandom(self,arr):
+        bidIndex = self.header.index("bid")
+        askIndex = self.header.index("ask")
+        closeIndex = self.header.index("close")
+        openIndex = self.header.index("open")
+        for arrIndex in range(len(arr)):
+            row = arr[arrIndex]
+            op = row[closeIndex]
+            if arrIndex < (len(arr)-1):
+                op = arr[arrIndex+1,openIndex]
+            cl = row[closeIndex]
+            #Spread: 0.00027 Spread * close = 0.00027 * (close) 1.104 = 0.000298 = 0.00030
+            point = (0.00027 * cl)/30.0
+            spread = float(np.random.randint(30,40))
+            spread = point * spread
+            row[bidIndex] = op
+            row[askIndex] = row[bidIndex] + spread
+        
+        return arr
 
 
     def reset(self):
