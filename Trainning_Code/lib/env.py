@@ -42,26 +42,35 @@ class ForexEnv(gym.Env):
         self.startIndex = 0
         self.stepIndex = 0
         self.stopLoss = None
-        
-        with open(self.filePath, 'r') as f:
-            reader = csv.reader(f, delimiter=';')
-            self.header = next(reader)
-            self.data_arr.append( np.array(list(reader)).astype(np.float32))
-            if self.haveOppsiteData:
-                self.data_arr.append(np.array(self.data_arr[0],copy=True))
-                self.data_arr[1] = 1/self.data_arr[1]
-                tempData = np.array(self.data_arr[1][:,4],copy=True)
-                self.data_arr[1][:,4] = np.array(self.data_arr[1][:,5],copy=True)
-                self.data_arr[1][:,5] = tempData
-                tempData = np.array(self.data_arr[1][:,2],copy=True)
-                self.data_arr[1][:,2] = np.array(self.data_arr[1][:,3],copy=True)
-                self.data_arr[1][:,3] = tempData
+        self.filesArr = []
+        self.filesArr = self.readFilePaths(self.filePath)
+        for fileIndex in range(len(self.filesArr)):
+            currentFilePath = self.filesArr[fileIndex]
+            with open(currentFilePath, 'r') as f:
+                reader = csv.reader(f, delimiter=';')
+                self.header = next(reader)
+                arrToppend = np.array(list(reader)).astype(np.float32)
+                self.data_arr.append(arrToppend )
+                if self.haveOppsiteData:
+                    arrToppend = np.array(self.data_arr[0],copy=True)
+                    self.data_arr.append(arrToppend)
+                    self.data_arr[1] = 1/self.data_arr[1]
+                    tempData = np.array(self.data_arr[1][:,4],copy=True)
+                    self.data_arr[1][:,4] = np.array(self.data_arr[1][:,5],copy=True)
+                    self.data_arr[1][:,5] = tempData
+                    tempData = np.array(self.data_arr[1][:,2],copy=True)
+                    self.data_arr[1][:,2] = np.array(self.data_arr[1][:,3],copy=True)
+                    self.data_arr[1][:,3] = tempData
 
-            self.data = self.data_arr[np.random.randint(len(self.data_arr))]
+                self.data = self.data_arr[np.random.randint(len(self.data_arr))]
         
         test_state = self.reset()
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
+    def readFilePaths(self,filePath):
+        arrRet = []
+        arrRet.append(filePath)
+        return arrRet
 
 
     def reset(self):
