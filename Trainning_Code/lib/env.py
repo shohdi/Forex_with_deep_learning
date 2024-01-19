@@ -3,6 +3,8 @@ import gym
 import gym.spaces
 from gym.utils import seeding
 import collections
+import glob
+import os
 import numpy as np
 try:
     testVar = np.zeros((3,3),dtype=np.bool)
@@ -69,7 +71,8 @@ class ForexEnv(gym.Env):
 
     def readFilePaths(self,filePath):
         arrRet = []
-        arrRet.append(filePath)
+        arrRet = glob.glob(filePath + os.sep +  r"*.csv")
+        
         return arrRet
 
 
@@ -426,7 +429,7 @@ class ForexEnv(gym.Env):
 
 '''
 if __name__ == "__main__":
-    env = ForexEnv("minutes15_100/data/test_data.csv")
+    env = ForexEnv("minutes15_100/data/test")
     print(env.reset())
     i = 0
     sumReward = 0
@@ -476,7 +479,7 @@ if __name__ == "__main__":
 
 
 if __name__ == "__main__":
-    env = ForexEnv("minutes15_100/data/train_data.csv",True)
+    env = ForexEnv("minutes15_100/data/train",True)
     state = env.reset()
     print("start " , state[0])
     print("start close ",env.startClose)

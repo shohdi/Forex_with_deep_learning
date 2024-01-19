@@ -3,7 +3,7 @@ from lib.env import ForexEnv
 
 
 #global init   
-env = ForexEnv('minutes15_100/data/test_data.csv',True,True,True,False)
+env = ForexEnv('minutes15_100/data/test',True,True,True,False)
 
 slval = 0.04
 tkval = 0.01
