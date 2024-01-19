@@ -80,7 +80,7 @@ class ForexEnv(gym.Env):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
         self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = self.stepIndex
+        self.startIndex = self.startIndex + self.stepIndex
         if self.startRandom:
             self.startIndex =np.random.randint(len(self.data)-(16 * 2))
         self.startTradeStep = None
