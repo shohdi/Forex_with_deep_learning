@@ -8,7 +8,7 @@ class Adjclose:
 
     @staticmethod
     def from_dict(obj: Any) -> 'Adjclose':
-        _adjclose = [float(y) for y in obj.get("adjclose")]
+        _adjclose = [float(y if y is not None else 0) for y in obj.get("adjclose")]
         return Adjclose(_adjclose)
 
 @dataclass
@@ -117,11 +117,11 @@ class Quote:
 
     @staticmethod
     def from_dict(obj: Any) -> 'Quote':
-        _close = [float(y) for y in obj.get("close")]
-        _volume = [int(y) for y in obj.get("volume")]
-        _open = [float(y) for y in obj.get("open")]
-        _low = [float(y) for y in obj.get("low")]
-        _high = [float(y) for y in obj.get("high")]
+        _close = [float(y if y is not None else 0) for y in obj.get("close")]
+        _volume = [int(y if y is not None else 0) for y in obj.get("volume")]
+        _open = [float(y if y is not None else 0) for y in obj.get("open")]
+        _low = [float(y if y is not None else 0) for y in obj.get("low")]
+        _high = [float(y if y is not None else 0) for y in obj.get("high")]
         return Quote(_close, _volume, _open, _low, _high)
 
 
