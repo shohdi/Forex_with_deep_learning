@@ -1,5 +1,6 @@
 from SaudiMarket import SaudiMarket,Row
 from YahooRet import Adjclose,Pre,Post,Regular,CurrentTradingPeriod,Meta,Quote,Indicators,Result,Chart,YahooRet
+from YahooRequest import YahooRequest
 import requests
 import json
 
@@ -10,9 +11,17 @@ if __name__=='__main__':
     jsonObj = json.loads(stringRet)
     market = SaudiMarket.from_dict(jsonObj)
     for i in range(len(market.rows)):
+        
         sym = market.rows[i].symbol
         print(sym)
         sym = sym[0:sym.index(".")] + ".SR"
         print(sym)
+        fr = 1705580381
+        to = 1705580381
+        req = YahooRequest(sym,fr,to)
+        ret = req.makeRequest()
+        print(ret.chart.result[0].meta.regularMarketTime)
+        
+        
 
     
