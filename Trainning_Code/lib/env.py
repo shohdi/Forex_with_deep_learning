@@ -57,13 +57,13 @@ class ForexEnv(gym.Env):
                 if self.haveOppsiteData:
                     arrToppend = np.array(self.data_arr[0],copy=True)
                     self.data_arr.append(arrToppend)
-                    self.data_arr[1] = 1/self.data_arr[1]
-                    tempData = np.array(self.data_arr[1][:,4],copy=True)
-                    self.data_arr[1][:,4] = np.array(self.data_arr[1][:,5],copy=True)
-                    self.data_arr[1][:,5] = tempData
-                    tempData = np.array(self.data_arr[1][:,2],copy=True)
-                    self.data_arr[1][:,2] = np.array(self.data_arr[1][:,3],copy=True)
-                    self.data_arr[1][:,3] = tempData
+                    self.data_arr[len(self.data_arr)-1] = 1/self.data_arr[len(self.data_arr)-1]
+                    tempData = np.array(self.data_arr[len(self.data_arr)-1][:,4],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,4] = np.array(self.data_arr[len(self.data_arr)-1][:,5],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,5] = tempData
+                    tempData = np.array(self.data_arr[len(self.data_arr)-1][:,2],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,2] = np.array(self.data_arr[len(self.data_arr)-1][:,3],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,3] = tempData
 
                 self.data = self.data_arr[np.random.randint(len(self.data_arr))]
         
