@@ -54,7 +54,7 @@ Print("before FileHandle  ");
 
      Print("Before writing title! " , filehandle);
 
-   FileWrite(filehandle,"open","close","high","low","ask","bid","day","week","month");
+   FileWrite(filehandle,"open","close","high","low","ask","bid","volume");
 
    Print("after writing title! " , filehandle);
 
@@ -116,17 +116,19 @@ void OnTick()
 
          double bid = Bid;
 
-         double day = iClose(Symbol(),PERIOD_H1,1 * 24);
-         double week = iClose(Symbol(),PERIOD_H1,1 * 24 * 5);
-         double month = iClose(Symbol(),PERIOD_H1,1 * 24 * 5 * 4);
+         double volume = iVolume(Symbol(),myPeriod,1);
 
-         if (open > 0 && close > 0 && high > 0 && low > 0 && ask > 0 && bid > 0 && day > 0 && week > 0 && month > 0)
+         //double day = iClose(Symbol(),PERIOD_H1,1 * 24);
+         //double week = iClose(Symbol(),PERIOD_H1,1 * 24 * 5);
+         //double month = iClose(Symbol(),PERIOD_H1,1 * 24 * 5 * 4);
+
+         if (open > 0 && close > 0 && high > 0 && low > 0)
 
          {
 
             //Print("Before writing candle! " , filehandle);
 
-            FileWrite(filehandle,open,close,high,low,ask,bid,day,week,month);
+            FileWrite(filehandle,open,close,high,low,ask,bid,volume);
 
             //Print("After writing candle! " , filehandle);
 

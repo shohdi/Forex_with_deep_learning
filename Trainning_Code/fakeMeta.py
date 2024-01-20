@@ -13,7 +13,7 @@ if __name__ == "__main__":
     data = None
     header = None
     tradeDir = 0
-    with open('minutes15_100/data/test_data.csv', 'r') as f:
+    with open('minutes15_100/data/val/EurUSD_val.csv', 'r') as f:
         reader = csv.reader(f, delimiter=';')
         header = next(reader)
         data = np.array(list(reader)).astype(np.float32)
@@ -28,9 +28,9 @@ if __name__ == "__main__":
             ,bid=data[i,header.index("bid")]
 
             ,tradeDir=tradeDir
-            ,day=data[i,header.index("day")]
-            ,week=data[i,header.index("week")]
-            ,month=data[i,header.index("month")]
+            ,day=0.1
+            ,week=0.1
+            ,month=0.1
             )
         
         action = int(requests.get(url).text.strip().replace('"','').replace('\r','').replace('\n',''))

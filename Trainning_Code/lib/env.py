@@ -3,6 +3,8 @@ import gym
 import gym.spaces
 from gym.utils import seeding
 import collections
+import glob
+import os
 import numpy as np
 try:
     testVar = np.zeros((3,3),dtype=np.bool)
@@ -16,11 +18,12 @@ slval = 0.04
 tkval = 0.01
 
 class ForexEnv(gym.Env):
-    def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True):
+    def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True,startRandom=True):
         self.haveOppsiteData = haveOppsiteData
         self.punishAgent = punishAgent
         self.stopTrade = stopTrade
         self.filePath = filePath
+        self.startRandom=startRandom
         self.action_space = gym.spaces.Discrete(n=3)
         
         
@@ -38,36 +41,69 @@ class ForexEnv(gym.Env):
         self.startBid = None
         self.openTradeAsk = None
         self.openTradeBid = None
-        self.startIndex = None
+        self.startIndex = 0
         self.stepIndex = 0
         self.stopLoss = None
-        
-        with open(self.filePath, 'r') as f:
-            reader = csv.reader(f, delimiter=';')
-            self.header = next(reader)
-            self.data_arr.append( np.array(list(reader)).astype(np.float32))
-            if self.haveOppsiteData:
-                self.data_arr.append(np.array(self.data_arr[0],copy=True))
-                self.data_arr[1] = 1/self.data_arr[1]
-                tempData = np.array(self.data_arr[1][:,4],copy=True)
-                self.data_arr[1][:,4] = np.array(self.data_arr[1][:,5],copy=True)
-                self.data_arr[1][:,5] = tempData
-                tempData = np.array(self.data_arr[1][:,2],copy=True)
-                self.data_arr[1][:,2] = np.array(self.data_arr[1][:,3],copy=True)
-                self.data_arr[1][:,3] = tempData
+        self.filesArr = []
+        self.filesArr = self.readFilePaths(self.filePath)
+        for fileIndex in range(len(self.filesArr)):
+            currentFilePath = self.filesArr[fileIndex]
+            with open(currentFilePath, 'r') as f:
+                reader = csv.reader(f, delimiter=';')
+                self.header = next(reader)
+                arrToppend = np.array(list(reader)).astype(np.float32)
+                arrToppend = self.fixSpreadToBeRandom(arrToppend)
+                self.data_arr.append(arrToppend )
+                if self.haveOppsiteData:
+                    arrToppend = np.array(self.data_arr[len(self.data_arr)-1],copy=True)
+                    self.data_arr.append(arrToppend)
+                    self.data_arr[len(self.data_arr)-1] = 1/self.data_arr[len(self.data_arr)-1]
+                    tempData = np.array(self.data_arr[len(self.data_arr)-1][:,4],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,4] = np.array(self.data_arr[len(self.data_arr)-1][:,5],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,5] = tempData
+                    tempData = np.array(self.data_arr[len(self.data_arr)-1][:,2],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,2] = np.array(self.data_arr[len(self.data_arr)-1][:,3],copy=True)
+                    self.data_arr[len(self.data_arr)-1][:,3] = tempData
 
-            self.data = self.data_arr[np.random.randint(len(self.data_arr))]
+                self.data = self.data_arr[np.random.randint(len(self.data_arr))]
         
         test_state = self.reset()
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=test_state.shape, dtype=np.float32)
 
+    def readFilePaths(self,filePath):
+        arrRet = []
+        arrRet = glob.glob(filePath + os.sep +  r"*.csv")
+        
+        return arrRet
+    
+    def fixSpreadToBeRandom(self,arr):
+        bidIndex = self.header.index("bid")
+        askIndex = self.header.index("ask")
+        closeIndex = self.header.index("close")
+        openIndex = self.header.index("open")
+        for arrIndex in range(len(arr)):
+            row = arr[arrIndex]
+            op = row[closeIndex]
+            if arrIndex < (len(arr)-1):
+                op = arr[arrIndex+1,openIndex]
+            cl = row[closeIndex]
+            #Spread: 0.00027 Spread * close = 0.00027 * (close) 1.104 = 0.000298 = 0.00030
+            point = (0.00027 * cl)/30.0
+            spread = float(np.random.randint(30,40))
+            spread = point * spread
+            row[bidIndex] = op
+            row[askIndex] = row[bidIndex] + spread
+        
+        return arr
 
 
     def reset(self):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
         self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = np.random.randint(len(self.data)-(16 * 2))
+        self.startIndex = (self.startIndex + self.stepIndex+1)%(len(self.data)-(16 * 2))
+        if self.startRandom:
+            self.startIndex =np.random.randint(len(self.data)-(16 * 2))
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
@@ -135,7 +171,7 @@ class ForexEnv(gym.Env):
         done = False
         if self.startTradeStep is None:
             if self.stepIndex >= (1 * 10) and self.punishAgent:
-                loss = -0.00001
+                loss = 0.0#-0.00001
                 done=True
                 reward = loss
                 action_idx = 0
@@ -414,7 +450,7 @@ class ForexEnv(gym.Env):
 
 '''
 if __name__ == "__main__":
-    env = ForexEnv("minutes15_100/data/test_data.csv")
+    env = ForexEnv("minutes15_100/data/val")
     print(env.reset())
     i = 0
     sumReward = 0
@@ -464,7 +500,7 @@ if __name__ == "__main__":
 
 
 if __name__ == "__main__":
-    env = ForexEnv("minutes15_100/data/train_data.csv",True)
+    env = ForexEnv("minutes15_100/data/train",True)
     state = env.reset()
     print("start " , state[0])
     print("start close ",env.startClose)

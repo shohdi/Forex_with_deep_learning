@@ -3,7 +3,7 @@ from lib.env import ForexEnv
 
 
 #global init   
-env = ForexEnv('minutes15_100/data/test_data.csv',True,True)
+env = ForexEnv('minutes15_100/data/val',True,True,True,False)
 
 slval = 0.04
 tkval = 0.01
@@ -244,7 +244,7 @@ def test200StepsReturnMinus0Point01():
         #assign
         #global
         env.reset()
-        loss = -0.00001
+        loss = 0.0 #-0.00001
         
         #action
         i  =0
