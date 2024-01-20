@@ -450,7 +450,7 @@ class ForexEnv(gym.Env):
 
 '''
 if __name__ == "__main__":
-    env = ForexEnv("minutes15_100/data/test")
+    env = ForexEnv("minutes15_100/data/val")
     print(env.reset())
     i = 0
     sumReward = 0

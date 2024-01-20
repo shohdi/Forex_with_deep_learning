@@ -266,7 +266,7 @@ if __name__ == "__main__":
     #envVal = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
     env = ForexEnv('minutes15_100/data/train',True,True,True ) 
     envTest = ForexEnv('minutes15_100/data/train',False,True,True )
-    envVal = ForexEnv('minutes15_100/data/test',False,True,True )
+    envVal = ForexEnv('minutes15_100/data/val',False,True,True )
     writer = SummaryWriter(comment="-" + params['run_name'] + "-rainbow")
     #net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
     #tgt_net = ptan.agent.TargetNet(net)
