@@ -55,7 +55,7 @@ class ForexEnv(gym.Env):
                 arrToppend = self.fixSpreadToBeRandom(arrToppend)
                 self.data_arr.append(arrToppend )
                 if self.haveOppsiteData:
-                    arrToppend = np.array(self.data_arr[0],copy=True)
+                    arrToppend = np.array(self.data_arr[len(self.data_arr)-1],copy=True)
                     self.data_arr.append(arrToppend)
                     self.data_arr[len(self.data_arr)-1] = 1/self.data_arr[len(self.data_arr)-1]
                     tempData = np.array(self.data_arr[len(self.data_arr)-1][:,4],copy=True)
