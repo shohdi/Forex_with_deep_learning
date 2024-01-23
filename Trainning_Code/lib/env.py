@@ -87,10 +87,11 @@ class ForexEnv(gym.Env):
             if arrIndex < (len(arr)-1):
                 op = arr[arrIndex+1,openIndex]
             cl = row[closeIndex]
-            #Spread: 0.00027 Spread * close = 0.00027 * (close) 1.104 = 0.000298 = 0.00030
-            point = (0.00027 * cl)/30.0
+            #Spread: 0.007 Spread * close = 0.007 * (close) 1.104 = 0.000298 = 0.00030
+            point = (0.007 * cl)/30.0
             spread = float(np.random.randint(30,40))
             spread = point * spread
+            spread = max(0.01,spread)
             row[bidIndex] = op
             row[askIndex] = row[bidIndex] + spread
         
