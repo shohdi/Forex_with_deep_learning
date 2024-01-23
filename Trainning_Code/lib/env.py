@@ -214,8 +214,10 @@ class ForexEnv(gym.Env):
                 None
             else : # 1
                 #close trade
-                reward = self.closeUpTrade()
-                done = True
+                tradeStep = self.stepIndex - self.startTradeStep
+                if tradeStep > 2:
+                    reward = self.closeUpTrade()
+                    done = True
         data=None
         if (self.stepIndex + self.startIndex + 16) >= (len(self.data) - 5) and not done:
             if self.openTradeDir == 1 :

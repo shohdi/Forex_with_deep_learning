@@ -37,6 +37,42 @@ def testSlTkForBuyIsOk():
     except Exception as ex:
         return False,"testSlTkForBuyIsOk : %s"%(str(ex))
     
+
+def testNoCloseBeforeStep2():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        expectedDone = False
+        state,_,_,_ = env.step(0)
+        state,reward,done,data = env.step(1)
+        state,reward,done,data = env.step(2)
+
+        #first assert
+        expectedDone = False
+        expectedOpenTradeDir = 1
+        openTradeDir = env.openTradeDir
+        assert (expectedOpenTradeDir == openTradeDir and expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(1,str(done),str(expectedDone),openTradeDir,expectedOpenTradeDir)
+
+
+        state,reward,done,data = env.step(2)
+        #second assert
+        expectedDone = False
+        expectedOpenTradeDir = 1
+        openTradeDir = env.openTradeDir
+        assert (expectedOpenTradeDir == openTradeDir and expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(2,str(done),str(expectedDone),openTradeDir,expectedOpenTradeDir)
+
+        state,reward,done,data = env.step(2)
+        #third assert
+        expectedDone = True
+        assert ( expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(3,str(done),str(expectedDone))
+
+
+        return True,"testNoCloseBeforeStep2 : Success"
+    except Exception as ex:
+        return False,"testNoCloseBeforeStep2 : %s"%(str(ex))
+    
 def testSlTkForSellIsOk():
     try:
         #assign
@@ -430,7 +466,9 @@ if __name__ == "__main__":
         ret,msg = testStepIsWrittenInState()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-
+        ret,msg = testNoCloseBeforeStep2()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
 
 
 

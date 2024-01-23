@@ -188,6 +188,13 @@ class ForexMetaEnv(gym.Env):
             if action_idx == 2:
                 action_idx = 0
 
+        
+        if self.openTradeDir == 1 :
+            tradeStep = self.stepIndex - self.startTradeStep
+            if tradeStep <= 2:
+                if action_idx == 2:
+                    action_idx = 0
+
         self.waitForTakeAction(action_idx)
         
         myState = self.waitForNewState()
@@ -221,8 +228,10 @@ class ForexMetaEnv(gym.Env):
                 None
             else : # 1
                 #close trade
-                reward = self.closeUpTrade(beforeActionState)
-                done = True
+                tradeStep = self.stepIndex - self.startTradeStep
+                if tradeStep > 2:
+                    reward = self.closeUpTrade(beforeActionState)
+                    done = True
 
         data=None
         self.stepIndex+=1
