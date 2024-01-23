@@ -207,7 +207,8 @@ class ForexEnv(gym.Env):
             
             #check open trade
             if  self.openTradeDir == 0 :
-                self.openDownTrade()
+                #self.openDownTrade()
+                None
                 
             elif self.openTradeDir == 2:
                 None

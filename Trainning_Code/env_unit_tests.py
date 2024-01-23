@@ -109,7 +109,7 @@ def getTkSlExDoneForSell(state):
     return expectedDone,expectedReward
     
 
-def SellIsWorking():
+def SellIsNotWorking():
     try:
         #assign
         env.reset()
@@ -123,15 +123,15 @@ def SellIsWorking():
 
 
         #assert
-        expectedTradeDir = 2
+        expectedTradeDir = 0
         foundTradeDir = env.openTradeDir
         
         assert (expectedTradeDir == foundTradeDir ),'expected dir is %d found %d'%(expectedTradeDir,foundTradeDir)
        
 
-        return True,"SellIsWorking : Success"
+        return True,"SellIsNotWorking : Success"
     except Exception as ex:
-        return False,"SellIsWorking : %s"%(str(ex))
+        return False,"SellIsNotWorking : %s"%(str(ex))
 
 
 
@@ -397,15 +397,15 @@ if __name__ == "__main__":
         ret,msg = testStateShape()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = SellIsWorking()
+        ret,msg = SellIsNotWorking()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlTkForBuyIsOk()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = testSlTkForSellIsOk()
-        f.write("%r %s\r\n"%(ret,msg))
-        print("%r %s\r\n"%(ret,msg))
+        #ret,msg = testSlTkForSellIsOk()
+        #f.write("%r %s\r\n"%(ret,msg))
+        #print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlIsIncluded()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))

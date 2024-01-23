@@ -182,9 +182,11 @@ class ForexMetaEnv(gym.Env):
                 #else:
                 #    action_idx = 1
         #end of punish no action
-        #if  self.startTradeStep is None:
-        #    if action_idx == 2:
-        #        action_idx = 0
+                
+        #stop down trade as stock market have only buy
+        if  self.openTradeDir == 0:
+            if action_idx == 2:
+                action_idx = 0
 
         self.waitForTakeAction(action_idx)
         
@@ -212,7 +214,8 @@ class ForexMetaEnv(gym.Env):
             
             #check open trade
             if  self.openTradeDir == 0 :
-                self.openDownTrade(beforeActionState)
+                #self.openDownTrade(beforeActionState)
+                None
                 
             elif self.openTradeDir == 2:
                 None
