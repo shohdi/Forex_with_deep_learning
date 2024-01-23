@@ -9,8 +9,8 @@ from flask_restful import Resource, Api,reqparse
 #global init
    
 env = None
-slval = 0.04
-tkval = 0.01
+slval = 0.15
+tkval = 0.15
 def testSlTkForBuyIsOk():
     try:
         #assign
@@ -40,7 +40,49 @@ def testSlTkForBuyIsOk():
         return True,"testSlTkForBuyIsOk : Success"
     except Exception as ex:
         return False,"testSlTkForBuyIsOk : %s"%(str(ex))
+
+
+def testNoCloseBeforeStep2():
+    try:
+        #assign
+        env.reset()
+
+        #action
+        expectedDone = False
+        state,_,_,_ = env.step(0)
+        state,reward,done,data = env.step(1)
+        state,reward,done,data = env.step(2)
+
+        #first assert
+        expectedDone = False
+        expectedOpenTradeDir = 1
+        openTradeDir = env.openTradeDir
+        assert (expectedOpenTradeDir == openTradeDir and expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(1,str(done),str(expectedDone),openTradeDir,expectedOpenTradeDir)
+
+
+        state,reward,done,data = env.step(2)
+        #second assert
+        expectedDone = False
+        expectedOpenTradeDir = 1
+        openTradeDir = env.openTradeDir
+        assert (expectedOpenTradeDir == openTradeDir and expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(2,str(done),str(expectedDone),openTradeDir,expectedOpenTradeDir)
+
+        state,reward,done,data = env.step(2)
+        #third assert
+        expectedDone = True
+        assert ( expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(3,str(done),str(expectedDone))
+
+
+        return True,"testNoCloseBeforeStep2 : Success"
+    except Exception as ex:
+        return False,"testNoCloseBeforeStep2 : %s"%(str(ex))
     
+
+
+
+
+
+
 def testSlTkForSellIsOk():
     try:
         #assign
@@ -114,7 +156,7 @@ def getTkSlExDoneForSell(state):
 
     
 
-def SellIsWorking():
+def SellIsNotWorking():
     try:
         #assign
         env.reset()
@@ -128,15 +170,15 @@ def SellIsWorking():
 
 
         #assert
-        expectedTradeDir = 2
+        expectedTradeDir = 0
         foundTradeDir = env.openTradeDir
         
         assert (expectedTradeDir == foundTradeDir ),'expected dir is %d found %d'%(expectedTradeDir,foundTradeDir)
        
 
-        return True,"SellIsWorking : Success"
+        return True,"SellIsNotWorking : Success"
     except Exception as ex:
-        return False,"SellIsWorking : %s"%(str(ex))
+        return False,"SellIsNotWorking : %s"%(str(ex))
 
 
 
@@ -150,7 +192,7 @@ def testStateShape():
         state,_,_,_ = env.step(0)
 
         #assert
-        assert state.shape == (16 , 13)  , 'state shape is wrong %s'%(str(state.shape))
+        assert state.shape == (16 , 14)  , 'state shape is wrong %s'%(str(state.shape))
 
         return True,"testStateShape : Success"
     except Exception as ex:
@@ -172,7 +214,7 @@ def testSlIsIncluded():
         sl = (env.openTradeAsk - (env.startClose * slval))/(2.0 * env.startClose)
         
 
-        assert str(round(state[-1,-2],6)) == str(round(tk,6)) and str(round(state[-1,-1],6)) == str(round(sl,6))  , 'expected tk : %0.6f , sl : %0.6f get tk : %0.6f , sl : %0.6f'%(tk,sl,state[-1,-2],state[-1,-1])
+        assert str(round(state[-1,11],6)) == str(round(tk,6)) and str(round(state[-1,12],6)) == str(round(sl,6))  , 'expected tk : %0.6f , sl : %0.6f get tk : %0.6f , sl : %0.6f'%(tk,sl,state[-1,11],state[-1,12])
 
         return True,"testSlIsIncluded : Success"
     except Exception as ex:
@@ -330,12 +372,12 @@ def testRewardIsWrittenWithEachStep():
         #state,reward,_,_ = env.step(0)
         beforeDoneState = state
         
-        bid = beforeDoneState[-1,-8]#[-7]#[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-1,-7]#[-6]#[-1,6]#[-5]
+        bid = beforeDoneState[-1,5]#[-7]#[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-1,6]#[-6]#[-1,6]#[-5]
         expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
-        reward = str(round( state[-1,-3],6))
+        reward = str(round( state[-1,10],6))
 
-        previousReward = str(round( state[-2,-3],6))
+        previousReward = str(round( state[-2,10],6))
         
         if  reward != expectedReward or reward == previousReward:
             return False,"testRewardIsWrittenWithEachStep :  reward expected %s , found %s , previousReward : %s"%(expectedReward,reward,previousReward)
@@ -372,10 +414,10 @@ def testStepIsWrittenInState():
         #assert
         expected = ((1) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
-        value = beforeDoneState[-1,-5]#[-4]#[-1,8]#[-3]
+        value = beforeDoneState[-1,8]#[-4]#[-1,8]#[-3]
         
         expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
-        valueAfter5 = after5stepsState[-1,-5]#[-4]#[-1,8]#[-3]
+        valueAfter5 = after5stepsState[-1,8]#[-4]#[-1,8]#[-3]
 
 
         
@@ -403,15 +445,15 @@ def runTests():
         ret,msg = testStateShape()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = SellIsWorking()
+        ret,msg = SellIsNotWorking()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlTkForBuyIsOk()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = testSlTkForSellIsOk()
-        f.write("%r %s\r\n"%(ret,msg))
-        print("%r %s\r\n"%(ret,msg))
+        #ret,msg = testSlTkForSellIsOk()
+        #f.write("%r %s\r\n"%(ret,msg))
+        #print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlIsIncluded()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
@@ -434,6 +476,9 @@ def runTests():
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testStepIsWrittenInState()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testNoCloseBeforeStep2()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
 

@@ -14,8 +14,8 @@ except :
 import csv
 import time
 
-slval = 0.04
-tkval = 0.01
+slval = 0.15
+tkval = 0.15
 
 class ForexEnv(gym.Env):
     def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True,startRandom=True):
@@ -53,11 +53,13 @@ class ForexEnv(gym.Env):
                 self.header = next(reader)
                 arrToppend = np.array(list(reader)).astype(np.float32)
                 arrToppend = self.fixSpreadToBeRandom(arrToppend)
+                arrToppend = self.normalizeVolume(arrToppend)
                 self.data_arr.append(arrToppend )
                 if self.haveOppsiteData:
                     arrToppend = np.array(self.data_arr[len(self.data_arr)-1],copy=True)
                     self.data_arr.append(arrToppend)
                     self.data_arr[len(self.data_arr)-1] = 1/self.data_arr[len(self.data_arr)-1]
+                    self.data_arr[len(self.data_arr)-1][:,6] = 1/self.data_arr[len(self.data_arr)-1][:,6]
                     tempData = np.array(self.data_arr[len(self.data_arr)-1][:,4],copy=True)
                     self.data_arr[len(self.data_arr)-1][:,4] = np.array(self.data_arr[len(self.data_arr)-1][:,5],copy=True)
                     self.data_arr[len(self.data_arr)-1][:,5] = tempData
@@ -76,6 +78,14 @@ class ForexEnv(gym.Env):
         
         return arrRet
     
+    def normalizeVolume(self,arr):
+        volIndex = self.header.index("volume")
+        normalizer = 100000000.0
+        arr[:,volIndex] = arr[:,volIndex]/normalizer
+        arr[:, volIndex] = np.where(arr[:, volIndex] > 1, 1, arr[:, volIndex])
+        return arr
+
+
     def fixSpreadToBeRandom(self,arr):
         bidIndex = self.header.index("bid")
         askIndex = self.header.index("ask")
@@ -87,10 +97,11 @@ class ForexEnv(gym.Env):
             if arrIndex < (len(arr)-1):
                 op = arr[arrIndex+1,openIndex]
             cl = row[closeIndex]
-            #Spread: 0.00027 Spread * close = 0.00027 * (close) 1.104 = 0.000298 = 0.00030
-            point = (0.00027 * cl)/30.0
+            #Spread: 0.007 Spread * close = 0.007 * (close) 1.104 = 0.000298 = 0.00030
+            point = (0.007 * cl)/30.0
             spread = float(np.random.randint(30,40))
             spread = point * spread
+            spread = max(0.01,spread)
             row[bidIndex] = op
             row[askIndex] = row[bidIndex] + spread
         
@@ -207,14 +218,17 @@ class ForexEnv(gym.Env):
             
             #check open trade
             if  self.openTradeDir == 0 :
-                self.openDownTrade()
+                #self.openDownTrade()
+                None
                 
             elif self.openTradeDir == 2:
                 None
             else : # 1
                 #close trade
-                reward = self.closeUpTrade()
-                done = True
+                tradeStep = self.stepIndex - self.startTradeStep
+                if tradeStep > 2:
+                    reward = self.closeUpTrade()
+                    done = True
         data=None
         if (self.stepIndex + self.startIndex + 16) >= (len(self.data) - 5) and not done:
             if self.openTradeDir == 1 :
@@ -232,16 +246,18 @@ class ForexEnv(gym.Env):
         
         if self.stopTrade and not done:
             if self.openTradeDir == 1  :
-                reward = self.closeUpTrade()
+                tradeStep = self.stepIndex - self.startTradeStep
+                if tradeStep > 2:
+                    reward = self.closeUpTrade()
 
-                if reward > 0 and abs(reward * 2.0) >= tkval:
-                    done = True
+                    if reward > 0 and abs(reward * 2.0) >= tkval:
+                        done = True
+                        
+                        #print('stop trade!')
+                    if reward < 0 and abs(reward * 2.0) >= slval:
+                        done = True
                     
-                    #print('stop trade!')
-                if reward < 0 and abs(reward * 2.0) >= slval:
-                    done = True
-                   
-                    #print('stop trade!')
+                        #print('stop trade!')
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade()
                 if reward > 0 and abs(reward * 2.0) >= tkval:
@@ -282,6 +298,7 @@ class ForexEnv(gym.Env):
         sltk = np.zeros((16,2),dtype=np.float32)
         sl=0
         tk=0
+        
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
             tk = (self.openTradeAsk + (self.startClose * tkval))/(2.0 * self.startClose)
@@ -295,7 +312,7 @@ class ForexEnv(gym.Env):
         
         
 
-
+        vol = self.getRawState()[:,6:7]
         
         
         
@@ -308,6 +325,7 @@ class ForexEnv(gym.Env):
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
         state = np.concatenate((state,sltk),axis=1)
+        state = np.concatenate((state,vol),axis=1)
         #state = np.concatenate((state,sep),axis=1)
         #state =  np.reshape( state,(-1,))
         return state
@@ -336,8 +354,8 @@ class ForexEnv(gym.Env):
             return 0.0
         currentBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
         reward =  ((currentBid - self.openTradeAsk)/self.startClose)/2.0
-
-        if self.stopTrade:
+        tradeStep = self.stepIndex - self.startTradeStep
+        if self.stopTrade and tradeStep > 2:
             currentAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
             currentHigh = self.data[self.startIndex+self.stepIndex+15,self.header.index("high")]
             currentLow = self.data[self.startIndex+self.stepIndex+15,self.header.index("low")]
