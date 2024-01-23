@@ -9,8 +9,8 @@ from flask_restful import Resource, Api,reqparse
 #global init
    
 env = None
-slval = 0.04
-tkval = 0.01
+slval = 0.15
+tkval = 0.15
 def testSlTkForBuyIsOk():
     try:
         #assign
