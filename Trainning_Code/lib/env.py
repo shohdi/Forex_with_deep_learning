@@ -53,11 +53,13 @@ class ForexEnv(gym.Env):
                 self.header = next(reader)
                 arrToppend = np.array(list(reader)).astype(np.float32)
                 arrToppend = self.fixSpreadToBeRandom(arrToppend)
+                arrToppend = self.normalizeVolume(arrToppend)
                 self.data_arr.append(arrToppend )
                 if self.haveOppsiteData:
                     arrToppend = np.array(self.data_arr[len(self.data_arr)-1],copy=True)
                     self.data_arr.append(arrToppend)
                     self.data_arr[len(self.data_arr)-1] = 1/self.data_arr[len(self.data_arr)-1]
+                    self.data_arr[len(self.data_arr)-1][:,6] = 1/self.data_arr[len(self.data_arr)-1][:,6]
                     tempData = np.array(self.data_arr[len(self.data_arr)-1][:,4],copy=True)
                     self.data_arr[len(self.data_arr)-1][:,4] = np.array(self.data_arr[len(self.data_arr)-1][:,5],copy=True)
                     self.data_arr[len(self.data_arr)-1][:,5] = tempData
@@ -76,6 +78,14 @@ class ForexEnv(gym.Env):
         
         return arrRet
     
+    def normalizeVolume(self,arr):
+        volIndex = self.header.index("volume")
+        normalizer = 100000000.0
+        arr[:,volIndex] = arr[:,volIndex]/normalizer
+        arr[:, volIndex] = np.where(arr[:, volIndex] > 1, 1, arr[:, volIndex])
+        return arr
+
+
     def fixSpreadToBeRandom(self,arr):
         bidIndex = self.header.index("bid")
         askIndex = self.header.index("ask")
@@ -288,6 +298,7 @@ class ForexEnv(gym.Env):
         sltk = np.zeros((16,2),dtype=np.float32)
         sl=0
         tk=0
+        
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
             tk = (self.openTradeAsk + (self.startClose * tkval))/(2.0 * self.startClose)
@@ -301,7 +312,7 @@ class ForexEnv(gym.Env):
         
         
 
-
+        vol = self.getRawState()[:,6:7]
         
         
         
@@ -314,6 +325,7 @@ class ForexEnv(gym.Env):
             
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
         state = np.concatenate((state,sltk),axis=1)
+        state = np.concatenate((state,vol),axis=1)
         #state = np.concatenate((state,sep),axis=1)
         #state =  np.reshape( state,(-1,))
         return state

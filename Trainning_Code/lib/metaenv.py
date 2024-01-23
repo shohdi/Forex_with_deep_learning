@@ -33,7 +33,7 @@ class ForexMetaEnv(gym.Env):
         self.reward_queue = collections.deque(maxlen=16)
         while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
-        self.header = ("open","close","high","low","ask","bid")
+        self.header = ("open","close","high","low","ask","bid","volume")
         self.data = None
         self.startAsk = None
         self.startBid = None
@@ -116,6 +116,37 @@ class ForexMetaEnv(gym.Env):
         self.resetEnv(myState)
 
         return self.getState(myState)
+
+
+        
+    def normalizeVolume(self,arr):
+        volIndex = self.header.index("volume")
+        normalizer = 100000000.0
+        arr[:,volIndex] = arr[:,volIndex]/normalizer
+        arr[:, volIndex] = np.where(arr[:, volIndex] > 1, 1, arr[:, volIndex])
+        return arr
+
+
+    def fixSpreadToBeRandom(self,arr):
+        bidIndex = self.header.index("bid")
+        askIndex = self.header.index("ask")
+        closeIndex = self.header.index("close")
+        openIndex = self.header.index("open")
+        for arrIndex in range(len(arr)):
+            row = arr[arrIndex]
+            op = row[closeIndex]
+            if arrIndex < (len(arr)-1):
+                op = arr[arrIndex+1,openIndex]
+            cl = row[closeIndex]
+            #Spread: 0.007 Spread * close = 0.007 * (close) 1.104 = 0.000298 = 0.00030
+            point = (0.007 * cl)/30.0
+            spread = 30.0 # float(np.random.randint(30,40))
+            spread = point * spread
+            spread = max(0.01,spread)
+            row[bidIndex] = op
+            row[askIndex] = row[bidIndex] + spread
+        
+        return arr
 
     def calculateStopLoss(self,price,direction):
         loss_amount = 0.0085 * price
@@ -278,7 +309,10 @@ class ForexMetaEnv(gym.Env):
 
         
     def getState(self,myState):
-        state = myState[:,:6]
+        newState = np.array(myState,dtype=np.float32,copy=True)
+        newState = self.fixSpreadToBeRandom(newState)
+        newState = self.normalizeVolume(newState)
+        state = newState[:,:6]
         actions = np.zeros((16,5),dtype=np.float32)
         #sep = np.zeros((16,1),dtype=np.float32)
         
@@ -296,7 +330,7 @@ class ForexMetaEnv(gym.Env):
         sltk[:,-2] = tk
         sltk[:,-1] = sl
         
-        
+        vol = newState[:,6:7]
 
 
         
@@ -312,6 +346,7 @@ class ForexMetaEnv(gym.Env):
             state[:,-2] = (self.stepIndex - self.startTradeStep)/(12 * 21.0 * 24.0 * 4 * 1)
         
         state = np.concatenate((state,sltk),axis=1)
+        state = np.concatenate((state,vol),axis=1)
         #state = np.concatenate((state,sep),axis=1)
         #state =  np.reshape( state,(-1,))
         return state
