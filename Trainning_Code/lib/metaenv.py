@@ -238,16 +238,18 @@ class ForexMetaEnv(gym.Env):
                 
         if self.stopTrade and not done:
             if self.openTradeDir == 1  :
-                reward = self.closeUpTrade(myState)
+                tradeStep = self.stepIndex - self.startTradeStep
+                if tradeStep > 2:
+                    reward = self.closeUpTrade(myState)
 
-                if reward > 0 and abs(reward * 2.0) >= tkval:
-                    done = True
+                    if reward > 0 and abs(reward * 2.0) >= tkval:
+                        done = True
+                        
+                        #print('stop trade!')
+                    if reward < 0 and abs(reward * 2.0) >= slval:
+                        done = True
                     
-                    #print('stop trade!')
-                if reward < 0 and abs(reward * 2.0) >= slval:
-                    done = True
-                   
-                    #print('stop trade!')
+                        #print('stop trade!')
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade(myState)
                 if reward > 0 and abs(reward * 2.0) >= tkval:
@@ -341,7 +343,8 @@ class ForexMetaEnv(gym.Env):
         currentBid = myState[-1,self.header.index("bid")]
         #print('closing up trade start close : ',self.startClose,' close price ',currentBid)
         reward = ((currentBid - self.openTradeAsk)/self.startClose)/2.0
-        if self.stopTrade:
+        tradeStep = self.stepIndex - self.startTradeStep
+        if self.stopTrade and tradeStep > 2:
             currentAsk = myState[-1,self.header.index("ask")]
             currentHigh = myState[-1,self.header.index("high")]
             currentLow = myState[-1,self.header.index("low")]
