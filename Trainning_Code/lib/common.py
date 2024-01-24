@@ -27,7 +27,7 @@ HYPERPARAMS = {
     },
         'Forex': {
         'env_name':         "Forex-100-15m-200max-200hidden-lstm",
-        'stop_reward':      0.02,
+        'stop_reward':      1.0,
         'run_name':         'Forex-100-15m-200max-200hidden-lstm',
         'replay_size':      1000000,
         'replay_initial':   10000,

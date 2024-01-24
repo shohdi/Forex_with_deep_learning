@@ -40,8 +40,8 @@ BETA_START = 0.4
 BETA_FRAMES = 100000
 
 # C51
-Vmax = 0.03
-Vmin = -0.03
+Vmax = 0.1
+Vmin = -0.1
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     #env = ptan.common.wrappers.wrap_dqn(env)
     #envTest = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
     #envVal = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
-    env = ForexEnv('minutes15_100/data/train',True,True,True ) 
+    env = ForexEnv('minutes15_100/data/train',False,True,True ) 
     envTest = ForexEnv('minutes15_100/data/train',False,True,True )
     envVal = ForexEnv('minutes15_100/data/val',False,True,True )
     writer = SummaryWriter(comment="-" + params['run_name'] + "-rainbow")
