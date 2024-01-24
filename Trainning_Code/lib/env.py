@@ -80,7 +80,10 @@ class ForexEnv(gym.Env):
     
     def normalizeVolume(self,arr):
         volIndex = self.header.index("volume")
-        normalizer = 100000000.0
+        closeIndex = self.header.index("close")
+        close = arr[:,closeIndex]
+        normalizer = 10000000000.0
+        arr[:,volIndex] = (arr[:,volIndex] * close)
         arr[:,volIndex] = arr[:,volIndex]/normalizer
         arr[:, volIndex] = np.where(arr[:, volIndex] > 1, 1, arr[:, volIndex])
         return arr
