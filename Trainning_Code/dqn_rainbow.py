@@ -264,7 +264,7 @@ if __name__ == "__main__":
     #env = ptan.common.wrappers.wrap_dqn(env)
     #envTest = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
     #envVal = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
-    env = ForexEnv('minutes15_100/data/train',True,True,True ) 
+    env = ForexEnv('minutes15_100/data/train',False,True,True ) 
     envTest = ForexEnv('minutes15_100/data/train',False,True,True )
     envVal = ForexEnv('minutes15_100/data/val',False,True,True )
     writer = SummaryWriter(comment="-" + params['run_name'] + "-rainbow")
