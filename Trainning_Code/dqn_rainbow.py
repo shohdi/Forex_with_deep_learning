@@ -362,109 +362,109 @@ if __name__ == "__main__":
                     torch.save(net.state_dict(), modelCurrentPath)
                 
                 
-
-                if frame_idx % 200000 == 0:
-                    
-                    testIdx = 0
-                    testRewards=[]
-                    while testIdx < 100:
-                        currentTime = time.time()
-                        if (currentTime-startTime) > (5*60):
-                            print('sleeping 5 minutes on ' + str(datetime.now()))
-                            sys.stdout.flush()
-                            #if isCuda:
-                            time.sleep(5*60)
-                            print('resuming on ' + str(datetime.now()))
-                            sys.stdout.flush()
-                            startTime = time.time()
-                        testState = envTest.reset()
-                        testState = np.array(testState,dtype=np.float32)
-                        testIdx+=1
-                        test_idx +=1
-                        #start testing
-                        rewardTest = 0
-                        testSteps = 0
-                        isDone = False
-                        while not isDone:
-                            #if isCuda:
-                            #    time.sleep((1/250))
-                            test_idx +=1
-                            testSteps += 1
-                            #play step
-                            states_v = torch.tensor([testState]).to(device)
-                            q_v = net.qvals(states_v)
-                            q = q_v.detach().data.cpu().numpy()
-                            actions = np.argmax(q, axis=1)
-                            
-                            testState,r_w,isDone,_ = envTest.step(actions[0])
-                            rewardTest += r_w
-                            testState = np.array(testState,dtype=np.float32)
-                        testRewards.append(rewardTest)
-                        testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
-                        newTestRewardsMean = np.mean(testRewardsnp)
-                        writer.add_scalar("test mean reward",newTestRewardsMean,test_idx)
-                        writer.add_scalar("test reward",rewardTest,test_idx)
-                        writer.add_scalar("test steps",testSteps,test_idx)
-                        print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(newTestRewardsMean))
-                        sys.stdout.flush()
-                        if isCuda:
-                            torch.cuda.empty_cache()
-                    #if newTestRewardsMean > testRewardsMean and len(testRewards) >= 100 :
-                    #    print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
-                    testRewardsMean = newTestRewardsMean
-                    testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
-                    torch.save(net.state_dict(), testPeriodPath)
-                
-
-                    
-                    valIndx = 0
-                    valRewards=[]
-                    while valIndx < 100:
-                        currentTime = time.time()
-                        if (currentTime-startTime) > (5*60):
-                            print('sleeping 5 minutes on ' + str(datetime.now()))
-                            sys.stdout.flush()
-                            #if isCuda:
-                            time.sleep(5*60)
-                            print('resuming on ' + str(datetime.now()))
-                            sys.stdout.flush()
-                            startTime = time.time()
-                        valState = envVal.reset()
-                    
-                        valState = np.array(valState,dtype=np.float32)
-                        valIndx+=1
-                        val_idx+=1
-                        #start testing
-                        rewardVal = 0
-                        valSteps = 0
-                        isDone = False
-                        while not isDone:
-                            if isCuda:
-                                time.sleep((1/250))
-                            val_idx+=1
-                            valSteps += 1
-                            #play step
-                            states_v = torch.tensor([valState]).to(device)
-                            q_v = net.qvals(states_v)
-                            q = q_v.detach().data.cpu().numpy()
-                            actions = np.argmax(q, axis=1)
-                            
-                            valState,r_w,isDone,_ = envVal.step(actions[0])
-                            rewardVal += r_w
-                            valState = np.array(valState,dtype=np.float32)
-                        valRewards.append(rewardVal)
-                        valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
-                        valRewardsMean = np.mean(valRewardsnp)
-                        writer.add_scalar("val mean reward",valRewardsMean,val_idx)
-                        writer.add_scalar("val reward",rewardVal,val_idx)
-                        writer.add_scalar("val steps",valSteps,val_idx)
-                        print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
-                        sys.stdout.flush()
-                        if isCuda:
-                            torch.cuda.empty_cache()
+                with torch.no_grad():
+                    if frame_idx % 200000 == 0:
                         
-                    valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
-                    torch.save(net.state_dict(), valPeriodPath)
+                        testIdx = 0
+                        testRewards=[]
+                        while testIdx < 100:
+                            currentTime = time.time()
+                            if (currentTime-startTime) > (5*60):
+                                print('sleeping 5 minutes on ' + str(datetime.now()))
+                                sys.stdout.flush()
+                                #if isCuda:
+                                time.sleep(5*60)
+                                print('resuming on ' + str(datetime.now()))
+                                sys.stdout.flush()
+                                startTime = time.time()
+                            testState = envTest.reset()
+                            testState = np.array(testState,dtype=np.float32)
+                            testIdx+=1
+                            test_idx +=1
+                            #start testing
+                            rewardTest = 0
+                            testSteps = 0
+                            isDone = False
+                            while not isDone:
+                                #if isCuda:
+                                #    time.sleep((1/250))
+                                test_idx +=1
+                                testSteps += 1
+                                #play step
+                                states_v = torch.tensor([testState]).to(device)
+                                q_v = net.qvals(states_v)
+                                q = q_v.detach().data.cpu().numpy()
+                                actions = np.argmax(q, axis=1)
+                                
+                                testState,r_w,isDone,_ = envTest.step(actions[0])
+                                rewardTest += r_w
+                                testState = np.array(testState,dtype=np.float32)
+                            testRewards.append(rewardTest)
+                            testRewardsnp = np.array(testRewards,dtype=np.float32,copy=False)
+                            newTestRewardsMean = np.mean(testRewardsnp)
+                            writer.add_scalar("test mean reward",newTestRewardsMean,test_idx)
+                            writer.add_scalar("test reward",rewardTest,test_idx)
+                            writer.add_scalar("test steps",testSteps,test_idx)
+                            print("test steps " + str(testSteps) + " test reward " + str(rewardTest) + ' mean test reward ' + str(newTestRewardsMean))
+                            sys.stdout.flush()
+                            if isCuda:
+                                torch.cuda.empty_cache()
+                        #if newTestRewardsMean > testRewardsMean and len(testRewards) >= 100 :
+                        #    print('found new test mean %.6f old %.6f'%(newTestRewardsMean,testRewardsMean))
+                        testRewardsMean = newTestRewardsMean
+                        testPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-test_%.5f.dat"%(frame_idx, testRewardsMean)))
+                        torch.save(net.state_dict(), testPeriodPath)
+                    
+
+                        
+                        valIndx = 0
+                        valRewards=[]
+                        while valIndx < 100:
+                            currentTime = time.time()
+                            if (currentTime-startTime) > (5*60):
+                                print('sleeping 5 minutes on ' + str(datetime.now()))
+                                sys.stdout.flush()
+                                #if isCuda:
+                                time.sleep(5*60)
+                                print('resuming on ' + str(datetime.now()))
+                                sys.stdout.flush()
+                                startTime = time.time()
+                            valState = envVal.reset()
+                        
+                            valState = np.array(valState,dtype=np.float32)
+                            valIndx+=1
+                            val_idx+=1
+                            #start testing
+                            rewardVal = 0
+                            valSteps = 0
+                            isDone = False
+                            while not isDone:
+                                if isCuda:
+                                    time.sleep((1/250))
+                                val_idx+=1
+                                valSteps += 1
+                                #play step
+                                states_v = torch.tensor([valState]).to(device)
+                                q_v = net.qvals(states_v)
+                                q = q_v.detach().data.cpu().numpy()
+                                actions = np.argmax(q, axis=1)
+                                
+                                valState,r_w,isDone,_ = envVal.step(actions[0])
+                                rewardVal += r_w
+                                valState = np.array(valState,dtype=np.float32)
+                            valRewards.append(rewardVal)
+                            valRewardsnp = np.array(valRewards,dtype=np.float32,copy=False)
+                            valRewardsMean = np.mean(valRewardsnp)
+                            writer.add_scalar("val mean reward",valRewardsMean,val_idx)
+                            writer.add_scalar("val reward",rewardVal,val_idx)
+                            writer.add_scalar("val steps",valSteps,val_idx)
+                            print("val steps " + str(valSteps) + " val reward " + str(rewardVal) + ' mean val reward ' + str(valRewardsMean))
+                            sys.stdout.flush()
+                            if isCuda:
+                                torch.cuda.empty_cache()
+                            
+                        valPeriodPath = os.path.join(MY_DATA_PATH,params['env_name'] + ("-frameidx_%d-val_%.5f.dat"%(frame_idx,valRewardsMean)))
+                        torch.save(net.state_dict(), valPeriodPath)
                     
             
         
