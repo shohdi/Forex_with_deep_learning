@@ -193,6 +193,7 @@ int OpenRequestGetAction(int i, bool history)
    double low = iLow(Symbol(), myPeriod, i);
    double ask = close + (Ask - Bid);
    double bid = close;
+   long volume = iVolume(Symbol(), myPeriod, i);
 
    if(startClose == 0)
    {
@@ -224,7 +225,7 @@ int OpenRequestGetAction(int i, bool history)
    string env = _Symbol;
    datetime requestCandleTime = iTime(Symbol(), myPeriod, i);
    string time = ""+requestCandleTime;
-   string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&env=%s&time=%s", open, close, high, low, ask, bid, tradeDir, env,time);
+   string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&volume=%d&tradeDir=%d&env=%s&time=%s", open, close, high, low, ask, bid,volume, tradeDir, env,time);
    Print("calling url : ", url);
    string ret = createRequest(url);
    int action = StrToInteger(ret);
