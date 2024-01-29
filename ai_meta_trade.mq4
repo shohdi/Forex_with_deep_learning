@@ -221,7 +221,8 @@ int OpenRequestGetAction(int i, bool history)
       ask = Ask;
       bid = Bid;
    }
-   string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&day=%f&week=%f&month=%f", open, close, high, low, ask, bid, tradeDir, day, week, month);
+   string env = _Symbol;
+   string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&env=%s", open, close, high, low, ask, bid, tradeDir, env);
    Print("calling url : ", url);
    string ret = createRequest(url);
    int action = StrToInteger(ret);
