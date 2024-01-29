@@ -33,17 +33,29 @@ class Options:
         self.StateAvailable = False
         self.takenAction = 0
         self.tradeDir = 0
+        self.stateObjTimes = collections.deque(maxlen=16)
 
-options = Options()
+options = dict()
 
 
-stateObj = collections.deque(maxlen=16)
-headers = ("open","close","high","low","ask","bid")
+stateObj = dict()
+
+headers = ("open","close","high","low","ask","bid","volume","tradeDir","env","time")
+envs = dict()
+states= dict()
+actions=dict()
+lastStepRet = dict()
+
+def hasKey(dic, key):
+     
+    if key in dic:
+        return True
+    else:
+        return False
 
 class MetaTrade(Resource):
     def get(self):
-        while options.StateAvailable:
-            None
+        
         parser = reqparse.RequestParser()
         parser.add_argument('open', type=float,location='args')
         parser.add_argument('close', type=float,location='args')
@@ -51,10 +63,11 @@ class MetaTrade(Resource):
         parser.add_argument('low', type=float,location='args')
         parser.add_argument('ask', type=float,location='args')
         parser.add_argument('bid', type=float,location='args')
+        parser.add_argument('volume', type=int,location='args')
         parser.add_argument('tradeDir' , type=int,location='args')
-        parser.add_argument('day' , type=float,location='args')
-        parser.add_argument('week' , type=float,location='args')
-        parser.add_argument('month' , type=float,location='args')
+        parser.add_argument('env' , type=str,location='args')
+        parser.add_argument('time' , type=str,location='args')
+       
         args = parser.parse_args()
         open = args.open
         close = args.close
@@ -62,32 +75,94 @@ class MetaTrade(Resource):
         low = args.low
         ask = args.ask
         bid = args.bid
+        volume = float(args.volume)
         tradeDir = args.tradeDir
-        day = args.day
-        week = args.week
-        month = args.month
+        env = args.env
+        time = args.time
+        
         assert open > 0
         assert close > 0
         assert high > 0
         assert low > 0
-        assert ask > 0
-        assert bid > 0
-        assert tradeDir == 0 or tradeDir == 1 or tradeDir == 2
-        assert day > 0
-        assert week > 0
-        assert month > 0
-        #print("new state ",open,close,high,low,ask,bid,day,week,month)
-        stateObj.append(np.array([open,close,high,low,ask,bid,day,week,month],dtype=np.float32))
-        options.tradeDir = tradeDir
-        options.StateAvailable = True
-        while not options.ActionAvailable:
-            None
         
-        ret = str(options.takenAction)
-        #print ('state : ',stateObj[-1])
-        #print ('taken action : ',ret)
-        options.ActionAvailable = False
+        assert tradeDir == 0 or tradeDir == 1 or tradeDir == 2
+       
+        ret = doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,True)
+        
         return ret
+
+def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=True,action=0):
+    if not allowModel :
+        actions[env] = action
+    if (not hasKey(options,env)) or options[env] is None :
+        options[env] = Options()
+        stateObj[env] = collections.deque(maxlen=16)
+        options[env].stateObjTimes = collections.deque(maxlen=16)
+        
+    
+    currentEnv = None
+    if (not hasKey(envs,env)) or envs[env] is None:
+        envs[env] = ForexMetaEnv(stateObj[env],options[env],env,False,True)
+    currentEnv = envs[env]
+    
+
+    
+    if  hasKey(actions,env) and actions[env] is not None   :
+        currentEnv.beforeActionState = np.array(currentEnv.states,dtype=np.float32,copy=True)
+        if len(options[env].stateObjTimes) > 0: 
+            currentEnv.beforeActionTime = options[env].stateObjTimes[-1]
+    if len(options[env].stateObjTimes) == 0 or options[env].stateObjTimes[-1] != time:
+        stateObj[env].append( np.array([open,close,high,low,ask,bid,volume],dtype=np.float32))
+        options[env].stateObjTimes.append(time)
+    else:
+        stateObj[env][-1] = np.array([open,close,high,low,ask,bid,volume],dtype=np.float32)
+
+    options[env].tradeDir = tradeDir
+    options[env].StateAvailable = True
+    if hasKey(actions,env) and actions[env] is not None and hasKey(states,env) and states[env] is not None :
+        
+        stepState, reward, done, dataItem = currentEnv.step(actions[env])
+        states[env] = stepState
+        lastStepRet[env] = (stepState, reward, done, dataItem)
+        if done:
+            if allowModel:
+                states[env] = currentEnv.reset()
+            currentEnv.beforeActionState = None
+            actions[env] = None
+            return str(12) 
+    
+
+    
+    if (not hasKey(states,env)) or states[env] is None :
+        states[env] = currentEnv.reset()
+        if states[env] is None :
+            currentEnv.beforeActionState = None
+            actions[env] = None
+            return str(12)
+    
+
+    if allowModel:
+        net,device = configureApp(currentEnv)
+        state_v = torch.tensor(np.array([states[env]], copy=False)).to(device)
+        q_vals = net(state_v).cpu().data.numpy()[0]
+        actions[env] = np.argmax(q_vals)
+    else:
+        actions[env] = action
+
+    
+    
+    
+    ret = str(actions[env])
+    return ret
+
+
+'''
+def createEnvsThread():
+    for attr, value in options.__dict__.items():
+        env = stateObj[attr][0]
+        if envs[env] is None:
+            envs[env] = ForexMetaEnv(stateObj[env],options[env],False,True)
+'''
 
    
 
@@ -95,6 +170,29 @@ class MetaTrade(Resource):
 
 DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm-run"
 MY_DATA_PATH = 'data'
+
+
+def configureApp(env):
+    warnings.filterwarnings("ignore")
+    cudaDefault = False
+    if (torch.cuda.is_available()):
+        cudaDefault = True
+    myFilePath = os.path.join(MY_DATA_PATH,DEFAULT_ENV_NAME + "-10000.dat")
+    
+    
+    device = torch.device("cuda" if cudaDefault else "cpu")
+    #print("device : ",device)
+    net = LSTM_Forex(device, env.observation_space.shape, env.action_space.n).to(device)
+    if os.path.exists(myFilePath):
+        #print('loading model')
+        net.load_state_dict(torch.load(myFilePath, map_location=device))
+        
+    net = net.qvals
+    return net,device
+    
+
+
+
 
 def startApp():
     warnings.filterwarnings("ignore")
@@ -149,8 +247,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p","--port", default=5000, help="port number")
     args = parser.parse_args()
-    thread = Thread(target=startApp)
-    thread.start()
+    
     
     #start server
     app = Flask(__name__)

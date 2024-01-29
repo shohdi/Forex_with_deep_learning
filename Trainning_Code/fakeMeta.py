@@ -1,3 +1,4 @@
+import time
 import numpy as np
 try:
     testVar = np.zeros((3,3),dtype=np.bool)
@@ -17,7 +18,7 @@ if __name__ == "__main__":
         reader = csv.reader(f, delimiter=';')
         header = next(reader)
         data = np.array(list(reader)).astype(np.float32)
-    urlFormat = 'http://127.0.0.1:5000?open={open}&close={close}&high={high}&low={low}&ask={ask}&bid={bid}&tradeDir={tradeDir}&day={day}&week={week}&month={month}'
+    urlFormat = 'http://127.0.0.1:5000?open={open}&close={close}&high={high}&low={low}&ask={ask}&bid={bid}&volume={volume}&tradeDir={tradeDir}&env=test&time={time}'
     for i in range(len(data)):
         url = urlFormat.format(
             open=data[i,header.index("open")]
@@ -26,11 +27,9 @@ if __name__ == "__main__":
             ,low=data[i,header.index("low")]
             ,ask=data[i,header.index("ask")]
             ,bid=data[i,header.index("bid")]
-
+            ,volume=0
             ,tradeDir=tradeDir
-            ,day=0.1
-            ,week=0.1
-            ,month=0.1
+            ,time=time.time()
             )
         
         action = int(requests.get(url).text.strip().replace('"','').replace('\r','').replace('\n',''))
