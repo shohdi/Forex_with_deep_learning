@@ -48,8 +48,11 @@ int CalculateCurrentOrders()
 
 void checkSlTk()
 {
-   if (CalculateCurrentOrders() > 0)
+   if(CalculateCurrentOrders() == 0)
    {
+      return ;
+   }
+   
       double spread = Ask-Bid;
       if(tradeDir == 1)
       {
@@ -82,7 +85,7 @@ void checkSlTk()
          }
          
       }
-   }
+   
 }
 
 void openUp(double lots)
@@ -113,8 +116,8 @@ void openDown(double lots)
       Print("Opening Down Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
-      double tk = 0; // openTradeBid - (startClose * tkval);
-      double sl = 0; // openTradeBid + (startClose * slval);
+      double tk =  openTradeBid - (startClose * tkval);
+      double sl =  openTradeBid + (startClose * slval);
       int res = OrderSend(Symbol(), OP_SELL, lots, Bid, 5,sl, tk, "", MAGICMA, 0, Red);
       if (res == -1)
       {
