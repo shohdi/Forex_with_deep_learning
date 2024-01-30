@@ -119,17 +119,20 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
 
     options[env].tradeDir = tradeDir
     options[env].StateAvailable = True
-    if hasKey(actions,env) and actions[env] is not None and hasKey(states,env) and states[env] is not None :
+    if hasKey(actions,env) and actions[env] is not None and actions[env] != 12 and hasKey(states,env) and states[env] is not None :
         
         stepState, reward, done, dataItem = currentEnv.step(actions[env])
         states[env] = stepState
         lastStepRet[env] = (stepState, reward, done, dataItem)
         if done:
-            if allowModel:
-                states[env] = currentEnv.reset()
-            currentEnv.beforeActionState = None
-            actions[env] = None
-            return str(12) 
+            #if allowModel:
+                #
+            actions[env] = 12
+            return str(12)
+
+    elif  hasKey(actions,env) and actions[env] is not None and actions[env] == 12:
+        states[env] = currentEnv.reset()
+        
     
 
     
@@ -137,7 +140,7 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
         states[env] = currentEnv.reset()
         if states[env] is None :
             currentEnv.beforeActionState = None
-            actions[env] = None
+            actions[env] = 12
             return str(12)
     
 
