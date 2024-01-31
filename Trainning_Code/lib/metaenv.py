@@ -203,7 +203,8 @@ class ForexMetaEnv(gym.Env):
                 done = True
 
         data=None
-        self.stepIndex+=1
+        if self.options.stateObjTimes[-1] != self.beforeActionTime:
+            self.stepIndex+=1
                 
         if self.stopTrade and not done:
             if self.openTradeDir == 1  :
