@@ -95,8 +95,8 @@ void openUp(double lots)
       Print("Opening Up Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
-      double tk = 0; //openTradeAsk + (startClose * tkval);
-      double sl = 0; //openTradeAsk - (startClose * slval);
+      double tk = openTradeAsk + (startClose * tkval);
+      double sl = openTradeAsk - (startClose * slval);
       int res = OrderSend(Symbol(), OP_BUY, lots, Ask, 5, sl, tk, "", MAGICMA, 0, Green);
       if (res == -1)
       {
@@ -357,6 +357,7 @@ void OnDeinit(const int reason)
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
 datetime D1;
+datetime D2;
 void OnTick()
 {
    checkSlTk();
@@ -370,5 +371,19 @@ void OnTick()
       handleAction(action);
       // Do Something...
    }
+   
+   else
+   {
+      if (D2 != iTime(Symbol(), PERIOD_M1, 0)) // new candle on D1
+      {
+         D2 = iTime(Symbol(), PERIOD_M1, 0); // overwrite old with new value
+         // new candle
+         int action = OpenRequestGetAction(0, false);
+         Print("action taken : ", action);
+         handleAction(action);
+         // Do Something...
+      }
+   }
+   
 }
 //+------------------------------------------------------------------+
