@@ -203,8 +203,8 @@ class ForexMetaEnv(gym.Env):
                 done = True
 
         data=None
-        if self.options.stateObjTimes[-1] != self.beforeActionTime:
-            self.stepIndex+=1
+        #if self.options.stateObjTimes[-1] != self.beforeActionTime:
+        self.stepIndex+=1
                 
         if self.stopTrade and not done:
             if self.openTradeDir == 1  :
@@ -231,20 +231,20 @@ class ForexMetaEnv(gym.Env):
                     
                     #print('stop trade!')
         #add current reward :
-        if self.options.stateObjTimes[-1] != self.beforeActionTime:
-            if(self.openTradeDir == 1):
-                self.reward_queue.append(self.closeUpTrade(myState))
-            elif (self.openTradeDir == 2):
-                self.reward_queue.append(self.closeDownTrade(myState))
-            else:
-                self.reward_queue.append(reward)
+        #if self.options.stateObjTimes[-1] != self.beforeActionTime:
+        if(self.openTradeDir == 1):
+            self.reward_queue.append(self.closeUpTrade(myState))
+        elif (self.openTradeDir == 2):
+            self.reward_queue.append(self.closeDownTrade(myState))
         else:
-            if(self.openTradeDir == 1):
-                self.reward_queue[-1]=self.closeUpTrade(myState)
-            elif (self.openTradeDir == 2):
-                self.reward_queue[-1]=self.closeDownTrade(myState)
-            else:
-                self.reward_queue[-1]=reward
+            self.reward_queue.append(reward)
+        #else:
+        #    if(self.openTradeDir == 1):
+        #        self.reward_queue[-1]=self.closeUpTrade(myState)
+        #    elif (self.openTradeDir == 2):
+        #        self.reward_queue[-1]=self.closeDownTrade(myState)
+        #    else:
+        #        self.reward_queue[-1]=reward
 
 
         #enf of current reward :
@@ -261,16 +261,17 @@ class ForexMetaEnv(gym.Env):
         openIndex = self.header.index("open")
         for arrIndex in range(len(arr)):
             row = arr[arrIndex]
-            op = row[closeIndex]
-            if arrIndex < (len(arr)-1):
-                op = arr[arrIndex+1,openIndex]
-            cl = row[closeIndex]
-            #Spread: 0.00027 Spread * close = 0.00027 * (close) 1.104 = 0.000298 = 0.00030
-            point = (0.00027 * cl)/30.0
-            spread = 30.0
-            spread = point * spread
-            row[bidIndex] = op
-            row[askIndex] = row[bidIndex] + spread
+            if row[askIndex] == 0 or row[bidIndex] == 0:
+                op = row[closeIndex]
+                if arrIndex < (len(arr)-1):
+                    op = arr[arrIndex+1,openIndex]
+                cl = row[closeIndex]
+                #Spread: 0.00027 Spread * close = 0.00027 * (close) 1.104 = 0.000298 = 0.00030
+                point = (0.00027 * cl)/30.0
+                spread = 30.0
+                spread = point * spread
+                row[bidIndex] = op
+                row[askIndex] = row[bidIndex] + spread
         
         return arr
 

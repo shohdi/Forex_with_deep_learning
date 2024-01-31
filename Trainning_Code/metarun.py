@@ -111,11 +111,11 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
         currentEnv.beforeActionState = np.array(currentEnv.states,dtype=np.float32,copy=True)
         if len(options[env].stateObjTimes) > 0: 
             currentEnv.beforeActionTime = options[env].stateObjTimes[-1]
-    if len(options[env].stateObjTimes) == 0 or options[env].stateObjTimes[-1] != time:
-        stateObj[env].append( np.array([open,close,high,low,ask,bid,volume],dtype=np.float32))
-        options[env].stateObjTimes.append(time)
-    else:
-        stateObj[env][-1] = np.array([open,close,high,low,ask,bid,volume],dtype=np.float32)
+    #if len(options[env].stateObjTimes) == 0 or options[env].stateObjTimes[-1] != time:
+    stateObj[env].append( np.array([open,close,high,low,ask,bid,volume],dtype=np.float32))
+    options[env].stateObjTimes.append(time)
+    #else:
+    #    stateObj[env][-1] = np.array([open,close,high,low,ask,bid,volume],dtype=np.float32)
 
     options[env].tradeDir = tradeDir
     options[env].StateAvailable = True
