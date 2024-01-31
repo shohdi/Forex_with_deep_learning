@@ -371,7 +371,7 @@ void OnTick()
       handleAction(action);
       // Do Something...
    }
-   
+   /*
    else
    {
       if (D2 != iTime(Symbol(), PERIOD_M1, 0)) // new candle on D1
@@ -384,6 +384,7 @@ void OnTick()
          // Do Something...
       }
    }
+   */
    
 }
 //+------------------------------------------------------------------+
