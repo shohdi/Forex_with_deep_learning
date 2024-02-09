@@ -199,6 +199,107 @@ def SellIsWorking():
         return False,"SellIsWorking : %s"%(str(ex))
 
 
+def testSaveLoadIsOkWithoutTrade():
+    try:
+        #assign
+        global env
+        env.reset()
+
+        #action
+        state,_,_,_ = nextAction(0,0)
+        state,reward,done,data = nextAction(0,0)
+        envs['test'] = None
+        state,reward,done,data = nextAction(0,0)
+        env = envs['test']
+        
+
+        
+        
+
+
+        #assert
+        expectStepIndex = 3
+        
+        
+        assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
+       
+
+        return True,"testSaveLoadIsOkWithoutTrade : Success"
+    except Exception as ex:
+        return False,"testSaveLoadIsOkWithoutTrade : %s"%(str(ex))
+
+
+
+def testSaveLoadIsOkWithUp():
+    try:
+        #assign
+        global env
+        env.reset()
+
+        #action
+        state,_,_,_ = nextAction(0,0)
+        state,reward,done,data = nextAction(1,0)
+        envs['test'] = None
+        state,reward,done,data = nextAction(0,1)
+        env = envs['test']
+        
+
+        
+        
+
+
+        #assert
+        expectStepIndex = 3
+        tradeDir = 1
+        tradeStep = 2
+        
+        
+        assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
+        assert (env.openTradeDir == tradeDir ),'expected tradeDir is %d found %d'%(tradeDir,env.openTradeDir)
+        assert (env.startTradeStep == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
+       
+
+        return True,"testSaveLoadIsOkWithUp : Success"
+    except Exception as ex:
+        return False,"testSaveLoadIsOkWithUp : %s"%(str(ex))
+
+
+
+def testSaveLoadIsOkWithDown():
+    try:
+        #assign
+        global env
+        env.reset()
+
+        #action
+        state,_,_,_ = nextAction(0,0)
+        state,reward,done,data = nextAction(2,0)
+        envs['test'] = None
+        state,reward,done,data = nextAction(0,2)
+        env = envs['test']
+        
+
+        
+        
+
+
+        #assert
+        expectStepIndex = 3
+        tradeDir = 2
+        tradeStep = 2
+        
+        
+        assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
+        assert (env.openTradeDir == tradeDir ),'expected tradeDir is %d found %d'%(tradeDir,env.openTradeDir)
+        assert (env.startTradeStep == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
+       
+
+        return True,"testSaveLoadIsOkWithDown : Success"
+    except Exception as ex:
+        return False,"testSaveLoadIsOkWithDown : %s"%(str(ex))
+
+
+
 
 
 def testStateShape():
@@ -496,6 +597,15 @@ def runTests():
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
         ret,msg = testStepIsWrittenInState()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSaveLoadIsOkWithoutTrade()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSaveLoadIsOkWithUp()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSaveLoadIsOkWithDown()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
 

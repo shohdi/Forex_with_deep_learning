@@ -105,7 +105,7 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
     currentEnv = None
     if (not hasKey(envs,env)) or envs[env] is None:
         envs[env] = ForexMetaEnv(stateObj[env],options[env],env,False,True)
-        envs[env] = loadEnv(envs,env)
+        #envs[env] = loadEnv(envs,env)
     currentEnv = envs[env]
     
 
