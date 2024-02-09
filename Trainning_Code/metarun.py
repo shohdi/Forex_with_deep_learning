@@ -26,6 +26,8 @@ import argparse
 
 from dqn_rainbow import LSTM_Forex
 import time
+import json
+
 
 class Options:
     def __init__(self):
@@ -103,6 +105,7 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
     currentEnv = None
     if (not hasKey(envs,env)) or envs[env] is None:
         envs[env] = ForexMetaEnv(stateObj[env],options[env],env,False,True)
+        envs[env] = loadEnv(envs,env)
     currentEnv = envs[env]
     
 
@@ -173,6 +176,18 @@ def createEnvsThread():
 
 DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm-run"
 MY_DATA_PATH = 'data'
+
+
+def loadEnv(globalObj,envName):
+
+    if os.path.isfile('env_data/' + envName  + '.json'):
+        envObj = None
+        with open('env_data/' + envName  + '.json','r') as myEnvFile:
+            envObj=json.load(myEnvFile)
+        
+
+
+
 
 
 def configureApp(env):

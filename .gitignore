@@ -5,3 +5,4 @@ data/
 logs/
 Forex-v4-best.dat
 trainedSteps.txt
+Trainning_Code/lib/security/email_login.py
