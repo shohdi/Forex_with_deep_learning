@@ -29,6 +29,8 @@ import time
 import json
 
 
+
+
 class Options:
     def __init__(self):
         self.ActionAvailable = False
@@ -178,7 +180,53 @@ DEFAULT_ENV_NAME = "Forex-100-15m-200max-100hidden-lstm-run"
 MY_DATA_PATH = 'data'
 
 
-def loadEnv(globalObj,envName):
+
+def saveEnv(envName):
+    saveObj  = {}
+    saveObj['env'] = {}
+    env = envs[envName]
+    saveObj['env']['states'] = []
+    for i in range(len(env.states)):
+        for j in range(len(env.states[i])):
+            saveObj['env']['states'].append(env.states[i][j])
+    
+    saveObj['env']['envName'] = env.envName
+    saveObj['env']['options'] = {}
+    saveObj['env']['options']['ActionAvailable'] = env.options.ActionAvailable
+    saveObj['env']['options']['StateAvailable'] = env.options.StateAvailable
+    saveObj['env']['options']['takenAction'] = env.options.takenAction
+    saveObj['env']['options']['tradeDir'] = env.options.tradeDir
+    saveObj['env']['options']['stateObjTimes'] = []
+
+    for i in range(len(env.options.stateObjTimes)):
+        saveObj['env']['options']['stateObjTimes'].append(env.options.stateObjTimes[i])
+
+    saveObj['env']['punishAgent'] = env.punishAgent
+    saveObj['env']['stopTrade'] = env.stopTrade
+    saveObj['env']['startTradeStep'] = env.startTradeStep
+    saveObj['env']['startClose'] = env.startClose
+    saveObj['env']['openTradeDir'] = env.openTradeDir
+    saveObj['env']['lastTenData'] = []
+    for i in range(len(env.lastTenData)):
+        for j in range(len(env.lastTenData[i])):
+            saveObj['env']['lastTenData'].append(env.lastTenData[i][j])
+    
+    saveObj['env']['reward_queue'] = []
+    for i in range(len(env.reward_queue)):
+        saveObj['env']['reward_queue'].append(env.reward_queue[i])
+    
+    saveObj['env']['header'] = []
+    for i in range(len(env.header)):
+        saveObj['env']['header'].append(env.header[i])
+    
+    
+    
+
+
+
+
+
+def loadEnv(envName):
 
     if os.path.isfile('env_data/' + envName  + '.json'):
         envObj = None
