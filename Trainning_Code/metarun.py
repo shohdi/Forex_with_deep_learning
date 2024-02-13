@@ -133,6 +133,7 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
             #if allowModel:
                 #
             actions[env] = 12
+            saveEnv(env)
             return str(12)
 
     elif  hasKey(actions,env) and actions[env] is not None and actions[env] == 12:
@@ -146,6 +147,7 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
         if states[env] is None :
             currentEnv.beforeActionState = None
             actions[env] = 12
+            saveEnv(env)
             return str(12)
     
 
@@ -154,6 +156,9 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
         state_v = torch.tensor(np.array([states[env]], copy=False)).to(device)
         q_vals = net(state_v).cpu().data.numpy()[0]
         actions[env] = np.argmax(q_vals)
+        currentEnv.nextAction = actions[env]
+        currentEnv.nextProp = q_vals
+        
     else:
         actions[env] = action
 
@@ -161,6 +166,7 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
     
     
     ret = str(actions[env])
+    saveEnv(env)
     return ret
 
 
@@ -185,10 +191,12 @@ def saveEnv(envName):
     saveObj  = {}
     saveObj['env'] = {}
     env = envs[envName]
-    saveObj['env']['states'] = []
-    for i in range(len(env.states)):
-        for j in range(len(env.states[i])):
-            saveObj['env']['states'].append(env.states[i][j])
+    saveObj['env']['states'] = None
+    if env.states is not None:
+        saveObj['env']['states'] = []
+        for i in range(len(env.states)):
+            for j in range(len(env.states[i])):
+                saveObj['env']['states'].append(env.states[i][j])
     
     saveObj['env']['envName'] = env.envName
     saveObj['env']['options'] = {}
@@ -196,42 +204,102 @@ def saveEnv(envName):
     saveObj['env']['options']['StateAvailable'] = env.options.StateAvailable
     saveObj['env']['options']['takenAction'] = env.options.takenAction
     saveObj['env']['options']['tradeDir'] = env.options.tradeDir
-    saveObj['env']['options']['stateObjTimes'] = []
-
-    for i in range(len(env.options.stateObjTimes)):
-        saveObj['env']['options']['stateObjTimes'].append(env.options.stateObjTimes[i])
+    saveObj['env']['options']['stateObjTimes'] = None
+    if env.options.stateObjTimes is not None:
+        saveObj['env']['options']['stateObjTimes'] = []
+        for i in range(len(env.options.stateObjTimes)):
+            saveObj['env']['options']['stateObjTimes'].append(env.options.stateObjTimes[i])
 
     saveObj['env']['punishAgent'] = env.punishAgent
     saveObj['env']['stopTrade'] = env.stopTrade
     saveObj['env']['startTradeStep'] = env.startTradeStep
     saveObj['env']['startClose'] = env.startClose
     saveObj['env']['openTradeDir'] = env.openTradeDir
-    saveObj['env']['lastTenData'] = []
-    for i in range(len(env.lastTenData)):
-        for j in range(len(env.lastTenData[i])):
-            saveObj['env']['lastTenData'].append(env.lastTenData[i][j])
+    saveObj['env']['lastTenData'] = None
+    if env.lastTenData is not None:
+        saveObj['env']['lastTenData'] = []
+        for i in range(len(env.lastTenData)):
+            for j in range(len(env.lastTenData[i])):
+                saveObj['env']['lastTenData'].append(env.lastTenData[i][j])
     
-    saveObj['env']['reward_queue'] = []
-    for i in range(len(env.reward_queue)):
-        saveObj['env']['reward_queue'].append(env.reward_queue[i])
+    saveObj['env']['reward_queue'] = None
+    if env.reward_queue is not None:
+        saveObj['env']['reward_queue'] = []
+        for i in range(len(env.reward_queue)):
+            saveObj['env']['reward_queue'].append(env.reward_queue[i])
     
-    saveObj['env']['header'] = []
-    for i in range(len(env.header)):
-        saveObj['env']['header'].append(env.header[i])
+    saveObj['env']['startAsk'] = env.startAsk
+    saveObj['env']['startBid'] = env.startBid
+    saveObj['env']['openTradeAsk'] = env.openTradeAsk
+    saveObj['env']['openTradeBid'] = env.openTradeBid
+    saveObj['env']['stepIndex'] = env.stepIndex
+    saveObj['env']['stopLoss'] = env.stopLoss
+    saveObj['env']['beforeActionState'] = None
+    if env.beforeActionState is not None :
+        saveObj['env']['beforeActionState'] = []
+        for i in range(len(env.beforeActionState)):
+            for j in range(len(env.beforeActionState[i])):
+                saveObj['env']['beforeActionState'].append(env.beforeActionState[i][j])
     
-    
+    saveObj['env']['beforeActionTime'] = env.beforeActionTime
+    saveObj['env']['nextAction'] = env.nextAction
+    saveObj['env']['nextProp'] = None
+    if env.nextProp is not None:
+        saveObj['env']['nextProp'] = []
+        for i in range(len(env.nextProp)):
+            saveObj['env']['nextProp'].append(env.nextProp[i])
     
 
 
+
+    #env data
+    saveObj['envData']['actions'] = actions[envName]
+    saveObj['envData']['stateObj'] = None
+    if stateObj[envName] is not None :
+        saveObj['envData']['stateObj'] = []
+        for i in range(len(stateObj[envName])):
+            for j in range(len(stateObj[envName][i])):
+                saveObj['envData']['stateObj'].append(stateObj[envName][i][j])
+    
+
+    saveObj['envData']['lastStepRet'] = None
+    if lastStepRet[envName] is not None:
+        saveObj['envData']['lastStepRet'] = {}
+        saveObj['envData']['lastStepRet']['stepState'] = None
+        if lastStepRet[envName][0] is not None:
+            saveObj['envData']['lastStepRet']['stepState'] =[]
+            for i in range(len(lastStepRet[envName][0])):
+                for j in range(len(lastStepRet[envName][0][i])):
+                    saveObj['envData']['lastStepRet']['stepState'].append(lastStepRet[envName][0][i][j])
+        
+        saveObj['envData']['lastStepRet']['reward'] = lastStepRet[envName][1]
+        saveObj['envData']['lastStepRet']['done'] = lastStepRet[envName][2]
+        saveObj['envData']['lastStepRet']['dataItem'] = lastStepRet[envName][3]
+    
+    saveObj['envData']['states'] = None
+    if states[envName] is not None:
+        saveObj['envData']['states'] = []
+        for i in range(len(states[envName])):
+            for j in range(len(states[envName][i])):
+                saveObj['envData']['states'].append(states[envName][i][j])
+
+
+    if not os.path.isdir('env_data/'):
+        os.mkdir('env_data')
+    with open('env_data/' + envName  + '.json','w') as myEnvFile:
+        json.dump(saveObj,myEnvFile)
 
 
 
 def loadEnv(envName):
 
     if os.path.isfile('env_data/' + envName  + '.json'):
-        envObj = None
+        saveObj = None
         with open('env_data/' + envName  + '.json','r') as myEnvFile:
-            envObj=json.load(myEnvFile)
+            saveObj=json.load(myEnvFile)
+        
+        if saveObj is not None:
+            return None
         
 
 

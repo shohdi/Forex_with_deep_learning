@@ -45,7 +45,8 @@ class ForexMetaEnv(gym.Env):
         self.stopLoss = None
         self.beforeActionState = None
         self.beforeActionTime = None
-        
+        self.nextAction = None
+        self.nextProp = None
         
         
         
@@ -74,6 +75,8 @@ class ForexMetaEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
+        self.nextAction = None
+        self.nextProp = None
         self.reward_queue = collections.deque(maxlen=16)
         while len(self.reward_queue) < 16:
             self.reward_queue.append(0.0)
