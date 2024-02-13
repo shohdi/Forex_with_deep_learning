@@ -190,7 +190,11 @@ MY_DATA_PATH = 'data'
 def saveEnv(envName):
     saveObj  = {}
     saveObj['env'] = {}
-    env = envs[envName]
+    env = None
+    if hasKey(envs,envName) and envs[envName] is not None:
+        env = envs[envName]
+    if env is None:
+        return
     saveObj['env']['states'] = None
     if env.states is not None:
         saveObj['env']['states'] = []
@@ -253,9 +257,13 @@ def saveEnv(envName):
 
 
     #env data
-    saveObj['envData']['actions'] = actions[envName]
+    saveObj['envData'] = {}
+    saveObj['envData']['actions'] = None
+    if hasKey(actions,envName) :
+        saveObj['envData']['actions'] = actions[envName]
     saveObj['envData']['stateObj'] = None
-    if stateObj[envName] is not None :
+
+    if hasKey(stateObj,envName) and stateObj[envName] is not None :
         saveObj['envData']['stateObj'] = []
         for i in range(len(stateObj[envName])):
             for j in range(len(stateObj[envName][i])):
@@ -263,7 +271,7 @@ def saveEnv(envName):
     
 
     saveObj['envData']['lastStepRet'] = None
-    if lastStepRet[envName] is not None:
+    if hasKey(lastStepRet,envName) and lastStepRet[envName] is not None:
         saveObj['envData']['lastStepRet'] = {}
         saveObj['envData']['lastStepRet']['stepState'] = None
         if lastStepRet[envName][0] is not None:
@@ -277,7 +285,7 @@ def saveEnv(envName):
         saveObj['envData']['lastStepRet']['dataItem'] = lastStepRet[envName][3]
     
     saveObj['envData']['states'] = None
-    if states[envName] is not None:
+    if hasKey(states,envName) and states[envName] is not None:
         saveObj['envData']['states'] = []
         for i in range(len(states[envName])):
             for j in range(len(states[envName][i])):
@@ -287,7 +295,7 @@ def saveEnv(envName):
     if not os.path.isdir('env_data/'):
         os.mkdir('env_data')
     with open('env_data/' + envName  + '.json','w') as myEnvFile:
-        json.dump(saveObj,myEnvFile)
+        json.dump(saveObj,myEnvFile,default=lambda o: float(o) if isinstance(o, np.float32) else o)
 
 
 
