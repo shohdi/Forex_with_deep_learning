@@ -1,7 +1,7 @@
 envSaveObj={
     'env':{
         'states':None, #(done save) #(done load)
-        'envName':None, #(done save)
+        'envName':None, #(done save)#(done load)
         'options':None, #(done save)
         'punishAgent':None, #(done save)
         'stopTrade':None, #(done save)

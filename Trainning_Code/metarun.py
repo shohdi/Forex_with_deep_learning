@@ -317,10 +317,12 @@ def loadEnv(envName):
                     statesObj = collections.deque(maxlen=16)
                     for i in range(len(statesData)):
                         statesObj.append(statesData[i])
-                    saveObj['env']['states'] = statesObj
+                    env.states = statesObj
                     stateObj[envName] = statesObj
                 
-                
+                env.envName = envName
+                if hasKey(saveObj['env'],'options') and saveObj['env']['options'] is not None:
+                    None
 
             return None
         
