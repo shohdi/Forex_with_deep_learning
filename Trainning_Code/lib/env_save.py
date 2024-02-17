@@ -1,6 +1,6 @@
 envSaveObj={
     'env':{
-        'states':None, #(done save)
+        'states':None, #(done save) #(done load)
         'envName':None, #(done save)
         'options':None, #(done save)
         'punishAgent':None, #(done save)
@@ -28,7 +28,7 @@ envSaveObj={
     },
     'envData':{
         'actions':None #(done save)
-        ,'stateObj':None #(done save)
+        ,'stateObj':None #(done save) #(done load)
         ,'lastStepRet':{
             'stepState':None #(done save)
             ,'reward':None #(done save)

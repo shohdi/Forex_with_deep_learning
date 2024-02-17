@@ -107,7 +107,7 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
     currentEnv = None
     if (not hasKey(envs,env)) or envs[env] is None:
         envs[env] = ForexMetaEnv(stateObj[env],options[env],env,False,True)
-        #envs[env] = loadEnv(envs,env)
+        envs[env] = loadEnv(env)
     currentEnv = envs[env]
     
 
@@ -307,6 +307,21 @@ def loadEnv(envName):
             saveObj=json.load(myEnvFile)
         
         if saveObj is not None:
+            env = envs[envName]
+            if hasKey(saveObj,'env') and saveObj['env'] is not None:
+                if hasKey(saveObj['env'],'states') and saveObj['env']['states'] is not None:
+                    #load states
+                    statesData = saveObj['env']['states']
+                    statesData = np.array(statesData,dtype=np.float32)
+                    statesData = np.reshape(statesData,(16,-1))
+                    statesObj = collections.deque(maxlen=16)
+                    for i in range(len(statesData)):
+                        statesObj.append(statesData[i])
+                    saveObj['env']['states'] = statesObj
+                    stateObj[envName] = statesObj
+                
+                
+
             return None
         
 
