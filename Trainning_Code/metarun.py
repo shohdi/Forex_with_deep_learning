@@ -322,7 +322,30 @@ def loadEnv(envName):
                 
                 env.envName = envName
                 if hasKey(saveObj['env'],'options') and saveObj['env']['options'] is not None:
-                    None
+                    objOptions = Options()
+                    objOptions.ActionAvailable = saveObj['env']['options']['ActionAvailable']
+                    objOptions.StateAvailable = saveObj['env']['options']['StateAvailable']
+                    objOptions.takenAction = saveObj['env']['options']['takenAction']
+                    objOptions.tradeDir = saveObj['env']['options']['tradeDir']
+                    objOptions.stateObjTimes = collections.deque(maxlen=16)
+                    if  hasKey(saveObj['env']['options'],'stateObjTimes') and saveObj['env']['options']['stateObjTimes'] is not None:
+                        for i in range(len(saveObj['env']['options']['stateObjTimes'])):
+                            objOptions.stateObjTimes.append(saveObj['env']['options']['stateObjTimes'][i])
+                    env.options = objOptions
+                    options[envName] = objOptions
+                env.punishAgent = saveObj['env']['punishAgent']
+                env.stopTrade = saveObj['env']['stopTrade']
+                env.startTradeStep = saveObj['env']['startTradeStep']
+                env.startClose = saveObj['env']['startClose']
+                env.openTradeDir = saveObj['env']['openTradeDir']
+                env.lastTenData = collections.deque(maxlen=10)
+                if hasKey(saveObj['env'],'lastTenData') and saveObj['env']['lastTenData'] is not None:
+                    lastTenDataArr = saveObj['env']['lastTenData']
+                    lastTenDataLength = len(lastTenDataArr)
+                    
+
+
+
 
             return None
         
