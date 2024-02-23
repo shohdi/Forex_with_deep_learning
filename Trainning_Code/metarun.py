@@ -338,10 +338,32 @@ def loadEnv(envName):
                 env.startTradeStep = saveObj['env']['startTradeStep']
                 env.startClose = saveObj['env']['startClose']
                 env.openTradeDir = saveObj['env']['openTradeDir']
-                env.lastTenData = collections.deque(maxlen=10)
+                #env.lastTenData = collections.deque(maxlen=10)
                 if hasKey(saveObj['env'],'lastTenData') and saveObj['env']['lastTenData'] is not None:
                     lastTenDataArr = saveObj['env']['lastTenData']
                     lastTenDataLength = len(lastTenDataArr)
+                    #lastTenDataObj = collections.deque(maxlen=10)
+                    # convert the list to a numpy array
+                    lastTenDataArr = np.array(lastTenDataArr)
+
+                    # reshape the array into 10 rows x 5 columns
+                    lastTenDataArr = lastTenDataArr.reshape(10, -1)
+                    # convert the array into a list of tuples
+                    lastTenDataArr = list(map(tuple, lastTenDataArr))
+                    for i in range(len(lastTenDataArr)):
+                        env.lastTenData.append(lastTenDataArr[i])
+                
+                if hasKey(saveObj['env'],'reward_queue') and saveObj['env']['reward_queue'] is not None:
+                    reward_queueArr = saveObj['env']['reward_queue']
+                    for i in range(len(reward_queueArr)):
+                        env.reward_queue.append(reward_queueArr[i])
+                
+                env.startAsk = saveObj['env']['startAsk']
+                env.startBid = saveObj['env']['startBid']
+                env.openTradeAsk = saveObj['env']['openTradeAsk']
+                env.openTradeBid = saveObj['env']['openTradeBid']
+                env.stepIndex = saveObj['env']['stepIndex']
+                env.stopLoss = saveObj['env']['stopLoss']
                     
 
 
