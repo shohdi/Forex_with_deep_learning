@@ -364,6 +364,31 @@ def loadEnv(envName):
                 env.openTradeBid = saveObj['env']['openTradeBid']
                 env.stepIndex = saveObj['env']['stepIndex']
                 env.stopLoss = saveObj['env']['stopLoss']
+                if hasKey(saveObj['env'],'beforeActionState') and saveObj['env']['beforeActionState'] is not None:
+                    #load states
+                    statesData = saveObj['env']['beforeActionState']
+                    statesData = np.array(statesData,dtype=np.float32)
+                    statesData = np.reshape(statesData,(16,-1))
+                    statesObj = collections.deque(maxlen=16)
+                    for i in range(len(statesData)):
+                        statesObj.append(statesData[i])
+                    env.beforeActionState = statesObj
+                
+                env.beforeActionTime = saveObj['env']['beforeActionTime']
+                env.nextAction = saveObj['env']['nextAction']
+                nextPropArr = saveObj['env']['nextProp']
+                if nextPropArr is not None:
+                    env.nextProp = np.array(nextPropArr,dtype=np.float32)
+            
+            if hasKey(saveObj,'envData') and  saveObj["envData"] is not None:
+                if hasKey(saveObj['envData'],'actions') and saveObj['envData']['actions'] is not None:
+                    actions[envName] = saveObj['envData']['actions']
+
+                
+                
+
+
+
                     
 
 

@@ -19,16 +19,16 @@ envSaveObj={
         'openTradeBid':None,#(done save)(done load)
         'stepIndex':None,#(done save) (done load)
         'stopLoss':None,#(done save) (done load)
-        'beforeActionState':None,#(done save)
-        'beforeActionTime':None, #(done save)
+        'beforeActionState':None,#(done save) (done load)
+        'beforeActionTime':None, #(done save)(done load)
         'observation_space':None, #(no need to save)
-        'nextAction':None, #(done save)
-        'nextProp':None, #(done save)
+        'nextAction':None, #(done save) done load)
+        'nextProp':None, #(done save) done load)
 
     },
     'envData':{
-        'actions':None #(done save)
-        ,'stateObj':None #(done save) #(done load)
+        'actions':None #(done save) (done load)
+        ,'stateObj':None #(done save) (done load)
         ,'lastStepRet':{
             'stepState':None #(done save)
             ,'reward':None #(done save)
