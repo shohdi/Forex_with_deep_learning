@@ -256,7 +256,7 @@ def testSaveLoadIsOkWithUp():
         
         assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
         assert (env.openTradeDir == tradeDir ),'expected tradeDir is %d found %d'%(tradeDir,env.openTradeDir)
-        assert (env.startTradeStep == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
+        assert ((env.stepIndex - env.startTradeStep) == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
        
 
         return True,"testSaveLoadIsOkWithUp : Success"
@@ -291,7 +291,7 @@ def testSaveLoadIsOkWithDown():
         
         assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
         assert (env.openTradeDir == tradeDir ),'expected tradeDir is %d found %d'%(tradeDir,env.openTradeDir)
-        assert (env.startTradeStep == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
+        assert ((env.stepIndex - env.startTradeStep) == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
        
 
         return True,"testSaveLoadIsOkWithDown : Success"
