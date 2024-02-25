@@ -7,3 +7,4 @@ Forex-v4-best.dat
 trainedSteps.txt
 Trainning_Code/lib/security/**/*.*
 env_data/**/*.*
+.vscode/
