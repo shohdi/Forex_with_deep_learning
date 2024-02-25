@@ -385,16 +385,41 @@ def loadEnv(envName):
                     actions[envName] = saveObj['envData']['actions']
 
                 
-                
+
+                if hasKey(saveObj['envData'],'lastStepRet') and saveObj['envData']['lastStepRet'] is not None:
+                    lastStepRet[envName] = {}
+                    lastStepRet[envName]['stepState'] = None
+                    if saveObj['envData']['lastStepRet']['stepState'] is not None:
+                        lastStepRet[envName]['stepState'] =[]
+                        statesData = saveObj['envData']['lastStepRet']['stepState']
+                        statesData = np.array(statesData,dtype=np.float32)
+                        statesData = np.reshape(statesData,(16,-1))
+                        for i in range(len(statesData)):
+                            lastStepRet[envName]['stepState'].append(statesData[i])
+
+                    lastStepRet[envName]['reward'] = saveObj['envData']['lastStepRet']['reward']
+                    lastStepRet[envName]['done'] = saveObj['envData']['lastStepRet']['done']
+                    lastStepRet[envName]['dataItem'] = saveObj['envData']['lastStepRet']['dataItem']
+                    myTuble = (lastStepRet[envName]['stepState'], lastStepRet[envName]['reward'], lastStepRet[envName]['done'], lastStepRet[envName]['dataItem'])        
+                    lastStepRet[envName] = myTuble
+
+                if hasKey(saveObj['envData'],'states') and saveObj['envData']['states'] is not None:
+                    statesObj = collections.deque(maxlen=16)
+                    statesData = saveObj['envData']['states']
+                    statesData = np.array(statesData,dtype=np.float32)
+                    statesData = np.reshape(statesData,(16,-1))
+                    for i in range(len(statesData)):
+                        statesObj.append(statesData[i])
+                    states[envName] = statesObj
 
 
+        
+            
 
-                    
-
-
-
-
-            return None
+    if hasKey(envs,envName) :
+        return envs[envName]
+    else:
+        return None
         
 
 

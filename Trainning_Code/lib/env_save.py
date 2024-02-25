@@ -30,12 +30,12 @@ envSaveObj={
         'actions':None #(done save) (done load)
         ,'stateObj':None #(done save) (done load)
         ,'lastStepRet':{
-            'stepState':None #(done save)
-            ,'reward':None #(done save)
-            ,'done':None #(done save)
-            ,'dataItem':None #(done save)
+            'stepState':None #(done save) (done load)
+            ,'reward':None #(done save) (done load)
+            ,'done':None #(done save) (done load)
+            ,'dataItem':None #(done save) (done load)
         }
-        ,'states':None #(done save)
+        ,'states':None #(done save) (done load)
         
     }   
 
