@@ -514,7 +514,7 @@ if __name__ == "__main__":
     app = Flask(__name__)
     api = Api(app)
     api.add_resource(MetaTrade, '/')
-    api.add_resource(StateObjLength, '/stateObjLength/<string:envName>')
+    api.add_resource(StateObjLength, '/len/<string:envName>')
     app.run(host="0.0.0.0",port=args.port)
 
 
