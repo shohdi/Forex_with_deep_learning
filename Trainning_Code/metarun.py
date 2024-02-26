@@ -16,7 +16,7 @@ import os
 import warnings
 from threading import Thread
 from time import sleep
-from flask import Flask
+from flask import Flask, jsonify
 from flask_restful import Resource, Api,reqparse
 from lib.metaenv import ForexMetaEnv
 from lib.SummaryWriter import SummaryWriter
@@ -56,6 +56,13 @@ def hasKey(dic, key):
         return True
     else:
         return False
+
+class StateObjLength(Resource):
+    def get(self, envName):
+        if envName not in stateObj:
+            return jsonify({"found": False,"length":0})
+        else:
+            return jsonify({"found": True, "length": len(stateObj[envName])})
 
 class MetaTrade(Resource):
     def get(self):
@@ -507,6 +514,7 @@ if __name__ == "__main__":
     app = Flask(__name__)
     api = Api(app)
     api.add_resource(MetaTrade, '/')
+    api.add_resource(StateObjLength, '/stateObjLength/<string:envName>')
     app.run(host="0.0.0.0",port=args.port)
 
 
