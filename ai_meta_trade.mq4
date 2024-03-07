@@ -48,8 +48,11 @@ int CalculateCurrentOrders()
 
 void checkSlTk()
 {
-   if (CalculateCurrentOrders() > 0)
+   if(CalculateCurrentOrders() == 0)
    {
+      return ;
+   }
+   
       double spread = Ask-Bid;
       if(tradeDir == 1)
       {
@@ -82,7 +85,7 @@ void checkSlTk()
          }
          
       }
-   }
+   
 }
 
 void openUp(double lots)
@@ -92,8 +95,8 @@ void openUp(double lots)
       Print("Opening Up Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
-      double tk = 0; //openTradeAsk + (startClose * tkval);
-      double sl = 0; //openTradeAsk - (startClose * slval);
+      double tk = openTradeAsk + (startClose * tkval);
+      double sl = openTradeAsk - (startClose * slval);
       int res = OrderSend(Symbol(), OP_BUY, lots, Ask, 5, sl, tk, "", MAGICMA, 0, Green);
       if (res == -1)
       {
@@ -113,8 +116,8 @@ void openDown(double lots)
       Print("Opening Down Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
-      double tk = 0; // openTradeBid - (startClose * tkval);
-      double sl = 0; // openTradeBid + (startClose * slval);
+      double tk =  openTradeBid - (startClose * tkval);
+      double sl =  openTradeBid + (startClose * slval);
       int res = OrderSend(Symbol(), OP_SELL, lots, Bid, 5,sl, tk, "", MAGICMA, 0, Red);
       if (res == -1)
       {
@@ -190,6 +193,7 @@ int OpenRequestGetAction(int i, bool history)
    double low = iLow(Symbol(), myPeriod, i);
    double ask = close + (Ask - Bid);
    double bid = close;
+   long volume = iVolume(Symbol(), myPeriod, i);
 
    if(startClose == 0)
    {
@@ -218,7 +222,10 @@ int OpenRequestGetAction(int i, bool history)
       ask = Ask;
       bid = Bid;
    }
-   string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&tradeDir=%d&day=%f&week=%f&month=%f", open, close, high, low, ask, bid, tradeDir, day, week, month);
+   string env = _Symbol;
+   datetime requestCandleTime = iTime(Symbol(), myPeriod, i);
+   string time = ""+requestCandleTime;
+   string url = StringFormat("http://127.0.0.1/?open=%f&close=%f&high=%f&low=%f&ask=%f&bid=%f&volume=%d&tradeDir=%d&env=%s&time=%s", open, close, high, low, ask, bid,volume, tradeDir, env,time);
    Print("calling url : ", url);
    string ret = createRequest(url);
    int action = StrToInteger(ret);
@@ -350,6 +357,7 @@ void OnDeinit(const int reason)
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
 datetime D1;
+datetime D2;
 void OnTick()
 {
    checkSlTk();
@@ -363,5 +371,20 @@ void OnTick()
       handleAction(action);
       // Do Something...
    }
+   /*
+   else
+   {
+      if (D2 != iTime(Symbol(), PERIOD_M1, 0)) // new candle on D1
+      {
+         D2 = iTime(Symbol(), PERIOD_M1, 0); // overwrite old with new value
+         // new candle
+         int action = OpenRequestGetAction(0, false);
+         Print("action taken : ", action);
+         handleAction(action);
+         // Do Something...
+      }
+   }
+   */
+   
 }
 //+------------------------------------------------------------------+
