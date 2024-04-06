@@ -27,6 +27,7 @@ import argparse
 from dqn_rainbow import LSTM_Forex
 import time
 import json
+import pickle
 
 
 
@@ -301,17 +302,17 @@ def saveEnv(envName):
 
     if not os.path.isdir('env_data/'):
         os.mkdir('env_data')
-    with open('env_data/' + envName  + '.json','w') as myEnvFile:
-        json.dump(saveObj,myEnvFile,default=lambda o: float(o) if isinstance(o, np.float32) else o)
+    with open('env_data/' + envName  + '.pickle','wb') as myEnvFile:
+        pickle.dump(saveObj,myEnvFile)#,default=lambda o: float(o) if isinstance(o, np.float32) else o)
 
 
 
 def loadEnv(envName):
 
-    if os.path.isfile('env_data/' + envName  + '.json'):
+    if os.path.isfile('env_data/' + envName  + '.pickle'):
         saveObj = None
-        with open('env_data/' + envName  + '.json','r') as myEnvFile:
-            saveObj=json.load(myEnvFile)
+        with open('env_data/' + envName  + '.pickle','rb') as myEnvFile:
+            saveObj=pickle.load(myEnvFile)
         
         if saveObj is not None:
             env = envs[envName]

@@ -14,7 +14,7 @@ except :
 import csv
 import time
 
-slval = 0.04
+slval = 0.01
 tkval = 0.01
 
 class ForexEnv(gym.Env):
