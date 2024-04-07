@@ -12,8 +12,8 @@ except :
 import time
 
 
-slval = 0.01
-tkval = 0.01
+slval = 0.02
+tkval = 0.02
 
 class ForexMetaEnv(gym.Env):
 
