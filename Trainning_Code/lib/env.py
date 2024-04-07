@@ -14,8 +14,8 @@ except :
 import csv
 import time
 
-slval = 0.01
-tkval = 0.01
+slval = 0.02
+tkval = 0.02
 
 class ForexEnv(gym.Env):
     def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True,startRandom=True):

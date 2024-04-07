@@ -69,8 +69,8 @@ def nextAction(action,tradeDir):
 #global init
    
 env = None
-slval = 0.01
-tkval = 0.01
+slval = 0.02
+tkval = 0.02
 def testSlTkForBuyIsOk():
     try:
         #assign

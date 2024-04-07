@@ -5,8 +5,8 @@ from lib.env import ForexEnv
 #global init   
 env = ForexEnv('minutes15_100/data/val',True,True,True,False)
 
-slval = 0.01
-tkval = 0.01
+slval = 0.02
+tkval = 0.02
 def testSlTkForBuyIsOk():
     try:
         #assign
