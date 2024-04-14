@@ -367,7 +367,7 @@ if __name__ == "__main__":
                     
                     testIdx = 0
                     testRewards=[]
-                    while testIdx < 100:
+                    while testIdx < 42:
                         currentTime = time.time()
                         if (currentTime-startTime) > (5*60):
                             print('sleeping 5 minutes on ' + str(datetime.now()))
@@ -419,7 +419,7 @@ if __name__ == "__main__":
                     
                     valIndx = 0
                     valRewards=[]
-                    while valIndx < 100:
+                    while valIndx < 42:
                         currentTime = time.time()
                         if (currentTime-startTime) > (5*60):
                             print('sleeping 5 minutes on ' + str(datetime.now()))
