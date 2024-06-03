@@ -32,8 +32,8 @@ class ForexMetaEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
-        self.reward_queue = collections.deque(maxlen=16)
-        while len(self.reward_queue) < 16:
+        self.reward_queue = collections.deque(maxlen=99)
+        while len(self.reward_queue) < 99:
             self.reward_queue.append(0.0)
         self.header = ("open","close","high","low","ask","bid")
         self.data = None
@@ -51,7 +51,7 @@ class ForexMetaEnv(gym.Env):
         
         
         self.reset()
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(16,13), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(99,13), dtype=np.float32)
 
 
 
@@ -77,15 +77,15 @@ class ForexMetaEnv(gym.Env):
         self.stopLoss = None
         self.nextAction = None
         self.nextProp = None
-        self.reward_queue = collections.deque(maxlen=16)
-        while len(self.reward_queue) < 16:
+        self.reward_queue = collections.deque(maxlen=99)
+        while len(self.reward_queue) < 99:
             self.reward_queue.append(0.0)
 
 
     def reset(self):
         self.options.takenAction = 12
         self.options.ActionAvailable = True
-        if len(self.states) < 16 :
+        if len(self.states) < 99 :
             return None
         myState = np.array(self.states,dtype=np.float32,copy=True)
         self.resetEnv(myState)
@@ -125,7 +125,7 @@ class ForexMetaEnv(gym.Env):
 
     def step(self,action_idx):
         
-        if len(self.states) < 16:
+        if len(self.states) < 99:
             return None,None,None,None
 
 
@@ -284,10 +284,10 @@ class ForexMetaEnv(gym.Env):
     def getState(self,myState):
         
         state = myState[:,:6]
-        actions = np.zeros((16,5),dtype=np.float32)
-        #sep = np.zeros((16,1),dtype=np.float32)
+        actions = np.zeros((99,5),dtype=np.float32)
+        #sep = np.zeros((99,1),dtype=np.float32)
         
-        sltk = np.zeros((16,2),dtype=np.float32)
+        sltk = np.zeros((99,2),dtype=np.float32)
         sl=0
         tk=0
         if self.openTradeDir == 1:
