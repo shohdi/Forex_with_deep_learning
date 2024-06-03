@@ -144,7 +144,7 @@ def testStateShape():
         state,_,_,_ = env.step(0)
 
         #assert
-        assert state.shape == (16 , 13)  , 'state shape is wrong %s'%(str(state.shape))
+        assert state.shape == (99 , 13)  , 'state shape is wrong %s'%(str(state.shape))
 
         return True,"testStateShape : Success"
     except Exception as ex:
@@ -205,7 +205,7 @@ def testNormalizeIsOk():
         state,_,_,_ = env.step(0)
         #assert
         lastOpen =state[-1,0]#[-12]#[-1,0]#[-14]
-        lastOpenReal = env.data[(env.stepIndex+env.startIndex+16)-1,0]
+        lastOpenReal = env.data[(env.stepIndex+env.startIndex+99)-1,0]
         expected = (lastOpenReal/(startClose*2))
         if "%.5f"%lastOpen != "%.5f"%expected:
             return False,"testNormalizeIsOk : last open expected : %.5f found : %.5f"%(expected,lastOpen)

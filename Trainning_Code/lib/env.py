@@ -31,8 +31,8 @@ class ForexEnv(gym.Env):
         self.startClose = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
-        self.reward_queue = collections.deque(maxlen=16)
-        while len(self.reward_queue) < 16:
+        self.reward_queue = collections.deque(maxlen=99)
+        while len(self.reward_queue) < 99:
             self.reward_queue.append(0.0)
         self.header = None
         self.data_arr = []
@@ -101,9 +101,9 @@ class ForexEnv(gym.Env):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
         self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = (self.startIndex + self.stepIndex+1)%(len(self.data)-(16 * 2))
+        self.startIndex = (self.startIndex + self.stepIndex+1)%(len(self.data)-(99 * 2))
         if self.startRandom:
-            self.startIndex =np.random.randint(len(self.data)-(16 * 2))
+            self.startIndex =np.random.randint(len(self.data)-(99 * 2))
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
@@ -116,8 +116,8 @@ class ForexEnv(gym.Env):
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
-        self.reward_queue = collections.deque(maxlen=16)
-        while len(self.reward_queue) < 16:
+        self.reward_queue = collections.deque(maxlen=99)
+        while len(self.reward_queue) < 99:
             self.reward_queue.append(0.0)
         return self.getState()
     
@@ -216,7 +216,7 @@ class ForexEnv(gym.Env):
                 reward = self.closeUpTrade()
                 done = True
         data=None
-        if (self.stepIndex + self.startIndex + 16) >= (len(self.data) - 5) and not done:
+        if (self.stepIndex + self.startIndex + 99) >= (len(self.data) - 5) and not done:
             if self.openTradeDir == 1 :
                 reward = self.closeUpTrade()
                 #print('end of data!')
@@ -269,17 +269,17 @@ class ForexEnv(gym.Env):
         return state , reward , done ,data
 
     def getRawState(self):
-        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+16)]
+        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+99)]
         return state
 
     def getState(self):
         state = self.getRawState()[:,:6]
        
 
-        actions = np.zeros((16,5),dtype=np.float32)
-        #sep = np.zeros((16,1),dtype=np.float32)
+        actions = np.zeros((99,5),dtype=np.float32)
+        #sep = np.zeros((99,1),dtype=np.float32)
         
-        sltk = np.zeros((16,2),dtype=np.float32)
+        sltk = np.zeros((99,2),dtype=np.float32)
         sl=0
         tk=0
         if self.openTradeDir == 1:
@@ -316,8 +316,8 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
 
@@ -326,21 +326,21 @@ class ForexEnv(gym.Env):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
 
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return 0.0
-        currentBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
+        currentBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
         reward =  ((currentBid - self.openTradeAsk)/self.startClose)/2.0
 
         if self.stopTrade:
-            currentAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
-            currentHigh = self.data[self.startIndex+self.stepIndex+15,self.header.index("high")]
-            currentLow = self.data[self.startIndex+self.stepIndex+15,self.header.index("low")]
+            currentAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
+            currentHigh = self.data[self.startIndex+self.stepIndex+98,self.header.index("high")]
+            currentLow = self.data[self.startIndex+self.stepIndex+98,self.header.index("low")]
             spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
             high = currentHigh / self.startClose
             low = currentLow /self.startClose
@@ -363,12 +363,12 @@ class ForexEnv(gym.Env):
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return 0.0
-        currentAsk = self.data[self.startIndex+self.stepIndex+15,self.header.index("ask")]
+        currentAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
         reward =  ((self.openTradeBid - currentAsk)/self.startClose)/2.0
         if self.stopTrade:
-            currentBid = self.data[self.startIndex+self.stepIndex+15,self.header.index("bid")]
-            currentHigh = self.data[self.startIndex+self.stepIndex+15,self.header.index("high")]
-            currentLow = self.data[self.startIndex+self.stepIndex+15,self.header.index("low")]
+            currentBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
+            currentHigh = self.data[self.startIndex+self.stepIndex+98,self.header.index("high")]
+            currentLow = self.data[self.startIndex+self.stepIndex+98,self.header.index("low")]
             spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
             high = currentHigh / self.startClose
             low = currentLow /self.startClose

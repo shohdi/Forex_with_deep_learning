@@ -38,7 +38,7 @@ class Options:
         self.StateAvailable = False
         self.takenAction = 0
         self.tradeDir = 0
-        self.stateObjTimes = collections.deque(maxlen=16)
+        self.stateObjTimes = collections.deque(maxlen=99)
 
 options = dict()
 
@@ -108,8 +108,8 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
         actions[env] = action
     if (not hasKey(options,env)) or options[env] is None :
         options[env] = Options()
-        stateObj[env] = collections.deque(maxlen=16)
-        options[env].stateObjTimes = collections.deque(maxlen=16)
+        stateObj[env] = collections.deque(maxlen=99)
+        options[env].stateObjTimes = collections.deque(maxlen=99)
         
     
     currentEnv = None
@@ -321,8 +321,8 @@ def loadEnv(envName):
                     #load states
                     statesData = saveObj['env']['states']
                     statesData = np.array(statesData,dtype=np.float32)
-                    statesData = np.reshape(statesData,(16,-1))
-                    statesObj = collections.deque(maxlen=16)
+                    statesData = np.reshape(statesData,(99,-1))
+                    statesObj = collections.deque(maxlen=99)
                     for i in range(len(statesData)):
                         statesObj.append(statesData[i])
                     env.states = statesObj
@@ -335,7 +335,7 @@ def loadEnv(envName):
                     objOptions.StateAvailable = saveObj['env']['options']['StateAvailable']
                     objOptions.takenAction = saveObj['env']['options']['takenAction']
                     objOptions.tradeDir = saveObj['env']['options']['tradeDir']
-                    objOptions.stateObjTimes = collections.deque(maxlen=16)
+                    objOptions.stateObjTimes = collections.deque(maxlen=99)
                     if  hasKey(saveObj['env']['options'],'stateObjTimes') and saveObj['env']['options']['stateObjTimes'] is not None:
                         for i in range(len(saveObj['env']['options']['stateObjTimes'])):
                             objOptions.stateObjTimes.append(saveObj['env']['options']['stateObjTimes'][i])
@@ -376,8 +376,8 @@ def loadEnv(envName):
                     #load states
                     statesData = saveObj['env']['beforeActionState']
                     statesData = np.array(statesData,dtype=np.float32)
-                    statesData = np.reshape(statesData,(16,-1))
-                    statesObj = collections.deque(maxlen=16)
+                    statesData = np.reshape(statesData,(99,-1))
+                    statesObj = collections.deque(maxlen=99)
                     for i in range(len(statesData)):
                         statesObj.append(statesData[i])
                     env.beforeActionState = statesObj
@@ -401,7 +401,7 @@ def loadEnv(envName):
                         lastStepRet[envName]['stepState'] =[]
                         statesData = saveObj['envData']['lastStepRet']['stepState']
                         statesData = np.array(statesData,dtype=np.float32)
-                        statesData = np.reshape(statesData,(16,-1))
+                        statesData = np.reshape(statesData,(99,-1))
                         for i in range(len(statesData)):
                             lastStepRet[envName]['stepState'].append(statesData[i])
 
@@ -412,10 +412,10 @@ def loadEnv(envName):
                     lastStepRet[envName] = myTuble
 
                 if hasKey(saveObj['envData'],'states') and saveObj['envData']['states'] is not None:
-                    statesObj = collections.deque(maxlen=16)
+                    statesObj = collections.deque(maxlen=99)
                     statesData = saveObj['envData']['states']
                     statesData = np.array(statesData,dtype=np.float32)
-                    statesData = np.reshape(statesData,(16,-1))
+                    statesData = np.reshape(statesData,(99,-1))
                     for i in range(len(statesData)):
                         statesObj.append(statesData[i])
                     states[envName] = statesObj

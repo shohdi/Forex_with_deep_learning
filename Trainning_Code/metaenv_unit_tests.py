@@ -39,7 +39,7 @@ def nextAction(action,tradeDir):
                    )
     
     step = step + 1
-    while step < 17:
+    while step < 100:
         time.sleep(2/1000)
         ret = doAction(data[step][header.index('open')]
                    ,data[step][header.index('close')]
@@ -311,7 +311,7 @@ def testStateShape():
         state,_,_,_ = nextAction(0,env.openTradeDir)
 
         #assert
-        assert state.shape == (16 , 13)  , 'state shape is wrong %s'%(str(state.shape))
+        assert state.shape == (99 , 13)  , 'state shape is wrong %s'%(str(state.shape))
 
         return True,"testStateShape : Success"
     except Exception as ex:
