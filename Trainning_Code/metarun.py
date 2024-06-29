@@ -167,6 +167,15 @@ def doAction(open,close,high,low,ask,bid,volume,tradeDir,env,time,allowModel=Tru
         actions[env] = np.argmax(q_vals)
         currentEnv.nextAction = actions[env]
         currentEnv.nextProp = q_vals
+
+        if currentEnv.openTradeDir == 0 and  actions[env] != 0:
+            news = CheckTradeByNews()
+            is_bad = news.check_currency_pair_is_bad(env,actions[env])
+            if is_bad == True:
+                print(f'{env} action is {actions[env]} bad decision regards to chatgpt news!')
+                
+                actions[env]=0
+                currentEnv.nextAction = actions[env]
         
     else:
         actions[env] = action
@@ -508,11 +517,9 @@ def startApp():
 
 if __name__ == "__main__":
     news = CheckTradeByNews()
-    ret = news.check_currency_pair_is_bad('USDJPY',1)
-    print(ret)
+    is_bad  = news.check_currency_pair_is_bad('USDJPY',1)
+    print(f'testing openai is working : USDJPY action is 1 checking bad decision regards to chatgpt news is {is_bad}')
 
-    ret = news.check_currency_pair_is_bad('USDJPY',2)
-    print(ret)
     parser = argparse.ArgumentParser()
     parser.add_argument("-p","--port", default=5000, help="port number")
     args = parser.parse_args()
