@@ -29,6 +29,7 @@ import time
 import json
 import pickle
 
+from lib.check_trade_by_news import CheckTradeByNews
 
 
 
@@ -506,6 +507,12 @@ def startApp():
 
 
 if __name__ == "__main__":
+    news = CheckTradeByNews()
+    ret = news.check_currency_pair_is_bad('USDJPY',1)
+    print(ret)
+
+    ret = news.check_currency_pair_is_bad('USDJPY',2)
+    print(ret)
     parser = argparse.ArgumentParser()
     parser.add_argument("-p","--port", default=5000, help="port number")
     args = parser.parse_args()
