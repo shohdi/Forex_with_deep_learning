@@ -1,0 +1,2 @@
+tester files path
+C:\Program Files (x86)\MetaTrader 4\tester\files

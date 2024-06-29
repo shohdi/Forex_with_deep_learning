@@ -1,0 +1,48 @@
+if we have problem with flask and itsdangerous json use
+>pip install itsdangerous==2.0.1
+
+
+to run server :
+sudo python Trainning_Code/metarun.py -p 80
+
+the server command to recieve state :
+http://127.0.0.1/?open=.1&close=.2&high=.3&low=.4&ask=.5&bid=.6
+
+
+
+install packages :
+
+conda create --name myenv python=3.9 numpy tensorflow
+
+conda activate myenv
+
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+
+conda install -c conda-forge flask-restful
+
+conda install -c conda-forge gym
+
+
+
+conda install -c anaconda requests
+
+pip install opencv-python
+
+pip install autorom[accept-rom-license]
+
+
+pip install gym[atari]
+
+conda   install -c anaconda openai
+pip3 install beautifulsoup4
+
+
+
+
+
+#to build docker
+docker build . -t shohdi2/metatrader:1.3.2
+#to run docker
+docker run -d -p 80:80 -t shohdi2/metatrader:1.3.2
+#to push
+docker push shohdi2/metatrader:1.3.2

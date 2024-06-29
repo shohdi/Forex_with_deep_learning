@@ -1,0 +1,10 @@
+*.ex4
+*.DS_Store
+*.pyc
+data/
+logs/
+Forex-v4-best.dat
+trainedSteps.txt
+Trainning_Code/lib/security/**/*.*
+env_data/**/*.*
+.vscode/

@@ -1,0 +1,19 @@
+name: traderenv
+channels:
+  - pytorch
+  - conda-forge
+  - anaconda
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    - numpy 
+    - tensorflow
+    - torch
+    - torchvision
+    - torchaudio
+    - flask-restful
+    - requests
+    - gym
+    - opencv-python
+    
