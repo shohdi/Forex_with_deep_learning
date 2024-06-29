@@ -33,7 +33,8 @@ pip install autorom[accept-rom-license]
 
 pip install gym[atari]
 
-
+conda   install -c anaconda openai
+pip3 install beautifulsoup4
 
 
 
