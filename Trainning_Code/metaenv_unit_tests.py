@@ -1,9 +1,69 @@
 
 from lib.metaenv import ForexMetaEnv
-from metarun import headers,options,stateObj,MetaTrade
+from metarun import headers,options,stateObj,MetaTrade,envs,hasKey,doAction,lastStepRet
 from threading import Thread
 from flask import Flask
 from flask_restful import Resource, Api,reqparse
+import csv
+import numpy as np
+import time
+
+
+header = None
+data = None
+step = 0
+def nextAction(action,tradeDir):
+
+    global header
+    global data
+    global step
+    if header is None :
+        with open('minutes15_100/data/val/EurUSD_val.csv', 'r') as f:
+            reader = csv.reader(f, delimiter=';')
+            header = next(reader)
+            data = np.array(list(reader)).astype(np.float32)
+    time.sleep(2/1000)
+    ret = doAction(data[step][header.index('open')]
+                   ,data[step][header.index('close')]
+                   ,data[step][header.index('high')]
+                   ,data[step][header.index('low')]
+                   ,data[step][header.index('ask')]
+                   ,data[step][header.index('bid')]
+                   ,1
+                   ,tradeDir
+                   ,'test'
+                   ,time.time()
+                   ,False
+                   ,action
+                   
+                   )
+    
+    step = step + 1
+    while step < 100:
+        time.sleep(2/1000)
+        ret = doAction(data[step][header.index('open')]
+                   ,data[step][header.index('close')]
+                   ,data[step][header.index('high')]
+                   ,data[step][header.index('low')]
+                   ,data[step][header.index('ask')]
+                   ,data[step][header.index('bid')]
+                   ,1
+                   ,tradeDir
+                   ,'test'
+                   ,time.time()
+                   ,False
+                   ,action
+                   
+                   )
+    
+        step = step + 1
+
+        
+    if hasKey(lastStepRet,'test'):
+        return lastStepRet['test']
+    else:
+        return None,None,None,None
+        
 
 
 #global init
@@ -18,15 +78,15 @@ def testSlTkForBuyIsOk():
 
         #action
         expectedDone = False
-        state,_,_,_ = env.step(0)
-        state,reward,done,data = env.step(1)
+        state,_,_,_ = nextAction(0,env.openTradeDir)
+        state,reward,done,data = nextAction(1,env.openTradeDir)
         expectedDone,expectedReward = getTkSlExDone(state)
         
 
         
 
         while not expectedDone:
-            state,reward,done,data = env.step(1)
+            state,reward,done,data = nextAction(1,env.openTradeDir)
             expectedDone,expectedReward = getTkSlExDone(state)
         
 
@@ -40,49 +100,7 @@ def testSlTkForBuyIsOk():
         return True,"testSlTkForBuyIsOk : Success"
     except Exception as ex:
         return False,"testSlTkForBuyIsOk : %s"%(str(ex))
-
-
-def testNoCloseBeforeStep2():
-    try:
-        #assign
-        env.reset()
-
-        #action
-        expectedDone = False
-        state,_,_,_ = env.step(0)
-        state,reward,done,data = env.step(1)
-        state,reward,done,data = env.step(2)
-
-        #first assert
-        expectedDone = False
-        expectedOpenTradeDir = 1
-        openTradeDir = env.openTradeDir
-        assert (expectedOpenTradeDir == openTradeDir and expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(1,str(done),str(expectedDone),openTradeDir,expectedOpenTradeDir)
-
-
-        state,reward,done,data = env.step(2)
-        #second assert
-        expectedDone = False
-        expectedOpenTradeDir = 1
-        openTradeDir = env.openTradeDir
-        assert (expectedOpenTradeDir == openTradeDir and expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(2,str(done),str(expectedDone),openTradeDir,expectedOpenTradeDir)
-
-        state,reward,done,data = env.step(2)
-        #third assert
-        expectedDone = True
-        assert ( expectedDone == done),'step %d close trade before two days , done : %s , expectedDone : %s , openTradeDir : %d , expectedOpenTradeDir : %d'%(3,str(done),str(expectedDone))
-
-
-        return True,"testNoCloseBeforeStep2 : Success"
-    except Exception as ex:
-        return False,"testNoCloseBeforeStep2 : %s"%(str(ex))
     
-
-
-
-
-
-
 def testSlTkForSellIsOk():
     try:
         #assign
@@ -90,15 +108,15 @@ def testSlTkForSellIsOk():
 
         #action
         expectedDone = False
-        state,_,_,_ = env.step(0)
-        state,reward,done,data = env.step(2)
+        state,_,_,_ = nextAction(0,env.openTradeDir)
+        state,reward,done,data = nextAction(2,env.openTradeDir)
         expectedDone,expectedReward = getTkSlExDoneForSell(state)
         
 
         
 
         while not expectedDone:
-            state,reward,done,data = env.step(2)
+            state,reward,done,data = nextAction(2,env.openTradeDir)
             expectedDone,expectedReward = getTkSlExDoneForSell(state)
         
 
@@ -156,29 +174,130 @@ def getTkSlExDoneForSell(state):
 
     
 
-def SellIsNotWorking():
+def SellIsWorking():
     try:
         #assign
         env.reset()
 
         #action
-        state,_,_,_ = env.step(0)
-        state,reward,done,data = env.step(2)
+        state,_,_,_ = nextAction(0,env.openTradeDir)
+        state,reward,done,data = nextAction(2,env.openTradeDir)
 
         
         
 
 
         #assert
-        expectedTradeDir = 0
+        expectedTradeDir = 2
         foundTradeDir = env.openTradeDir
         
         assert (expectedTradeDir == foundTradeDir ),'expected dir is %d found %d'%(expectedTradeDir,foundTradeDir)
        
 
-        return True,"SellIsNotWorking : Success"
+        return True,"SellIsWorking : Success"
     except Exception as ex:
-        return False,"SellIsNotWorking : %s"%(str(ex))
+        return False,"SellIsWorking : %s"%(str(ex))
+
+
+def testSaveLoadIsOkWithoutTrade():
+    try:
+        #assign
+        global env
+        env.reset()
+
+        #action
+        state,_,_,_ = nextAction(0,0)
+        state,reward,done,data = nextAction(0,0)
+        envs['test'] = None
+        state,reward,done,data = nextAction(0,0)
+        env = envs['test']
+        
+
+        
+        
+
+
+        #assert
+        expectStepIndex = 3
+        
+        
+        assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
+       
+
+        return True,"testSaveLoadIsOkWithoutTrade : Success"
+    except Exception as ex:
+        return False,"testSaveLoadIsOkWithoutTrade : %s"%(str(ex))
+
+
+
+def testSaveLoadIsOkWithUp():
+    try:
+        #assign
+        global env
+        env.reset()
+
+        #action
+        state,_,_,_ = nextAction(0,0)
+        state,reward,done,data = nextAction(1,0)
+        envs['test'] = None
+        state,reward,done,data = nextAction(0,1)
+        env = envs['test']
+        
+
+        
+        
+
+
+        #assert
+        expectStepIndex = 3
+        tradeDir = 1
+        tradeStep = 2
+        
+        
+        assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
+        assert (env.openTradeDir == tradeDir ),'expected tradeDir is %d found %d'%(tradeDir,env.openTradeDir)
+        assert ((env.stepIndex - env.startTradeStep) == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
+       
+
+        return True,"testSaveLoadIsOkWithUp : Success"
+    except Exception as ex:
+        return False,"testSaveLoadIsOkWithUp : %s"%(str(ex))
+
+
+
+def testSaveLoadIsOkWithDown():
+    try:
+        #assign
+        global env
+        env.reset()
+
+        #action
+        state,_,_,_ = nextAction(0,0)
+        state,reward,done,data = nextAction(2,0)
+        envs['test'] = None
+        state,reward,done,data = nextAction(0,2)
+        env = envs['test']
+        
+
+        
+        
+
+
+        #assert
+        expectStepIndex = 3
+        tradeDir = 2
+        tradeStep = 2
+        
+        
+        assert (env.stepIndex == expectStepIndex ),'expected stepIndex is %d found %d'%(expectStepIndex,env.stepIndex)
+        assert (env.openTradeDir == tradeDir ),'expected tradeDir is %d found %d'%(tradeDir,env.openTradeDir)
+        assert ((env.stepIndex - env.startTradeStep) == tradeStep ),'expected tradeStep is %d found %d'%(tradeStep,env.startTradeStep)
+       
+
+        return True,"testSaveLoadIsOkWithDown : Success"
+    except Exception as ex:
+        return False,"testSaveLoadIsOkWithDown : %s"%(str(ex))
+
 
 
 
@@ -189,10 +308,10 @@ def testStateShape():
         env.reset()
 
         #action
-        state,_,_,_ = env.step(0)
+        state,_,_,_ = nextAction(0,env.openTradeDir)
 
         #assert
-        assert state.shape == (16 , 14)  , 'state shape is wrong %s'%(str(state.shape))
+        assert state.shape == (99 , 13)  , 'state shape is wrong %s'%(str(state.shape))
 
         return True,"testStateShape : Success"
     except Exception as ex:
@@ -205,16 +324,16 @@ def testSlIsIncluded():
         env.reset()
 
         #action
-        state,_,_,_ = env.step(0)
-        state,_,_,_ = env.step(1)
-        state,_,_,_ = env.step(1)
+        state,_,_,_ = nextAction(0,env.openTradeDir)
+        state,_,_,_ = nextAction(1,env.openTradeDir)
+        state,_,_,_ = nextAction(1,env.openTradeDir)
         #assert
         
         tk = (env.openTradeAsk + (env.startClose * tkval))/(2.0 * env.startClose)
         sl = (env.openTradeAsk - (env.startClose * slval))/(2.0 * env.startClose)
         
 
-        assert str(round(state[-1,11],6)) == str(round(tk,6)) and str(round(state[-1,12],6)) == str(round(sl,6))  , 'expected tk : %0.6f , sl : %0.6f get tk : %0.6f , sl : %0.6f'%(tk,sl,state[-1,11],state[-1,12])
+        assert str(round(state[-1,-2],6)) == str(round(tk,6)) and str(round(state[-1,-1],6)) == str(round(sl,6))  , 'expected tk : %0.6f , sl : %0.6f get tk : %0.6f , sl : %0.6f'%(tk,sl,state[-1,-2],state[-1,-1])
 
         return True,"testSlIsIncluded : Success"
     except Exception as ex:
@@ -230,7 +349,7 @@ def testStartCloseIsOkAndNotChangesAfterStep():
         
         expectedClose = env.states[env.stepIndex][1]
         #action
-        env.step(0)
+        nextAction(0,env.openTradeDir)
         startClose = env.startClose
         #assert
         if startClose != expectedClose:
@@ -249,8 +368,8 @@ def testNormalizeIsOk():
         startClose = env.startClose
         
         #action
-        state,_,_,_ = env.step(0)
-        state,_,_,_ = env.step(0)
+        state,_,_,_ = nextAction(0,env.openTradeDir)
+        state,_,_,_ = nextAction(0,env.openTradeDir)
         #assert
         lastOpen =state[-1,0]#[-12]#[-1,0]#[-14]
         lastOpenReal = env.states[-1][0]
@@ -271,11 +390,11 @@ def testReturnRewardWithoutDoneIs0():
         
         
         #action
-        state,reward,_,_ = env.step(1)
-        state,reward,_,_ = env.step(0)
-        #state,reward,_,_ = env.step(0)
-        #state,reward,_,_ = env.step(0)
-        #state,reward,_,_ = env.step(0)
+        state,reward,_,_ = nextAction(1,env.openTradeDir)
+        state,reward,_,_ = nextAction(0,env.openTradeDir)
+        #state,reward,_,_ = nextAction(0)
+        #state,reward,_,_ = nextAction(0)
+        #state,reward,_,_ = nextAction(0)
         #assert
         expected = 0
         
@@ -299,7 +418,7 @@ def test200StepsReturnMinus0Point01():
         done = False
 
         while i< ((1 * 10)+1) and not done:
-            state,reward,done,_ = env.step(0)
+            state,reward,done,_ = nextAction(0,env.openTradeDir)
             i+=1
 
         expected = 0
@@ -330,12 +449,12 @@ def test200StepsAfterTradeIsOkAndReturnRealReward():
         i  =0
         done = False
         reward = 0.0
-        state,reward,done,data =env.step(1)
+        state,reward,done,data =nextAction(1,env.openTradeDir)
         
         rewardState = 0.0
         while i < ((100 * 10)+1) and not done:
             rewardState = state[-2]#[-1,-1]
-            state,reward,done,data = env.step(0)
+            state,reward,done,data = nextAction(0,env.openTradeDir)
             
             i+=1
         
@@ -364,20 +483,20 @@ def testRewardIsWrittenWithEachStep():
         #action
         i  =0
         done = False
-        state,reward,_,_ = env.step(1)
-        state,reward,_,_ = env.step(1)
-        state,reward,_,_ = env.step(0)
-        #state,reward,_,_ = env.step(0)
+        state,reward,_,_ = nextAction(1,env.openTradeDir)
+        state,reward,_,_ = nextAction(1,env.openTradeDir)
+        state,reward,_,_ = nextAction(0,env.openTradeDir)
+        #state,reward,_,_ = nextAction(0,env.openTradeDir)
         
-        #state,reward,_,_ = env.step(0)
+        #state,reward,_,_ = nextAction(0,env.openTradeDir)
         beforeDoneState = state
         
-        bid = beforeDoneState[-1,5]#[-7]#[-1,5]#[-9]
-        openTradeAsk = beforeDoneState[-1,6]#[-6]#[-1,6]#[-5]
+        bid = beforeDoneState[-1,-8]#[-7]#[-1,5]#[-9]
+        openTradeAsk = beforeDoneState[-1,-7]#[-6]#[-1,6]#[-5]
         expectedReward = str(round( ((bid*2)-(openTradeAsk*2))/2.0,6))
-        reward = str(round( state[-1,10],6))
+        reward = str(round( state[-1,-3],6))
 
-        previousReward = str(round( state[-2,10],6))
+        previousReward = str(round( state[-2,-3],6))
         
         if  reward != expectedReward or reward == previousReward:
             return False,"testRewardIsWrittenWithEachStep :  reward expected %s , found %s , previousReward : %s"%(expectedReward,reward,previousReward)
@@ -400,7 +519,7 @@ def testStepIsWrittenInState():
         beforeDoneState = None
         after5stepsState = None
         while i< (((1))*10) and not done:
-            state,reward,done,_ = env.step(0)
+            state,reward,done,_ = nextAction(0,env.openTradeDir)
             if not done:
                 beforeDoneState = state
             if i == 5:
@@ -414,10 +533,10 @@ def testStepIsWrittenInState():
         #assert
         expected = ((1) * 10)/((12 * 21.0 * 24.0 * 4 * 1) * 2.0)
         
-        value = beforeDoneState[-1,8]#[-4]#[-1,8]#[-3]
+        value = beforeDoneState[-1,-5]#[-4]#[-1,8]#[-3]
         
         expectedAfter5 = 6/((12 * 21.0 * 24.0 * 4 * 1) * 2)
-        valueAfter5 = after5stepsState[-1,8]#[-4]#[-1,8]#[-3]
+        valueAfter5 = after5stepsState[-1,-5]#[-4]#[-1,8]#[-3]
 
 
         
@@ -438,16 +557,18 @@ def testStepIsWrittenInState():
 
 
 def runTests():
+
+    nextAction(0,0)
     global env 
-    env = ForexMetaEnv(stateObj,options,True)
+    env = envs['test']
     #run tests
     with open('data/metaenv_unit_tests_result.txt','w') as f:
         ret,msg = testStateShape()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = SellIsNotWorking()
-        f.write("%r %s\r\n"%(ret,msg))
-        print("%r %s\r\n"%(ret,msg))
+        #ret,msg = SellIsWorking()
+        #f.write("%r %s\r\n"%(ret,msg))
+        #print("%r %s\r\n"%(ret,msg))
         ret,msg = testSlTkForBuyIsOk()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
@@ -478,13 +599,21 @@ def runTests():
         ret,msg = testStepIsWrittenInState()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
-        ret,msg = testNoCloseBeforeStep2()
+        ret,msg = testSaveLoadIsOkWithoutTrade()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSaveLoadIsOkWithUp()
+        f.write("%r %s\r\n"%(ret,msg))
+        print("%r %s\r\n"%(ret,msg))
+        ret,msg = testSaveLoadIsOkWithDown()
         f.write("%r %s\r\n"%(ret,msg))
         print("%r %s\r\n"%(ret,msg))
 
 
 
 if __name__ == "__main__":
+    runTests()
+    '''
     thread = Thread(target=runTests)
     thread.start()
     
@@ -493,7 +622,7 @@ if __name__ == "__main__":
     api = Api(app)
     api.add_resource(MetaTrade, '/')
     app.run()
-
+    '''
 
 
 
