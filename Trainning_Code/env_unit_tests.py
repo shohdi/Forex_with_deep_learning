@@ -1,12 +1,13 @@
 
+import math
 from lib.env import ForexEnv
+import numpy as np
 
 
 #global init   
 env = ForexEnv('minutes15_100/data/val',True,True,True,False)
 
-slval = 0.02
-tkval = 0.02
+
 def testSlTkForBuyIsOk():
     try:
         #assign
@@ -15,15 +16,16 @@ def testSlTkForBuyIsOk():
         #action
         expectedDone = False
         state,_,_,_ = env.step(0)
+        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
         state,reward,done,data = env.step(1)
-        expectedDone,expectedReward = getTkSlExDone(state)
+        expectedDone,expectedReward = getTkSlExDone(state,slval,tkval)
         
 
         
 
         while not expectedDone:
             state,reward,done,data = env.step(1)
-            expectedDone,expectedReward = getTkSlExDone(state)
+            expectedDone,expectedReward = getTkSlExDone(state,slval,tkval)
         
 
 
@@ -45,15 +47,16 @@ def testSlTkForSellIsOk():
         #action
         expectedDone = False
         state,_,_,_ = env.step(0)
+        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
         state,reward,done,data = env.step(2)
-        expectedDone,expectedReward = getTkSlExDoneForSell(state)
+        expectedDone,expectedReward = getTkSlExDoneForSell(state,slval,tkval)
         
 
         
 
         while not expectedDone:
             state,reward,done,data = env.step(2)
-            expectedDone,expectedReward = getTkSlExDoneForSell(state)
+            expectedDone,expectedReward = getTkSlExDoneForSell(state,slval,tkval)
         
 
 
@@ -67,7 +70,7 @@ def testSlTkForSellIsOk():
     except Exception as ex:
         return False,"testSlTkForSellIsOk : %s"%(str(ex))
 
-def getTkSlExDone(state):
+def getTkSlExDone(state,slval,tkval):
     expectedDone = False
     expectedReward = 0
     high = state[-1,2] * 2.0
@@ -75,7 +78,7 @@ def getTkSlExDone(state):
     ask = state[-1,4] * 2.0
     bid = state[-1,5] * 2.0
     spread = ask-bid
-        
+    
     tradeAsk = (env.openTradeAsk / env.startClose)
     sl = tradeAsk - slval
     tk = tradeAsk + tkval
@@ -88,7 +91,7 @@ def getTkSlExDone(state):
     
     return expectedDone,expectedReward
 
-def getTkSlExDoneForSell(state):
+def getTkSlExDoneForSell(state,slval,tkval):
     expectedDone = False
     expectedReward = 0
     high = state[-1,2] * 2.0
@@ -108,6 +111,14 @@ def getTkSlExDoneForSell(state):
         expectedReward = tkval /2.0
     return expectedDone,expectedReward
     
+
+def calculateSlTk(stateOpenCloseHighLow):
+    maxItem = np.amax(stateOpenCloseHighLow)
+    minItem = np.amin(stateOpenCloseHighLow)
+    ret1 = math.floor(( maxItem - minItem)* 10000)/10000.0
+    ret2 = ret1
+    return ret1,ret2
+
 
 def SellIsWorking():
     try:
@@ -158,6 +169,7 @@ def testSlIsIncluded():
 
         #action
         state,_,_,_ = env.step(0)
+        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
         state,_,_,_ = env.step(1)
         state,_,_,_ = env.step(1)
         #assert
