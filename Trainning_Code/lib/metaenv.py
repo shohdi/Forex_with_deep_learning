@@ -348,7 +348,7 @@ class ForexMetaEnv(gym.Env):
 
     def calculateSlTk(self,myState):
         stateOpenCloseHighLow = myState
-        stateOpenCloseHighLow = stateOpenCloseHighLow[-5:,:4]/self.startClose
+        stateOpenCloseHighLow = stateOpenCloseHighLow[-11:,:4]/self.startClose
         maxItem = np.amax(stateOpenCloseHighLow)
         minItem = np.amin(stateOpenCloseHighLow)
         ret1 = math.floor(( maxItem - minItem)* 10000)/10000.0

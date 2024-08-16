@@ -6,7 +6,8 @@ import numpy as np
 
 #global init   
 env = ForexEnv('minutes15_100/data/val',True,True,True,False)
-
+env.reset()
+env.reset()
 
 def testSlTkForBuyIsOk():
     try:
@@ -16,7 +17,7 @@ def testSlTkForBuyIsOk():
         #action
         expectedDone = False
         state,_,_,_ = env.step(0)
-        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
+        slval,tkval = calculateSlTk(state[-11:,:4]*2.0)
         state,reward,done,data = env.step(1)
         expectedDone,expectedReward = getTkSlExDone(state,slval,tkval)
         
@@ -47,7 +48,7 @@ def testSlTkForSellIsOk():
         #action
         expectedDone = False
         state,_,_,_ = env.step(0)
-        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
+        slval,tkval = calculateSlTk(state[-11:,:4]*2.0)
         state,reward,done,data = env.step(2)
         expectedDone,expectedReward = getTkSlExDoneForSell(state,slval,tkval)
         
@@ -169,7 +170,7 @@ def testSlIsIncluded():
 
         #action
         state,_,_,_ = env.step(0)
-        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
+        slval,tkval = calculateSlTk(state[-11:,:4]*2.0)
         state,_,_,_ = env.step(1)
         state,_,_,_ = env.step(1)
         #assert

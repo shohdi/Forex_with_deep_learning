@@ -80,7 +80,7 @@ def testSlTkForBuyIsOk():
         #action
         expectedDone = False
         state,_,_,_ = nextAction(0,env.openTradeDir)
-        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
+        slval,tkval = calculateSlTk(state[-11:,:4]*2.0)
         state,reward,done,data = nextAction(1,env.openTradeDir)
         expectedDone,expectedReward = getTkSlExDone(state,slval,tkval)
         
@@ -111,7 +111,7 @@ def testSlTkForSellIsOk():
         #action
         expectedDone = False
         state,_,_,_ = nextAction(0,env.openTradeDir)
-        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
+        slval,tkval = calculateSlTk(state[-11:,:4]*2.0)
         state,reward,done,data = nextAction(2,env.openTradeDir)
         expectedDone,expectedReward = getTkSlExDoneForSell(state,slval,tkval)
         
@@ -333,7 +333,7 @@ def testSlIsIncluded():
 
         #action
         state,_,_,_ = nextAction(0,env.openTradeDir)
-        slval,tkval = calculateSlTk(state[-5:,:4]*2.0)
+        slval,tkval = calculateSlTk(state[-11:,:4]*2.0)
         state,_,_,_ = nextAction(1,env.openTradeDir)
         state,_,_,_ = nextAction(1,env.openTradeDir)
         #assert
