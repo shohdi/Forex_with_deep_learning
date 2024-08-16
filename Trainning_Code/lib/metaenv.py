@@ -10,7 +10,7 @@ except :
     np.bool = bool
     testVar = np.zeros((3,3),dtype=np.bool)
 import time
-
+import math
 
 
 
@@ -73,6 +73,8 @@ class ForexMetaEnv(gym.Env):
         
         self.startAsk = myState[0,self.header.index("ask")]
         self.startBid = myState[0,self.header.index("bid")]
+        self.slval = 0.02
+        self.tkval = 0.02
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
@@ -325,6 +327,7 @@ class ForexMetaEnv(gym.Env):
     def openUpTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
+        self.slval,self.tkval = self.calculateSlTk(myState)
         self.openTradeDir = 1
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
@@ -335,6 +338,7 @@ class ForexMetaEnv(gym.Env):
     def openDownTrade(self,myState):
         if self.openTradeDir == 1 or self.openTradeDir == 2:
             return
+        self.slval,self.tkval = self.calculateSlTk(myState)
         self.openTradeDir = 2
         self.openTradeAsk = myState[-1,self.header.index("ask")]
         self.openTradeBid = myState[-1,self.header.index("bid")]
@@ -342,6 +346,14 @@ class ForexMetaEnv(gym.Env):
         self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
         #print('opening down trade start close : ',self.startClose,' open price ',self.openTradeBid)
 
+    def calculateSlTk(self,myState):
+        stateOpenCloseHighLow = myState
+        stateOpenCloseHighLow = stateOpenCloseHighLow[-5:,:4]/self.startClose
+        maxItem = np.amax(stateOpenCloseHighLow)
+        minItem = np.amin(stateOpenCloseHighLow)
+        ret1 = math.floor(( maxItem - minItem)* 10000)/10000.0
+        ret2 = ret1
+        return ret1,ret2
 
     def closeUpTrade(self,myState):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:

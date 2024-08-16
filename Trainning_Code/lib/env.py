@@ -20,8 +20,8 @@ import time
 class ForexEnv(gym.Env):
     def __init__(self,filePath , haveOppsiteData:bool , punishAgent = True,stopTrade = True,startRandom=True):
         super().__init__()
-        self.slval = None
-        self.tkval = None
+        self.slval = 0.02
+        self.tkval = 0.02
         self.haveOppsiteData = haveOppsiteData
         self.punishAgent = punishAgent
         self.stopTrade = stopTrade
@@ -116,8 +116,8 @@ class ForexEnv(gym.Env):
         
         self.startAsk = self.data[self.startIndex+ self.stepIndex,self.header.index("ask")]
         self.startBid = self.data[self.startIndex+ self.stepIndex,self.header.index("bid")]
-        self.slval = None
-        self.tkval = None
+        self.slval = 0.02
+        self.tkval = 0.02
         self.openTradeAsk = None
         self.openTradeBid = None
         self.stopLoss = None
