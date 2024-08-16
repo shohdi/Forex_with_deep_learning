@@ -12,13 +12,14 @@ except :
 import time
 
 
-slval = 0.02
-tkval = 0.02
+
 
 class ForexMetaEnv(gym.Env):
 
     def __init__(self,statesCol,options,envName,punishAgent = True,stopTrade = True):
-
+        super().__init__()
+        self.slval = 0.02
+        self.tkval = 0.02
         self.states = statesCol
         self.envName = envName
 
@@ -213,21 +214,21 @@ class ForexMetaEnv(gym.Env):
             if self.openTradeDir == 1  :
                 reward = self.closeUpTrade(myState)
 
-                if reward > 0 and abs(reward * 2.0) >= tkval:
+                if reward > 0 and abs(reward * 2.0) >= self.tkval:
                     done = True
                     
                     #print('stop trade!')
-                if reward < 0 and abs(reward * 2.0) >= slval:
+                if reward < 0 and abs(reward * 2.0) >= self.slval:
                     done = True
                    
                     #print('stop trade!')
             elif self.openTradeDir == 2 :
                 reward = self.closeDownTrade(myState)
-                if reward > 0 and abs(reward * 2.0) >= tkval:
+                if reward > 0 and abs(reward * 2.0) >= self.tkval:
                     done = True
                     
                     #print('stop trade!')
-                if reward < 0 and abs(reward * 2.0) >= slval:
+                if reward < 0 and abs(reward * 2.0) >= self.slval:
                     done = True
             if not done:
                 reward = 0
@@ -292,12 +293,12 @@ class ForexMetaEnv(gym.Env):
         tk=0
         if self.openTradeDir == 1:
             actions[:,0] = self.openTradeAsk
-            tk = (self.openTradeAsk + (self.startClose * tkval))/(2.0 * self.startClose)
-            sl = (self.openTradeAsk - (self.startClose * slval))/(2.0 * self.startClose)
+            tk = (self.openTradeAsk + (self.startClose * self.tkval))/(2.0 * self.startClose)
+            sl = (self.openTradeAsk - (self.startClose * self.slval))/(2.0 * self.startClose)
         if self.openTradeDir == 2:
             actions[:,1] = self.openTradeBid
-            tk = (self.openTradeBid - (self.startClose * tkval))/(2.0 * self.startClose)
-            sl = (self.openTradeBid + (self.startClose * slval))/(2.0 * self.startClose)
+            tk = (self.openTradeBid - (self.startClose * self.tkval))/(2.0 * self.startClose)
+            sl = (self.openTradeBid + (self.startClose * self.slval))/(2.0 * self.startClose)
         sltk[:,-2] = tk
         sltk[:,-1] = sl
         
@@ -356,19 +357,19 @@ class ForexMetaEnv(gym.Env):
             high = currentHigh / self.startClose
             low = currentLow /self.startClose
             tradeAsk = (self.openTradeAsk / self.startClose)
-            sl = tradeAsk - slval
-            tk = tradeAsk + tkval
+            sl = tradeAsk - self.slval
+            tk = tradeAsk + self.tkval
             if  (low - spread) <= sl:
                 
-                reward = (-1 * slval)/2.0    
+                reward = (-1 * self.slval)/2.0    
             elif (high + spread) >= tk:
                 
-                reward = tkval/2.0
+                reward = self.tkval/2.0
         
-            if(reward > (tkval/2.0)):
-                reward = tkval/2.0
-            elif (reward < ((-1 * slval)/2.0)):
-                reward = (-1 * slval)/2.0
+            if(reward > (self.tkval/2.0)):
+                reward = self.tkval/2.0
+            elif (reward < ((-1 * self.slval)/2.0)):
+                reward = (-1 * self.slval)/2.0
         
         return reward
     
@@ -387,19 +388,19 @@ class ForexMetaEnv(gym.Env):
             high = currentHigh / self.startClose
             low = currentLow /self.startClose
             tradeBid = (self.openTradeBid / self.startClose)
-            sl = tradeBid + slval
-            tk = tradeBid - tkval
+            sl = tradeBid + self.slval
+            tk = tradeBid - self.tkval
             if (high - spread) >= sl:
                 
-                reward = (-1 * slval)/2.0
+                reward = (-1 * self.slval)/2.0
             elif  (low + spread) <= tk:
                 
-                reward = tkval /2.0 
+                reward = self.tkval /2.0 
 
-            if(reward > (tkval/2.0)):
-                reward = tkval/2.0
-            elif (reward < ((-1 * slval)/2.0)):
-                reward = (-1 * slval)/2.0
+            if(reward > (self.tkval/2.0)):
+                reward = self.tkval/2.0
+            elif (reward < ((-1 * self.slval)/2.0)):
+                reward = (-1 * self.slval)/2.0
 
         return reward
 
