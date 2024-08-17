@@ -88,6 +88,18 @@ void checkSlTk()
    
 }
 
+double calculateTlValSlVal()
+{
+   double ret = 0;
+   double highLastEleven = iHighest(Symbol(),myPeriod,MODE_HIGH,11,1);
+   double lowLastEleven = iLowest(Symbol(),myPeriod,MODE_LOW,11,1);
+   highLastEleven = highLastEleven/startClose;
+   lowLastEleven = lowLastEleven/startClose;
+   ret = MathFloor((highLastEleven - lowLastEleven ) * 10000)/10000.0;
+   return ret;
+   
+}
+
 void openUp(double lots)
 {
    if (CalculateCurrentOrders() == 0)
@@ -95,6 +107,8 @@ void openUp(double lots)
       Print("Opening Up Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
+      tkval = calculateTlValSlVal();
+      slval = tkval;
       double tk = openTradeAsk + (startClose * tkval);
       double sl = openTradeAsk - (startClose * slval);
       int res = OrderSend(Symbol(), OP_BUY, lots, Ask, 5, sl, tk, "", MAGICMA, 0, Green);
@@ -116,6 +130,8 @@ void openDown(double lots)
       Print("Opening Down Order !!");
       openTradeAsk = Ask;
       openTradeBid = Bid;
+      tkval = calculateTlValSlVal();
+      slval = tkval;
       double tk =  openTradeBid - (startClose * tkval);
       double sl =  openTradeBid + (startClose * slval);
       int res = OrderSend(Symbol(), OP_SELL, lots, Bid, 5,sl, tk, "", MAGICMA, 0, Red);
