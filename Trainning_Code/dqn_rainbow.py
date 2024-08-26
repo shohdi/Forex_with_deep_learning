@@ -32,7 +32,7 @@ import time
 
 MY_DATA_PATH = 'data'
 # n-step
-REWARD_STEPS = 2
+REWARD_STEPS = 1
 
 # priority replay
 PRIO_REPLAY_ALPHA = 0.6
