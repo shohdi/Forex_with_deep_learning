@@ -32,12 +32,12 @@ import time
 
 MY_DATA_PATH = 'data'
 # n-step
-REWARD_STEPS = 1
+REWARD_STEPS = 2
 
 # priority replay
 PRIO_REPLAY_ALPHA = 0.6
 BETA_START = 0.4
-BETA_FRAMES = 100000
+BETA_FRAMES = 1000000
 
 # C51
 Vmax = 0.1
