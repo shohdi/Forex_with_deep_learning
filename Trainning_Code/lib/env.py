@@ -32,6 +32,7 @@ class ForexEnv(gym.Env):
         
         self.startTradeStep = None
         self.startClose = None
+        self.stateMultiplyer = None
         self.openTradeDir = 0
         self.lastTenData = collections.deque(maxlen=10)
         self.reward_queue = collections.deque(maxlen=99)
@@ -103,19 +104,25 @@ class ForexEnv(gym.Env):
     def reset(self):
         self.lastTenData.append((self.startIndex,self.startTradeStep,self.startClose,self.startAsk,self.startBid,self.openTradeDir))
         #print(self.lastTenData[-1])
-        self.data = self.data_arr[np.random.randint(len(self.data_arr))]
-        self.startIndex = (self.startIndex + self.stepIndex+1)%(len(self.data)-(99 * 2))
-        if self.startRandom:
-            self.startIndex =np.random.randint(len(self.data)-(99 * 2))
+        maxItem = 1.0
+        minItem = 1.0
+        while maxItem == minItem:
+            self.data = self.data_arr[np.random.randint(len(self.data_arr))]
+            self.startIndex = (self.startIndex + self.stepIndex+1)%(len(self.data)-(99 * 2))
+            if self.startRandom:
+                self.startIndex =np.random.randint(len(self.data)-(99 * 2))
+            lastEleven = self.getRawState()[-11:,:4]
+            maxItem = np.amax(lastEleven)
+            minItem = np.amin(lastEleven)
         self.startTradeStep = None
         self.stepIndex = 0
         self.startClose = self.data[self.startIndex+ self.stepIndex][self.header.index("close")]
-
+        
         self.openTradeDir = 0
-        
-        
-        self.startAsk = self.data[self.startIndex+ self.stepIndex,self.header.index("ask")]
-        self.startBid = self.data[self.startIndex+ self.stepIndex,self.header.index("bid")]
+        self.stateMultiplyer = None
+        self.stateMultiplyer = self.getStateMultiplyer(self.getRawState())
+        self.startAsk = self.data[self.startIndex+ self.stepIndex,self.header.index("ask")] * self.stateMultiplyer
+        self.startBid = self.data[self.startIndex+ self.stepIndex,self.header.index("bid")] * self.stateMultiplyer
         self.slval = 0.02
         self.tkval = 0.02
         self.openTradeAsk = None
@@ -274,12 +281,26 @@ class ForexEnv(gym.Env):
         return state , reward , done ,data
 
     def getRawState(self):
-        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+99)]
+        if (self.stateMultiplyer is None):
+            self.stateMultiplyer = 1.0
+        state = self.data[self.startIndex+self.stepIndex:(self.startIndex+self.stepIndex+99)] * self.stateMultiplyer
         return state
+
+    def getStateMultiplyer(self,state):
+        stateOpenCloseHighLow= state[-11:,:4]/self.startClose
+        maxItem = np.amax(stateOpenCloseHighLow)
+        minItem = np.amin(stateOpenCloseHighLow)
+        slNow = math.floor(( maxItem - minItem)* 10000)/10000.0
+        if slNow == 0:
+            return 1.0
+        sltkval = 0.02/slNow
+        return sltkval
+
 
     def getState(self):
         state = self.getRawState()[:,:6]
-       
+        
+
 
         actions = np.zeros((99,5),dtype=np.float32)
         #sep = np.zeros((99,1),dtype=np.float32)
@@ -322,8 +343,8 @@ class ForexEnv(gym.Env):
             return
         self.slval,self.tkval = self.calculateSlTk()
         self.openTradeDir = 1
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")] * self.stateMultiplyer
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")] * self.stateMultiplyer
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeAsk,1)
 
@@ -333,13 +354,13 @@ class ForexEnv(gym.Env):
             return
         self.slval,self.tkval = self.calculateSlTk()
         self.openTradeDir = 2
-        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
-        self.openTradeBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
+        self.openTradeAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")] * self.stateMultiplyer
+        self.openTradeBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")] * self.stateMultiplyer
         self.startTradeStep = self.stepIndex
         self.stopLoss = self.calculateStopLoss(self.openTradeBid,2)
 
     def calculateSlTk(self):
-        stateOpenCloseHighLow = self.data[self.startIndex+self.stepIndex:self.startIndex+self.stepIndex+99,:]
+        stateOpenCloseHighLow = self.data[self.startIndex+self.stepIndex:self.startIndex+self.stepIndex+99,:] * self.stateMultiplyer
         stateOpenCloseHighLow = stateOpenCloseHighLow[-11:,:4]/self.startClose
         maxItem = np.amax(stateOpenCloseHighLow)
         minItem = np.amin(stateOpenCloseHighLow)
@@ -350,13 +371,13 @@ class ForexEnv(gym.Env):
     def closeUpTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 2:
             return 0.0
-        currentBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
+        currentBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")] * self.stateMultiplyer
         reward =  ((currentBid - self.openTradeAsk)/self.startClose)/2.0
 
         if self.stopTrade:
-            currentAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
-            currentHigh = self.data[self.startIndex+self.stepIndex+98,self.header.index("high")]
-            currentLow = self.data[self.startIndex+self.stepIndex+98,self.header.index("low")]
+            currentAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")] * self.stateMultiplyer
+            currentHigh = self.data[self.startIndex+self.stepIndex+98,self.header.index("high")] * self.stateMultiplyer
+            currentLow = self.data[self.startIndex+self.stepIndex+98,self.header.index("low")] * self.stateMultiplyer
             spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
             high = currentHigh / self.startClose
             low = currentLow /self.startClose
@@ -379,12 +400,12 @@ class ForexEnv(gym.Env):
     def closeDownTrade(self):
         if  self.openTradeDir == 0 or self.openTradeDir == 1:
             return 0.0
-        currentAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")]
+        currentAsk = self.data[self.startIndex+self.stepIndex+98,self.header.index("ask")] * self.stateMultiplyer
         reward =  ((self.openTradeBid - currentAsk)/self.startClose)/2.0
         if self.stopTrade:
-            currentBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")]
-            currentHigh = self.data[self.startIndex+self.stepIndex+98,self.header.index("high")]
-            currentLow = self.data[self.startIndex+self.stepIndex+98,self.header.index("low")]
+            currentBid = self.data[self.startIndex+self.stepIndex+98,self.header.index("bid")] * self.stateMultiplyer
+            currentHigh = self.data[self.startIndex+self.stepIndex+98,self.header.index("high")] * self.stateMultiplyer
+            currentLow = self.data[self.startIndex+self.stepIndex+98,self.header.index("low")] * self.stateMultiplyer
             spread = (currentAsk/self.startClose) - (currentBid/self.startClose)
             high = currentHigh / self.startClose
             low = currentLow /self.startClose
